@@ -211,7 +211,7 @@ function form_actions() {
 			}
 		}
 
-		header('Location: package_import.php?package_location=' . $package_location . '&header=false');
+		header('Location: package_import.php?package_location=' . $package_location);
 		exit;
 	}
 
@@ -415,20 +415,6 @@ function form_save() {
 
 		if (isset_request_var('trust_signer') && get_nfilter_request_var('trust_signer') == 'on') {
 			import_validate_public_key($xmlfile, true);
-		} else {
-			$info = package_validate_signature($xmlfile);
-
-			if ($info == false) {
-				raise_message('verify_warning', __('Unable to obtain the public key for this package.  Contact the package author to receive a new package.'), MESSAGE_LEVEL_ERROR);
-
-				header('Location: package_import?package_location=0');
-				exit;
-			} elseif ($info['valid'] === false) {
-				raise_message('verify_warning', __('You have not Trusted this Package Author \'%s\'.  If you wish to import, check the Automatically Trust Author checkbox.  Otherwise, feel free to reach the author at the following Email address \'%s\'.', $info['author'], $info['email']), MESSAGE_LEVEL_ERROR);
-
-				header('Location: package_import?package_location=0');
-				exit;
-			}
 		}
 
 		if (get_filter_request_var('data_source_profile') == '0') {
@@ -441,8 +427,10 @@ function form_save() {
 
 		if (get_nfilter_request_var('preview_only') == 'on') {
 			$preview_only = true;
-		} else {
+		} elseif (get_nfilter_request_var('import_confirmed') == 'on') {
 			$preview_only = false;
+		} else {
+			$preview_only = true;
 		}
 
 		if (isset_request_var('remove_orphans') && get_nfilter_request_var('remove_orphans') == 'on') {
@@ -565,7 +553,7 @@ function package_file_get_contents($package_location, $package_file, $filename) 
 
 		file_put_contents($xmlfile, $_SESSION['sess_import_package']);
 
-		$data = import_read_package_data($xmlfile, $binary_signature);
+		$data = import_read_package_data($xmlfile, $binary_signature, true);
 
 		if (isset($data['publickey'])) {
 			$public_key = base64_decode($data['publickey'], true);
@@ -621,7 +609,7 @@ function package_file_get_contents($package_location, $package_file, $filename) 
 				AND email_address = ?',
 				array($author, $homepage, $email));
 
-			$data = import_read_package_data($xmlfile, $binary_signature, $public_key);
+			$data = import_read_package_data($xmlfile, $binary_signature, true);
 
 			$fdata = false;
 
@@ -696,59 +684,73 @@ function package_diff_file() {
 }
 
 function package_verify_key() {
-	$package_ids      = get_filter_request_var('package_ids', FILTER_VALIDATE_IS_NUMERIC_LIST);
 	$package_location = get_filter_request_var('package_location');
-
-	$repo = json_decode(get_repo_manifest_file($package_location), true);
-
-	$manifest = $repo['manifest'];
 
 	$failed = array();
 
-	if ($package_ids != '') {
-		$package_ids = explode(',', $package_ids);
+	if ($package_location > 0) {
+		$package_ids = get_filter_request_var('package_ids', FILTER_VALIDATE_IS_NUMERIC_LIST);
 
-		foreach($package_ids as $package_id) {
-			$filename     = $manifest[$package_id]['filename'];
-			$package_name = $manifest[$package_id]['name'];
+		$repo = json_decode(get_repo_manifest_file($package_location), true);
 
-			$data = get_repo_file($package_location, $filename, true);
+		$manifest = $repo['manifest'];
 
-			if ($data !== false) {
-				$tmp_dir = sys_get_temp_dir() . '/package' . $_SESSION[SESS_USER_ID];
+		if ($package_ids != '') {
+			$package_ids = explode(',', $package_ids);
 
-				if (!is_dir($tmp_dir)) {
-					mkdir($tmp_dir);
+			foreach($package_ids as $package_id) {
+				$filename     = $manifest[$package_id]['filename'];
+				$package_name = $manifest[$package_id]['name'];
+
+				$data = get_repo_file($package_location, $filename, true);
+
+				if ($data !== false) {
+					$tmp_dir = sys_get_temp_dir() . '/package' . $_SESSION[SESS_USER_ID];
+
+					if (!is_dir($tmp_dir)) {
+						mkdir($tmp_dir);
+					}
+
+					$xmlfile = $tmp_dir . '/' . $filename;
+
+					file_put_contents($xmlfile, $data);
+
+					$info = import_validate_signature($xmlfile);
+
+					if ($info === false || $info['valid'] === false) {
+						$failed[$package_name] = $info;
+					}
+
+					unlink($xmlfile);
+				} else {
+					print json_encode(
+						array(
+							'title'   => __('Repo File Missing or Damaged'),
+							'message' => __('The Repo \'%s\' is NOT Reachable at the URL Location in the package.manifest.', $package_name),
+							'header'  => __('Something is wrong with your Package Repository'),
+							'status'  => 'fileerror'
+						)
+					);
+
+					exit;
 				}
-
-				$xmlfile = $tmp_dir . '/' . $filename;
-
-				file_put_contents($xmlfile, $data);
-
-				$info = package_validate_signature($xmlfile);
-
-				if ($info === false || $info['valid'] === false) {
-					$failed[$package_name] = $info;
-				}
-
-				unlink($xmlfile);
-			} else {
-				print json_encode(
-					array(
-						'title'   => __('Repo File Missing or Damaged'),
-						'message' => __('The Repo \'%s\' is NOT Reachable at the URL Location in the package.manifest.', $package_name),
-						'header'  => __('Something is wrong with your Package Repository'),
-						'status'  => 'fileerror'
-					)
-				);
-
-				exit;
 			}
 		}
+	} elseif (isset($_SESSION['sess_import_package'])) {
+		$xmlfile = sys_get_temp_dir() . '/package_import_' . rand();
+
+		file_put_contents($xmlfile, $_SESSION['sess_import_package']);
+		$vsig  = import_validate_signature($xmlfile);
+
+		if ($vsig === false || empty($vsig['valid'])) {
+			$failed[$vsig['name']] = $vsig;
+		}
+
+		unlink($xmlfile);
 	}
 
 	if (cacti_sizeof($failed)) {
-		$message = __('The Signature for one or more packages is not Trusted.<br>');
+		$message = __('There are Signature Trust issues.<br>');
 		$authors  = array();
 		$packages = array();
 
@@ -763,10 +765,10 @@ function package_verify_key() {
 		}
 
 		foreach($packages as $package) {
-			$message .= ($message != '' ? '<br>':'') . __('<b>Package</b> %s', $package);
+			$message .= ($message != '' ? '<br>':'') . __('<b>Package:</b> %s', $package);
 		}
 
-		$message .= '<br><br>' . __('Press \'Ok\' to start Trusting the Signer, or escape to cancel.');
+		$message .= '<br><br>' . __('Press \'Ok\' to start Trusting the Signer.  Press \'Cancel\' or hit escape to Cancel.');
 
 		print json_encode(
 			array(
@@ -787,44 +789,55 @@ function package_verify_key() {
 }
 
 function package_accept_key() {
-	$package_ids      = get_filter_request_var('package_ids', FILTER_VALIDATE_IS_NUMERIC_LIST);
 	$package_location = get_filter_request_var('package_location');
 
-	$repo = json_decode(get_repo_manifest_file($package_location), true);
+	if ($package_location > 0) {
+		$package_ids = get_filter_request_var('package_ids', FILTER_VALIDATE_IS_NUMERIC_LIST);
 
-	$manifest = $repo['manifest'];
+		$repo = json_decode(get_repo_manifest_file($package_location), true);
 
-	$failed = array();
+		$manifest = $repo['manifest'];
 
-	if ($package_ids != '') {
-		$package_ids = explode(',', $package_ids);
+		$failed = array();
 
-		foreach($package_ids as $package_id) {
-			$filename     = $manifest[$package_id]['filename'];
-			$package_name = $manifest[$package_id]['name'];
+		if ($package_ids != '') {
+			$package_ids = explode(',', $package_ids);
 
-			$data = get_repo_file($package_location, $filename, true);
+			foreach($package_ids as $package_id) {
+				$filename     = $manifest[$package_id]['filename'];
+				$package_name = $manifest[$package_id]['name'];
 
-			if ($data !== false) {
-				$tmp_dir = sys_get_temp_dir() . '/package' . $_SESSION[SESS_USER_ID];
+				$data = get_repo_file($package_location, $filename, true);
 
-				if (!is_dir($tmp_dir)) {
-					mkdir($tmp_dir);
+				if ($data !== false) {
+					$tmp_dir = sys_get_temp_dir() . '/package' . $_SESSION[SESS_USER_ID];
+
+					if (!is_dir($tmp_dir)) {
+						mkdir($tmp_dir);
+					}
+
+					$xmlfile = $tmp_dir . '/' . $filename;
+
+					file_put_contents($xmlfile, $data);
+
+					import_validate_public_key($xmlfile, true);
+
+					unlink($xmlfile);
+				} else {
+					raise_message('repo_missing', __('The Repo \'%s\' is NOT Reachable at the URL Location or the package.manifest file is missing.', $repo['name']), MESSAGE_LEVEL_WARN);
+					header('Location: package_import.php');
+					exit;
 				}
-
-				$xmlfile = $tmp_dir . '/' . $filename;
-
-				file_put_contents($xmlfile, $data);
-
-				import_validate_public_key($xmlfile, true);
-
-				unlink($xmlfile);
-			} else {
-				raise_message('repo_missing', __('The Repo \'%s\' is NOT Reachable at the URL Location or the package.manifest file is missing.', $repo['name']), MESSAGE_LEVEL_WARN);
-				header('Location: package_import.php');
-				exit;
 			}
 		}
+	} elseif (isset($_SESSION['sess_import_package'])) {
+		$xmlfile = sys_get_temp_dir() . '/package_import_' . rand();
+
+		file_put_contents($xmlfile, $_SESSION['sess_import_package']);
+
+		import_validate_public_key($xmlfile, true);
+
+		unlink($xmlfile);
 	}
 }
 
@@ -985,43 +998,6 @@ function import_validate_public_key($xmlfile, $accept = false) {
 	}
 
 	return false;
-}
-
-function package_validate_signature($xmlfile) {
-	global $config;
-
-	// Cacti public key first
-	$cacti_key1   = get_public_key_sha1();
-	$cacti_key2   = get_public_key_sha256();
-
-	$package_key = import_package_get_public_key($xmlfile);
-
-	$info = get_package_info($xmlfile);
-
-	if ($info === false) {
-		return false;
-	} else {
-		if (!isset($info['pubkey'])) {
-			return false;
-		}
-
-		// Other trusted keys next
-		$keys = array_rekey(
-			db_fetch_assoc('SELECT public_key FROM package_public_keys'),
-			'public_key', 'public_key'
-		);
-
-		$keys[$cacti_key1] = $cacti_key1;
-		$keys[$cacti_key2] = $cacti_key2;
-
-		if (in_array($package_key, $keys, true)) {
-			$info['valid'] = true;
-		} else {
-			$info['valid'] = false;
-		}
-
-		return $info;
-	}
 }
 
 function import_display_package_data($templates, $files, $package_name, $filename, $data, $multipackage = true) {
@@ -1295,7 +1271,7 @@ function import_display_package_data($templates, $files, $package_name, $filenam
 			makePackagesClickable();
 		}
 
-		$('.diffme').click(function(event) {
+		$('.diffme').off('click').on('click', function(event) {
 			event.preventDefault();
 
 			var url = $(this).attr('href');
@@ -1324,29 +1300,24 @@ function validate_request_vars() {
 
 	/* ================= input validation and session storage ================= */
 	$filters = array(
-		'preview_only' => array(
-			'filter' => FILTER_VALIDATE_REGEXP,
-			'options' => array('options' => array('regexp' => '(on|true|false)')),
-			'default' => 'on'
-		),
 		'replace_svalues' => array(
 			'filter' => FILTER_VALIDATE_REGEXP,
 			'options' => array('options' => array('regexp' => '(on|true|false)')),
-			'default' => 'on'
+			'default' => read_config_option('replace_svalues')
 		),
 		'remove_orphans' => array(
 			'filter' => FILTER_VALIDATE_REGEXP,
 			'options' => array('options' => array('regexp' => '(on|true|false)')),
-			'default' => 'on'
+			'default' => read_config_option('remove_orphans')
 		),
 		'trust_signer' => array(
 			'filter' => FILTER_VALIDATE_REGEXP,
 			'options' => array('options' => array('regexp' => '(on|true|false)')),
-			'default' => 'on'
+			'default' => read_config_option('trust_signer')
 		),
 		'package_location' => array(
 			'filter' => FILTER_VALIDATE_INT,
-			'default' => '0'
+			'default' => read_config_option('package_location')
 		),
 		'data_source_profile' => array(
 			'filter' => FILTER_VALIDATE_INT,
@@ -1525,6 +1496,8 @@ function get_default_profile() {
 function package_import() {
 	global $actions, $hash_type_names, $device_classes;
 
+	validate_request_vars();
+
 	$display_hideme = false;
 
 	$default = db_fetch_cell('SELECT id
@@ -1605,11 +1578,11 @@ function package_import() {
 		html_end_box(true, true);
 
 		form_hidden_box('save_component_import', '1', '');
-		form_hidden_box('preview_only', 'on', '');
-
-		print "<div id='contents'></div>";
+		form_hidden_box('import_confirmed', '', '');
 
 		form_save_button('', 'import', 'import', false);
+
+		print "<div id='contents'></div>";
 
 		form_dialog_box();
 	} else {
@@ -1635,7 +1608,7 @@ function package_import() {
 
 		html_end_box(true, true);
 
-		html_start_box(__('Repository Based Package Import'), '100%', false, '3', 'center', '');
+		html_start_box(__('Repository Based Package Import'), '100%', '', '3', 'center', '');
 
 		$display_text = array(
 			'name' => array(
@@ -1705,10 +1678,10 @@ function package_import() {
 			print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text)+1) . "'><em>" . __('No Packages Found') . '</em></td></tr>';
 		}
 
-		html_end_box(true, true);
+		html_end_box(true);
 
 		form_hidden_box('save_component_import', '1', '');
-		form_hidden_box('preview_only', 'on', '');
+		form_hidden_box('import_confirmed', '', '');
 
 		draw_actions_dropdown($actions);
 	}
@@ -1716,6 +1689,7 @@ function package_import() {
 	?>
 	<div id='contents'></div>
 	<div id='dialog'></div>
+
 	<script type='text/javascript'>
 	function switchRepo() {
 		var package_location    = $('#package_location').val();
@@ -1728,8 +1702,7 @@ function package_import() {
 		var graph_height        = $('#graph_height').val();
 
 		var strURL = urlPath + 'package_import.php' +
-			'?header=false'                                         +
-			'&package_location='  + package_location                +
+			'?package_location='  + package_location                +
 			'&remove_orphans='    + remove_orphans                  +
 			'&replace_svalues='   + replace_svalues                 +
 			'&import_dsp='        + data_source_profile             +
@@ -1772,7 +1745,7 @@ function package_import() {
 			checks += (checks != '' ? ',':'') + $(this).attr('id').replace('chk_package_', '');
 		});
 
-		if (checks != '') {
+		if (checks != '' || $('#package_location').val() == 0) {
 			$.getJSON('package_import.php?action=verify'               +
 				'&package_location=' + $('#package_location').val() +
 				'&package_ids='      + checks, function(data) {
@@ -1791,10 +1764,16 @@ function package_import() {
 						maxHeight: '400px',
 						modal: true,
 						buttons: {
+							Cancel: function() {
+								$(this).dialog('close');
+							},
 							Ok: function() {
 								$('#import_dialog').dialog('close');
 								trustSigner();
-								packagesChanged();
+
+								if ($('#package_location').val() != '0') {
+									packagesChanged();
+								}
 							}
 						}
 					});
@@ -1807,11 +1786,11 @@ function package_import() {
 					};
 
 					displayMessages();
-				} else {
+				} else if ($('#package_location').val() != '0') {
 					packagesChanged();
 				}
 			});
-		} else {
+		} else if ($('#package_location').val() != '0') {
 			$('#contents').empty();
 		}
 	}
@@ -1823,18 +1802,16 @@ function package_import() {
 			checks += (checks != '' ? ',':'') + $(this).attr('id').replace('chk_package_', '');
 		});
 
-		if (checks != '') {
+		if (checks != '' || $('#package_location').val() == 0) {
 			$.getJSON('package_import.php?action=accept'               +
 				'&package_location='    + $('#package_location').val() +
 				'&package_ids='         + checks, function(data) {
 			});
-		} else {
-			$('#contents').empty();
 		}
 	}
 
 	function makePackagesClickable() {
-		$('#package_import3_child').find('tr[id^="line"]').click(function() {
+		$('#package_import3_child').find('tr[id^="line"]').on('click', function() {
 			if (checkSigner()) {
 				packagesChanged($(this));
 			}
@@ -1844,27 +1821,31 @@ function package_import() {
 	$(function() {
 		refreshMSeconds = 9999999;
 
-		$('#package_location, #package_class').change(function() {
+		$('#package_location').off('change').on('change', function() {
 			switchRepo();
 		});
 
-		$('#import_file').change(function() {
+		$('#import_file').off('change').on('change', function() {
 			var form = $('#import')[0];
 			var data = new FormData(form);
-			var formExtra = '?package_location=0&preview_only=on';
-
-			$('#preview_only').val('on');
+			var formExtra = '?action=upload&package_location=0&preview_only=on';
 
 			if ($('#remove_orphans').is(':checked')) {
 				formExtra += '&remove_orphans=on';
+			} else {
+				formExtra += '&remove_orphans=';
 			}
 
 			if ($('#replace_svalues').is(':checked')) {
 				formExtra += '&replace_svalues=on';
+			} else {
+				formExtra += '&replace_svalues=';
 			}
 
 			if ($('#trust_signer').is(':checked')) {
 				formExtra += '&trust_signer=on';
+			} else {
+				formExtra += '&trust_signer=';
 			}
 
 			Pace.start();
@@ -1887,11 +1868,13 @@ function package_import() {
 
 					$('#contents').html(data);
 
-					$('#preview_only').val('');
+					$('#import_confirmed').val('on');
 
 					Pace.stop();
+
+					checkSigner()
 				},
-				error: function (e) {
+				error: function (event) {
 					if ($('#contents').length == 0) {
 						$('#main').append('<div id="contents"></div>');
 					} else {
@@ -1912,6 +1895,18 @@ function package_import() {
 				packagesChanged();
 			}
 		});
+
+		$('.import_label').button();
+		$('.import_button').change(function() {
+			text=this.value;
+			setImportFile(text);
+		});
+
+		setImportFile(noFileSelected);
+
+		function setImportFile(fileText) {
+			$('.import_text').text(fileText);
+		}
 	});
 	</script>
 	<?php

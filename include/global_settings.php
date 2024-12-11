@@ -607,7 +607,7 @@ $settings['general'] = array(
 		'default'       => '',
 	),
 	'packaging_spacer' => array(
-		'friendly_name' => __('Packaging Defaults'),
+		'friendly_name' => __('Package Creation Defaults'),
 		'method'        => 'spacer',
 		'collapsible'   => 'true'
 	),
@@ -633,6 +633,35 @@ $settings['general'] = array(
 		'method'        => 'drop_array',
 		'default'       => 'GNU General Public License',
 		'array'         => $copyrights,
+	),
+	'packaging_import_spacer' => array(
+		'friendly_name' => __('Package/Template Import Defaults'),
+		'method'        => 'spacer',
+		'collapsible'   => 'true'
+	),
+	'package_location' => array(
+		'friendly_name' => __('Package Location'),
+		'description'   => __('Select the Location of the Packages that you wish to Import.'),
+		'method'        => 'drop_array',
+		'array'         => array()
+	),
+	'trust_signer' => array(
+		'friendly_name' => __('Automatically Trust Signer'),
+		'description'   => __('If checked, Cacti will automatically Trust the Signer for this and any future Packages by that author.'),
+		'method'        => 'checkbox',
+		'default'       => ''
+	),
+	'remove_orphans' => array(
+		'friendly_name' => __('Remove Orphaned Graph Items'),
+		'description'   => __('If checked, Cacti will delete any Graph Items from both the Graph Template and associated Graphs that are not included in the imported Graph Template.'),
+		'method'        => 'checkbox',
+		'default'       => 'on'
+	),
+	'replace_svalues' => array(
+		'friendly_name' => __('Replace Suggested Value Patterns'),
+		'description'   => __('Replace Data Source and Graph Template Suggested Value Records.  Graphs and Data Sources will take on new names after either a Data Query Reindex or by using the forced Replace Suggested Values process.'),
+		'method'        => 'checkbox',
+		'default'       => 'on'
 	),
 	'security_header' => array(
 		'friendly_name' => __('Site Security'),

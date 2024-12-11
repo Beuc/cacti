@@ -146,6 +146,20 @@ function display_settings() {
 		unset($settings['path']['logrotate_retain']);
 	}
 
+	if ($current_tab == 'general') {
+		$repos = array_rekey(
+			db_fetch_assoc('SELECT id, name
+				FROM package_repositories
+				WHERE enabled = "on"
+				ORDER BY name'),
+			'id', 'name'
+		);
+
+		$repos[0] = __('Local Package File');
+
+		$settings['general']['package_location']['array'] = $repos;
+	}
+
 	// RRDtool is not required for remote data collectors
 	if ($config['poller_id'] > 1) {
 		$settings['path']['path_rrdtool']['method'] = 'other';

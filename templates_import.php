@@ -398,12 +398,12 @@ function import() {
 		'replace_svalues' => array(
 			'filter'  => FILTER_VALIDATE_REGEXP,
 			'options' => array('options' => array('regexp' => '(true|false)')),
-			'default' => ''
+			'default' => read_config_option('replace_svalues')
 		),
 		'remove_orphans' => array(
 			'filter'  => FILTER_VALIDATE_REGEXP,
 			'options' => array('options' => array('regexp' => '(true|false)')),
-			'default' => ''
+			'default' => read_config_option('remove_orphans')
 		),
 		'data_source_profile' => array(
 			'filter'  => FILTER_VALIDATE_INT,

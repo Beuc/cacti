@@ -391,12 +391,48 @@ function import_package_get_details($xmlfile) {
 	return $return;
 }
 
-function import_read_package_data($xmlfile, &$public_key) {
+function import_validate_signature($xmlfile) {
+	global $config;
+
+	// Cacti public key first
+	$cacti_key1   = get_public_key_sha1();
+	$cacti_key2   = get_public_key_sha256();
+	$public_key   = import_package_get_public_key($xmlfile);
+
+	$info = get_package_info($xmlfile);
+
+	if ($info === false) {
+		return false;
+	} else {
+		if (!isset($info['pubkey'])) {
+			return false;
+		}
+
+		// Other trusted keys next
+		$keys = array_rekey(
+			db_fetch_assoc('SELECT public_key FROM package_public_keys'),
+			'public_key', 'public_key'
+		);
+
+		$keys[$cacti_key1] = $cacti_key1;
+		$keys[$cacti_key2] = $cacti_key2;
+
+		if (in_array($public_key, $keys, true)) {
+			$info['valid'] = true;
+		} else {
+			$info['valid'] = false;
+		}
+
+		return $info;
+	}
+}
+
+function import_read_package_data($xmlfile, &$public_key, $preview = false) {
 	$public_key = import_package_get_public_key($xmlfile);
 
 	$filename = "compress.zlib://$xmlfile";
 
-	if (!is_cacti_public_key($public_key)) {
+	if (!import_validate_signature($xmlfile) && !$preview) {
 		cacti_log('FATAL: Package Public Key is not Official Cacti Public Key for Package ' . $filename, true, 'IMPORT', POLLER_VERBOSITY_LOW);
 		return false;
 	}
@@ -500,7 +536,7 @@ function import_package($xmlfile, $profile_id = 1, $remove_orphans = false, $rep
 		ini_set('memory_limit', '-1');
 	}
 
-	$data = import_read_package_data($xmlfile, $public_key);
+	$data = import_read_package_data($xmlfile, $public_key, $preview);
 
 	if (!$data) {
 		return false;
