@@ -1010,23 +1010,23 @@ function import_display_package_data($templates, $files, $package_name, $filenam
 
 		$display_text = array(
 			array(
-				'display' => __('Author'),
+				'display' => __('Device Class')
 			),
 			array(
-				'display' => __('Homepage'),
+				'display' => __('Version'),
+			),
+			array(
+				'display' => __('Copyright')
+			),
+			array(
+				'display' => __('Author'),
 			),
 			array(
 				'display' => __('Email')
 			),
 			array(
-				'display' => __('Device Class')
+				'display' => __('Homepage'),
 			),
-			array(
-				'display' => __('Version')
-			),
-			array(
-				'display' => __('Copyright')
-			)
 		);
 
 		html_header($display_text);
@@ -1034,9 +1034,6 @@ function import_display_package_data($templates, $files, $package_name, $filenam
 		$id = 99;
 
 		form_alternate_row('line_' . $id);
-		form_selectable_cell($details['author'], $id);
-		form_selectable_cell($details['homepage'], $id);
-		form_selectable_cell($details['email'], $id);
 
 		if (isset($details['class']) && array_key_exists($details['class'], $device_classes)) {
 			form_selectable_cell($device_classes[$details['class']], $id);
@@ -1044,8 +1041,13 @@ function import_display_package_data($templates, $files, $package_name, $filenam
 			form_selectable_cell(__('Unknown'), $id);
 		}
 
-		form_selectable_cell($details['version'], $id);
+		form_selectable_cell($details['version'], $id, '', 'center');
 		form_selectable_cell($details['copyright'], $id);
+
+		form_selectable_cell($details['author'], $id);
+		form_selectable_cell($details['email'], $id);
+		form_selectable_cell($details['homepage'], $id);
+
 		form_end_row();
 
 		html_end_box();
@@ -1614,21 +1616,20 @@ function package_import() {
 			'name' => array(
 				'display' => __('Name'),
 			),
-			'author' => array(
-				'display' => __('Author'),
-			),
 			'class' => array(
 				'display' => __('Class'),
+			),
+			'version' => array(
+				'display' => __('Version'),
 			),
 			'copyright' => array(
 				'display' => __('Copyright'),
 			),
-			'description' => array(
-				'display' => __('Description'),
+			'author' => array(
+				'display' => __('Author'),
 			),
-			'version' => array(
-				'display' => __('Default'),
-				'align'   => 'right',
+			'email' => array(
+				'display' => __('Email'),
 			),
 		);
 
@@ -1663,11 +1664,11 @@ function package_import() {
 				}
 
 				form_selectable_cell($repo['name'], $subid);
-				form_selectable_cell($repo['metadata']['author'], $subid);
 				form_selectable_cell($class, $subid);
+				form_selectable_cell($repo['metadata']['version'], $subid);
 				form_selectable_cell($copyright, $subid);
-				form_selectable_cell($repo['metadata']['description'], $subid);
-				form_selectable_cell($repo['metadata']['version'], $subid, '', 'right');
+				form_selectable_cell($repo['metadata']['author'], $subid);
+				form_selectable_cell($repo['metadata']['email'], $subid);
 				form_checkbox_cell($repo['name'], $subid);
 
 				form_end_row();
