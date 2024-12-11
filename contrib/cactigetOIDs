@@ -1,4 +1,6 @@
-#--------------------------------------------------------------------------
+#!/bin/bash
+
+#---------------------------------------------------------------------------
 # Copyright (C) 2004-2024 Dennis Lloyd
 #
 # This program is free software; you can redistribute it and/or
@@ -10,26 +12,57 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------------
 # Made for Cacti: The Complete RRDtool-based Graphing Solution
-#--------------------------------------------------------------------------
+#---------------------------------------------------------------------------
 # Designed to be used on *nix systems but *may* work with cygwin with
 # some modifications. Feel free to modify.
-#--------------------------------------------------------------------------
-# Usage and examples:
+#---------------------------------------------------------------------------
+# Usage:
+# To run the script, use the following command:
 # sudo chmod +x getcactiOID
+# sudo ./getcactiOID [--tmatch=PATTERN]
+#
+# The --tmatch option allows you to filter templates by a specific pattern.
+# If not provided, you will be prompted to enter a template match pattern.
+# The pattern can include alphanumeric characters, % (wildcard), and _ (underscore).
+#
+# Examples:
+# sudo ./getcactiOID --tmatch=template_name
 # sudo ./getcactiOID
-#--------------------------------------------------------------------------
+#
+# This script will connect to a Cacti database, retrieve host templates,
+# and allow you to select a template to work with.
+#---------------------------------------------------------------------------
 
-#!/bin/bash
 clear
 # Read the configuration file paths
 CONF_FILE="/var/www/html/cacti/include/config.php"
 HOST_FILE="getOID.hosts"
 
-# Prompt for template match pattern
-echo -n "Enter template match pattern (can include regex like ^ and %): "
-read TEMPLATE_MATCH
+# Check for command-line argument prefixed with --tmatch and validate it
+TEMPLATE_MATCH=""
+for arg in "$@"; do
+    if [[ "$arg" == --tmatch* ]]; then
+        TEMPLATE_MATCH="${arg#*=}"  # Extract value after '='
+        # Validate the input: must be alphanumeric, % or _
+        if [[ ! "$TEMPLATE_MATCH" =~ ^[a-zA-Z0-9%_]+$ ]]; then
+            echo "Error: TEMPLATE_MATCH can only contain alphanumeric characters, % and _."
+            exit 1
+        fi
+    fi
+done
+
+if [ -z "$TEMPLATE_MATCH" ]; then
+    # Prompt for template match pattern if not provided on the command line
+    echo -n "Enter template match pattern (can use simple pattern matching with %): "
+    read TEMPLATE_MATCH
+    # Validate the input
+    if [[ ! "$TEMPLATE_MATCH" =~ ^[a-zA-Z0-9%_]+$ ]]; then
+        echo "Error: TEMPLATE_MATCH can only contain alphanumeric characters, % and _."
+        exit 1
+    fi
+fi
 
 # Escape special characters for MySQL LIKE pattern
 TEMPLATE_MATCH_ESCAPED=$(echo "$TEMPLATE_MATCH" | sed 's/[%_]/\\&/g')
@@ -60,20 +93,22 @@ while true; do
         exit 1
     fi
 
-    # Display the template list and prompt for a selection
-    echo "Available Template IDs matching the filter: $TEMPLATE_MATCH"
-    echo "-----------------------------"
-    echo "Index	ID	Template Name"
-    echo "-----------------------------"
-
-    INDEX=1
+    # Clear the arrays before populating them
+    unset TEMPLATE_IDS TEMPLATE_NAMES
     declare -a TEMPLATE_IDS
     declare -a TEMPLATE_NAMES
 
+    # Display the template list and prompt for a selection
+    echo "Available Template IDs matching the filter: $TEMPLATE_MATCH"
+    echo "-----------------------------"
+    echo "Choice	(ID)	Template Name"
+    echo "-----------------------------"
+
+    INDEX=1
     while IFS=$'\t' read -r TEMPLATE_ID TEMPLATE_NAME; do
         TEMPLATE_IDS+=("$TEMPLATE_ID")
         TEMPLATE_NAMES+=("$TEMPLATE_NAME")
-        echo "$INDEX	$TEMPLATE_ID	$TEMPLATE_NAME"
+        echo "$INDEX	($TEMPLATE_ID)	$TEMPLATE_NAME"
         ((INDEX++))
     done <<< "$TEMPLATE_LIST"
 
@@ -81,8 +116,8 @@ while true; do
     echo "0. Exit"
     echo "-------------------------------------------------------------"
 
-    # Prompt user to choose a template_id
-    echo -n "Please choose a template_id (0 to exit, 1-${#TEMPLATE_IDS[@]}): "
+    # Prompt user to choose a template_index
+    echo -n "Please choose an ID from \"Choice\" (0 to exit, 1-${#TEMPLATE_IDS[@]}): "
     read choice
 
     # Check for exit choice
@@ -92,11 +127,11 @@ while true; do
     fi
 
     # Validate the user's input
-    if [[ ! "$choice" =~ ^[0-9]+$ ]] || [ "$choice" -lt 1 ] || [ "$choice" -gt "${#TEMPLATE_IDS[@]}" ]]; then
-        echo "Invalid choice. Exiting."
-        exit 1
+    if [[ ! "$choice" =~ ^[0-9]+$ ]] || [ "$choice" -lt 1 ] || [ "$choice" -gt "${#TEMPLATE_IDS[@]}" ]; then
+        clear
+        echo "Invalid choice. Please enter a number between 1 and ${#TEMPLATE_IDS[@]}."
+        continue
     fi
-
     # Get the selected template_id and template_name
     SELECTED_TEMPLATE_ID="${TEMPLATE_IDS[$((choice-1))]}"
     SELECTED_TEMPLATE_NAME="${TEMPLATE_NAMES[$((choice-1))]}"
