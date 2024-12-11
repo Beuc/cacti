@@ -722,6 +722,91 @@ function import_package($xmlfile, $profile_id = 1, $remove_orphans = false, $rep
 		}
 	}
 
+	/* update template data with the information from the package if it's not already set
+	 * through import.  This is mainly for legacy templates
+	 */
+	if (!$preview) {
+		foreach ($data['files']['file'] as $f) {
+			$fdata = base64_decode($f['data'], true);
+			$name  = $f['name'];
+
+			if (isset($f['type']) && $f['type'] == 'template') {
+				$template_data = xml2array($fdata);
+
+				if (cacti_sizeof($template_data)) {
+					foreach($template_data as $hash => $tdata) {
+						$parsed_hash = parse_xml_hash($hash);
+
+						if ($parsed_hash['type'] == 'host_template') {
+							/**
+							 * funny thing is that xml2array returns an empty string as an array and
+							 * not as a string.  We are not going to change that here as there
+							 * may be unintended consequences.
+							 */
+							$info = $data['info'];
+
+							$dt = db_fetch_row_prepared('SELECT *
+								FROM host_template
+								WHERE hash = ?',
+								array($parsed_hash['hash']));
+
+							if (cacti_sizeof($dt)) {
+								$sets   = '';
+								$params = array();
+
+								if ($dt['version'] == '' && $info['version'] != '' && !is_array($info['version'])) {
+									$sets .= ($sets != '' ? ', ':'') . "version = ?";
+									$params[] = $info['version'];
+								}
+
+								if ($dt['class'] == '' && $info['class'] != '' && !is_array($info['class'])) {
+									$sets .= ($sets != '' ? ', ':'') . "class = ?";
+									$params[] = $info['class'];
+								}
+
+								if ($dt['author'] == '' && $info['author'] != '' && !is_array($info['author'])) {
+									$sets .= ($sets != '' ? ', ':'') . "author = ?";
+									$params[] = $info['author'];
+								}
+
+								if ($dt['email'] == '' && $info['email'] != '' && !is_array($info['email'])) {
+									$sets .= ($sets != '' ? ', ':'') . "email = ?";
+									$params[] = $info['email'];
+								}
+
+								if ($dt['copyright'] == '' && $info['copyright'] != '' && !is_array($info['copyright'])) {
+									$sets .= ($sets != '' ? ', ':'') . "copyright = ?";
+									$params[] = $info['copyright'];
+								}
+
+								if ($dt['tags'] == '' && $info['tags'] != '' && !is_array($info['tags'])) {
+									$sets .= ($sets != '' ? ', ':'') . "tags = ?";
+									$params[] = $info['tags'];
+								}
+
+								if ($dt['installation'] == '' && $info['installation'] != '' && !is_array($info['installation'])) {
+									$sets .= ($sets != '' ? ', ':'') . "installation = ?";
+
+									$params[] = $info['installation'];
+								}
+
+								if (cacti_sizeof($params)) {
+									$params[] = $dt['id'];
+
+									db_execute_prepared("UPDATE host_template
+										SET $sets
+										WHERE id = ?", $params);
+								}
+							}
+						} elseif ($parsed_hash['type'] == 'graph_template') {
+							// Reserve for potential future use
+						}
+					}
+				}
+			}
+		}
+	}
+
 	if (!$preview) {
 		cacti_log('File creation complete', false, 'IMPORT', POLLER_VERBOSITY_MEDIUM);
 	}

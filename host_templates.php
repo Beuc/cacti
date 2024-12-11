@@ -118,8 +118,8 @@ function form_save() {
 		$save['version']      = form_input_validate(get_nfilter_request_var('version'), 'version', '', false, 3);
 		$save['class']        = form_input_validate(get_nfilter_request_var('class'), 'class', '', false, 3);
 		$save['tags']         = form_input_validate(get_nfilter_request_var('tags'), 'tags', '', true, 3);
-		$save['author']       = form_input_validate(get_nfilter_request_var('author'), 'author', '', false, 3);
-		$save['email']        = form_input_validate(get_nfilter_request_var('email'), 'email', '', false, 3);
+		$save['author']       = form_input_validate(get_nfilter_request_var('author'), 'author', '', true, 3);
+		$save['email']        = form_input_validate(get_nfilter_request_var('email'), 'email', '', true, 3);
 		$save['copyright']    = form_input_validate(get_nfilter_request_var('copyright'), 'copyright', '', false, 3);
 		$save['installation'] = form_input_validate(get_nfilter_request_var('installation'), 'installation', '', true, 3);
 
@@ -951,7 +951,7 @@ function template() {
 		),
 		'ht.author' => array(
 			'display' => __('Author'),
-			'align'   => 'right',
+			'align'   => 'left',
 			'sort'    => 'ASC',
 			'tip'     => __('The author of this Device Template.')
 		),
