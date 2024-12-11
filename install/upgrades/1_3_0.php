@@ -421,6 +421,15 @@ function upgrade_to_1_3_0() {
 	$data['row_format'] = 'Dynamic';
 	db_update_table('host_template', $data);
 
+	/* provide the primary admin access to packages */
+	$admin = read_config_option('admin_user');
+
+	if ($admin > 0) {
+		db_execute_prepared('REPLACE INTO user_auth_realm
+			(realm_id, user_id)
+			VALUES (29, ?)', array($user));
+	}
+
 	db_execute("CREATE TABLE IF NOT EXISTS `user_auth_reset_hashes` (
 		`user_id` int(10) unsigned NOT NULL default '0',
 		`hash` varchar(100) NOT NULL default '',
