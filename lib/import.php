@@ -399,7 +399,7 @@ function import_validate_signature($xmlfile) {
 	$cacti_key2   = get_public_key_sha256();
 	$public_key   = import_package_get_public_key($xmlfile);
 
-	$info = get_package_info($xmlfile);
+	$info = import_get_package_info($xmlfile);
 
 	if ($info === false) {
 		return false;
@@ -425,6 +425,63 @@ function import_validate_signature($xmlfile) {
 
 		return $info;
 	}
+}
+
+function import_get_package_info($xmlfile) {
+	if (!file_exists($xmlfile)) {
+		return false;
+	}
+
+	$filename = "compress.zlib://$xmlfile";
+
+	$data = file_get_contents($filename);
+
+	if ($data != '') {
+		$name              = '';
+		$author            = '';
+		$homepage          = '';
+		$email             = '';
+		$package_keyname   = '';
+		$package_publickey = '';
+
+		$xml = xml2array($data);
+
+		if (cacti_sizeof($xml)) {
+			if (isset($xml['info']['name'])) {
+				$name = $xml['info']['name'];
+			}
+
+			if (isset($xml['info']['author'])) {
+				$author = $xml['info']['author'];
+			}
+
+			if (isset($xml['info']['homepage'])) {
+				$homepage = $xml['info']['homepage'];
+			}
+
+			if (isset($xml['info']['email'])) {
+				$email = $xml['info']['email'];
+			}
+
+			if (isset($xml['publickeyname'])) {
+				$package_keyname = $xml['publickeyname'];
+			}
+
+			if (isset($xml['publickey'])) {
+				$package_publickey = base64_decode($xml['publickey'], true);
+			}
+
+			return array(
+				'name'     => $name,
+				'author'   => $author,
+				'homepage' => $homepage,
+				'email'    => $email,
+				'pubkey'   => $package_publickey
+			);
+		}
+	}
+
+	return false;
 }
 
 function import_read_package_data($xmlfile, &$public_key, $preview = false) {
