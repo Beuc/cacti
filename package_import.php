@@ -555,11 +555,7 @@ function package_file_get_contents($package_location, $package_file, $filename) 
 
 		$data = import_read_package_data($xmlfile, $binary_signature, true);
 
-		if (isset($data['publickey'])) {
-			$public_key = base64_decode($data['publickey'], true);
-		} else {
-			$public_key = get_public_key();
-		}
+		$public_key = import_package_get_public_key($xmlfile);
 
 		$fdata = false;
 
@@ -569,9 +565,10 @@ function package_file_get_contents($package_location, $package_file, $filename) 
 
 				$fdata = base64_decode($file['data'], true);
 
-				if (strlen($public_key) < 200) {
-					$ok = openssl_verify($fdata, $binary_signature, $public_key, OPENSSL_ALGO_SHA1);
-				} else {
+				/* provide two checks against the public key */
+				$ok = openssl_verify($fdata, $binary_signature, $public_key, OPENSSL_ALGO_SHA1);
+
+				if ($ok != 1) {
 					$ok = openssl_verify($fdata, $binary_signature, $public_key, OPENSSL_ALGO_SHA256);
 				}
 
@@ -602,12 +599,7 @@ function package_file_get_contents($package_location, $package_file, $filename) 
 
 			file_put_contents($xmlfile, $data);
 
-			$public_key = db_fetch_cell_prepared('SELECT public_key
-				FROM package_public_keys
-				WHERE author = ?
-				AND homepage = ?
-				AND email_address = ?',
-				array($author, $homepage, $email));
+			$public_key = import_package_get_public_key($xmlfile);
 
 			$data = import_read_package_data($xmlfile, $binary_signature, true);
 
@@ -619,9 +611,10 @@ function package_file_get_contents($package_location, $package_file, $filename) 
 
 					$fdata = base64_decode($file['data'], true);
 
-					if (strlen($public_key < 200)) {
-						$ok = openssl_verify($fdata, $binary_signature, $public_key, OPENSSL_ALGO_SHA1);
-					} else {
+					/* provide two checks against the public key */
+					$ok = openssl_verify($fdata, $binary_signature, $public_key, OPENSSL_ALGO_SHA1);
+
+					if ($ok != 1) {
 						$ok = openssl_verify($fdata, $binary_signature, $public_key, OPENSSL_ALGO_SHA256);
 					}
 
