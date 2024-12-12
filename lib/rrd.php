@@ -4631,9 +4631,15 @@ function add_unknown_data($graph_array) {
 	/* add the cdef for unknown data */
 	if (read_config_option('graph_unknown_data') == 'on') {
 		if (cacti_sizeof($graph_array['defs'])) {
+			$tmp_def = '';
+			$pluscnt = cacti_sizeof($graph_array['defs']) - 1;
+
 			foreach($graph_array['defs'] as $i => $d) {
-				$graph_array['graph_defs'] .= "CDEF:unknowndata{$i}='$d,UN,INF,UNKN,IF'" . RRD_NL;
+				$tmp_def .= ($tmp_def != '' ? ',':'') . "$d,UN";
 			}
+
+			$graph_array['graph_defs'] .= "CDEF:unknowndata='$tmp_def" . str_repeat(",+", $pluscnt);
+			$graph_array['graph_defs'] .= ",INF,UNKN,IF'" . RRD_NL;
 
 			$ud_color   = read_config_option('graph_unknown_color');
 			if ($ud_color > 0) {
@@ -4649,9 +4655,7 @@ function add_unknown_data($graph_array) {
 
 			$ucolor = $ud_color . $ud_opacity;
 
-			foreach($graph_array['defs'] as $i => $d) {
-				$graph_array['graph_defs'] .= "AREA:unknowndata{$i}#$ucolor:" . RRD_NL;
-			}
+			$graph_array['graph_defs'] .= "AREA:unknowndata#$ucolor:" . RRD_NL;
 		}
 	}
 
