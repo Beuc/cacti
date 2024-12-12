@@ -1928,3 +1928,279 @@ function get_host_graph_list($host_id, $graph_template_id, $data_query_id, $host
 
 	return $graph_list;
 }
+
+/**
+ * Retrieves a list of tree branches that match a search string and returns
+ * them as a JSON object to the page for filtering the tree list by matching
+ * branch object.
+ *
+ * @return array An array of matching branch objects
+ */
+function get_matching_nodes() {
+	$my_matches = array();
+	$match      = array();
+
+	$filter = '%' . get_nfilter_request_var('str') . '%';
+
+	if (get_nfilter_request_var('str') != '') {
+		$matching = db_fetch_assoc_prepared('SELECT gti.parent, gti.graph_tree_id
+			FROM graph_tree_items AS gti
+			LEFT JOIN host AS h
+			ON h.id = gti.host_id
+			LEFT JOIN (
+				SELECT DISTINCT site_id
+				FROM host
+				WHERE description LIKE ?
+				OR hostname LIKE ?
+			) AS h2
+			ON h2.site_id = gti.site_id
+			LEFT JOIN (
+				SELECT local_graph_id
+				FROM graph_templates_graph
+				WHERE local_graph_id > 0
+				AND title_cache LIKE ?
+			) AS gtg
+			ON gtg.local_graph_id = gti.local_graph_id
+			LEFT JOIN (
+				SELECT id
+				FROM sites
+				WHERE name LIKE ?
+			) AS site
+			ON site.id = gti.site_id
+			WHERE (gti.title LIKE ?)
+			OR (h.description LIKE ? AND (gti.host_id > 0 OR gti.site_id > 0))
+			OR (h.hostname LIKE ? AND (gti.host_id > 0 OR gti.site_id > 0))
+			OR (h2.site_id > 0)
+			OR (gtg.local_graph_id > 0)
+			OR (site.id > 0)',
+			array($filter, $filter, $filter, $filter, $filter, $filter, $filter));
+	} else {
+		$matching = db_fetch_assoc('SELECT parent, graph_tree_id FROM graph_tree_items');
+	}
+
+	if (cacti_sizeof($matching)) {
+		foreach ($matching as $row) {
+			while ($row['parent'] != '0') {
+				$match[] = 'tbranch-' . $row['parent'];
+
+				$row = db_fetch_row_prepared('SELECT parent, graph_tree_id
+					FROM graph_tree_items
+					WHERE id = ?',
+					array($row['parent']));
+
+				if (!cacti_sizeof($row)) {
+					break;
+				}
+			}
+
+			if (cacti_sizeof($row)) {
+				$match[]      = 'tree_anchor-' . $row['graph_tree_id'];
+				$my_matches[] = array_reverse($match);
+				$match        = array();
+			}
+		}
+
+		// Now flatten the list of nodes
+		$final_array = array();
+		$level       = 0;
+
+		while (true) {
+			$found = 0;
+
+			foreach ($my_matches as $match) {
+				if (isset($match[$level])) {
+					if ($level == 0) {
+						$final_array[$match[$level]][$match[$level]] = 1;
+					} else {
+						$final_array[$match[0]][$match[$level]] = 1;
+					}
+					$found++;
+				}
+			}
+			$level++;
+
+			if ($found == 0) {
+				break;
+			}
+		}
+
+		$fa = array();
+
+		if (cacti_sizeof($final_array)) {
+			foreach ($final_array as $key => $matches) {
+				foreach ($matches as $branch => $dnc) {
+					$fa[] = $branch;
+				}
+			}
+		}
+
+		header('Content-Type: application/json; charset=utf-8');
+
+		print json_encode($fa);
+	}
+}
+
+function html_tree_init() {
+	html_validate_tree_vars();
+
+	if (isset_request_var('tree_id')) {
+		$_SESSION['sess_tree_id'] = get_filter_request_var('tree_id');
+	}
+
+	top_graph_header();
+
+	?>
+	<script type='text/javascript'>
+	minTreeWidth = <?php print read_user_setting('min_tree_width');?>;
+	maxTreeWidth = <?php print read_user_setting('max_tree_width');?>;
+	</script>
+	<?php
+
+	bottom_footer();
+}
+
+function html_tree_get_node() {
+	$parent  = -1;
+	$tree_id = 0;
+
+	if (isset_request_var('tree_id')) {
+		if (get_nfilter_request_var('tree_id') == 0 && strstr(get_nfilter_request_var('id'), 'tbranch-') !== false) {
+			$tree_id = db_fetch_cell_prepared('SELECT graph_tree_id
+			FROM graph_tree_items
+			WHERE id = ?',
+				array(str_replace('tbranch-', '', get_nfilter_request_var('id'))));
+		} elseif (get_nfilter_request_var('tree_id') == 'default' ||
+			get_nfilter_request_var('tree_id') == 'undefined' ||
+			get_nfilter_request_var('tree_id') == '') {
+			$tree_id = read_user_setting('default_tree_id');
+		} elseif (get_nfilter_request_var('tree_id') == 0 &&
+			substr_count(get_nfilter_request_var('id'), 'tree_anchor') > 0) {
+			$ndata   = explode('-', get_nfilter_request_var('id'));
+			$tree_id = $ndata[1];
+			input_validate_input_number($tree_id, 'tree_id');
+		}
+	} else {
+		$tree_id = read_user_setting('default_tree_id');
+	}
+
+	if (isset_request_var('id') && get_nfilter_request_var('id') != '#') {
+		if (substr_count(get_nfilter_request_var('id'), 'tree_anchor')) {
+			$parent = -1;
+		} else {
+			$ndata = explode('_', get_nfilter_request_var('id'));
+
+			foreach ($ndata as $node) {
+				$pnode = explode('-', $node);
+
+				if ($pnode[0] == 'tbranch') {
+					$parent = $pnode[1];
+					input_validate_input_number($parent, 'parent');
+
+					$tree_id = db_fetch_cell_prepared('SELECT graph_tree_id
+					FROM graph_tree_items
+					WHERE id = ?',
+						array($parent));
+
+					break;
+				}
+			}
+		}
+	}
+
+	api_tree_get_main($tree_id, $parent);
+}
+
+function html_tree_get_content() {
+	html_validate_tree_vars();
+
+	top_graph_header();
+
+	if (!is_view_allowed('show_tree')) {
+		header('Location: permission_denied.php');
+
+		exit;
+	}
+
+	if (!isempty_request_var('node')) {
+		$_SESSION['sess_graph_node'] = sanitize_search_string(get_nfilter_request_var('node'));
+
+		if (!isempty_request_var('hgd')) {
+			$_SESSION['sess_graph_hgd'] = sanitize_search_string(get_nfilter_request_var('hgd'));
+		} else {
+			$_SESSION['sess_graph_hgd'] = '';
+		}
+	} elseif (isset($_SESSION['sess_graph_node'])) {
+		set_request_var('node', $_SESSION['sess_graph_node']);
+		set_request_var('hgd', $_SESSION['sess_graph_hgd']);
+	}
+
+	?>
+	<script type='text/javascript'>
+	refreshIsLogout = false;
+	refreshPage     = '<?php print str_replace('tree_content', 'tree', sanitize_uri($_SERVER['REQUEST_URI']));?>';
+	refreshMSeconds = <?php print read_user_setting('page_refresh') * 1000;?>;
+	refreshFunction = 'refreshGraphs()';
+	var graph_start     = <?php print get_current_graph_start();?>;
+	var graph_end       = <?php print get_current_graph_end();?>;
+	var timeOffset      = <?php print date('Z');?>
+
+	// Adjust the height of the tree
+	$(function() {
+		pageAction   = 'tree';
+		navHeight    = $('.cactiTreeNavigationArea').height();
+		windowHeight = $(window).height();
+		navOffset    = $('.cactiTreeNavigationArea').offset();
+
+		if (navOffset.top == undefined) {
+			navOffset.top = 0;
+		}
+
+		if (navHeight + navOffset.top < windowHeight) {
+			$('.cactiTreeNavigationArea').height(windowHeight - navOffset.top);
+		}
+
+		handleUserMenu();
+	});
+	</script>
+	<?php
+
+	$access_denied   = false;
+	$tree_parameters = array();
+	$tree_id         = 0;
+	$node_id         = 0;
+	$hgdata          = 0;
+
+	if (isset_request_var('node')) {
+		$parts = explode('-', sanitize_search_string(get_request_var('node')));
+
+		// Check for tree anchor
+		if (strpos(get_nfilter_request_var('node'), 'tree_anchor') !== false) {
+			$tree_id = $parts[1];
+			$node_id = 0;
+		} elseif (strpos(get_nfilter_request_var('node'), 'tbranch') !== false) {
+			// Check for branch
+			$node_id = $parts[1];
+			$tree_id = db_fetch_cell_prepared('SELECT graph_tree_id
+			FROM graph_tree_items
+			WHERE id = ?',
+				array($node_id));
+		}
+	}
+
+	if (isset_request_var('hgd')) {
+		$hgdata = get_request_var('hgd');
+	}
+
+	if ($tree_id > 0) {
+		if (!is_tree_allowed($tree_id)) {
+			header('Location: permission_denied.php');
+
+			exit;
+		}
+
+		grow_right_pane_tree($tree_id, $node_id, $hgdata);
+	}
+
+	bottom_footer();
+}
+
