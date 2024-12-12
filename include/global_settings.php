@@ -1111,6 +1111,19 @@ $settings['visual'] = array(
 		'method'        => 'checkbox',
 		'default'       => '',
 	),
+	'business_hours_color' => array(
+		'friendly_name' => __('Business Hours Color'),
+		'description'   => __('The color to be shown for business hours'),
+		'method'        => 'drop_color',
+		'default'       => '457',
+	),
+	'business_hours_opacity' => array(
+		'friendly_name' => __('Business Hours Color Opacity'),
+		'description'   => __('The Opacity of the business hours color.  The lower the value, the more transparent to area fill.'),
+		'method'        => 'drop_array',
+		'default'       => '7F',
+		'array'         => $graph_color_alpha,
+	),
 	'business_hours_start' => array(
 		'friendly_name' => __('Start of Business Day'),
 		'description'   => __('The time your business hours start. Format: hh:mm'),
@@ -1132,19 +1145,6 @@ $settings['visual'] = array(
 		'description'   => __('Only show business hours during weekdays.'),
 		'method'        => 'checkbox',
 		'default'       => '',
-	),
-	'business_hours_color' => array(
-		'friendly_name' => __('Business Hours Color'),
-		'description'   => __('The color to be shown for business hours'),
-		'method'        => 'drop_color',
-		'default'       => '457',
-	),
-	'business_hours_opacity' => array(
-		'friendly_name' => __('Business Hours Color Opacity'),
-		'description'   => __('The Opacity of the business hours color.  The lower the value, the more transparent to area fill.'),
-		'method'        => 'drop_array',
-		'default'       => '7F',
-		'array'         => $graph_color_alpha,
 	),
 	'business_hours_max_days' => array(
 		'friendly_name' => __('Maximum number of days to show Business Hours'),
