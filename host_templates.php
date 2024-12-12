@@ -235,7 +235,7 @@ function form_actions() {
 
 						db_execute_prepared('DELETE FROM host_template_archive WHERE id = ?', array($id));
 
-						raise_message('archives_removed', __('The Device Template Archive %s has been removed.', $name), MESSAGE_LEVEL_INFO);
+						raise_message('archives_removed_' . $id, __('The Device Template Archive %s has been removed.', $name), MESSAGE_LEVEL_INFO);
 					}
 				}
 			}
@@ -1510,13 +1510,7 @@ function archives() {
 
 	if (cacti_sizeof($archives)) {
 		foreach ($archives as $a) {
-			if ($a['hosts'] > 0) {
-				$disabled = true;
-			} else {
-				$disabled = false;
-			}
-
-			form_alternate_row('line' . $a['id'], true, $disabled);
+			form_alternate_row('line' . $a['id'], true);
 
 			form_selectable_cell(filter_value($a['name'], get_request_var('filter')), $a['id']);
 
@@ -1536,7 +1530,7 @@ function archives() {
 
 			form_selectable_cell(number_format_i18n($a['size'], 2, 1000), $a['id'], '', 'right');
 			form_selectable_cell($a['archive_date'], $a['id'], '', 'right');
-			form_checkbox_cell($a['name'], $a['id'], $disabled);
+			form_checkbox_cell($a['name'], $a['id']);
 
 			form_end_row();
 		}
