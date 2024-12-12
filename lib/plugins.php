@@ -2292,7 +2292,12 @@ function plugin_make_github_request($url, $type = 'json') {
 
 		if ($info['http_code'] == 403 || $info['http_code'] == 429) {
 			$json_data = json_decode($data, true);
-			raise_message('rate_limited', $json_data['message'], MESSAGE_LEVEL_ERROR);
+
+			if (isset($json_data['message'])) {
+				raise_message('rate_limited', $json_data['message'], MESSAGE_LEVEL_ERROR);
+			} else {
+				raise_message('rate_limited', __('You have been rate limited by Google.  Please create yourself a personal access token before trying this again'), MESSAGE_LEVEL_ERROR);
+			}
 
 			return false;
 		}
