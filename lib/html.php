@@ -56,7 +56,7 @@
  *   your page has a ready function that has it's own javascript.
  * @param bool|string $add_label - used with legacy behavior to add specific text to the link.
  *   This parameter is only used in the legacy behavior.
- * 
+ *
  * @return void
  */
 function html_start_box($title, $width, $div, $cell_padding, $align, $add_text, $add_label = false) {
@@ -264,7 +264,7 @@ function html_sub_tabs($tabs, $uri = '', $session_var = '') {
  *
  * @param bool $trailing_br - whether to draw a trailing <br> tag after ending
  * @param bool $div - whether type of box is div or table
- * 
+ *
  * @return void
  */
 function html_end_box($trailing_br = true, $div = false) {
@@ -281,7 +281,7 @@ function html_end_box($trailing_br = true, $div = false) {
 
 /**
  * html_graph_template_multiselect - consistent multiselect javascript library for cacti.
- * 
+ *
  * @return void
  */
 function html_graph_template_multiselect() {
@@ -368,7 +368,7 @@ function html_graph_template_multiselect() {
  * @param int $columns - the number of columns to present
  * @param int $tree_id - the tree id if this is a tree thumbnail
  * @param int $branch_id - the branch id if this is a tree thumbnail
- * 
+ *
  * @return void
  */
 function html_graph_area(&$graph_array, $no_graphs_message = '', $extra_url_args = '', $header = '', $columns = 0, $tree_id = 0, $branch_id = 0) {
@@ -453,7 +453,7 @@ function html_graph_area(&$graph_array, $no_graphs_message = '', $extra_url_args
  * @param int $columns - the number of columns to present
  * @param int $tree_id - the tree id if this is a tree thumbnail
  * @param int $branch_id - the branch id if this is a tree thumbnail
- * 
+ *
  * @return void
  */
 function html_graph_thumbnail_area(&$graph_array, $no_graphs_message = '', $extra_url_args = '', $header = '', $columns = 0, $tree_id = 0, $branch_id = 0) {
@@ -751,7 +751,7 @@ function html_nav_bar($base_url, $max_pages, $current_page, $rows_per_page, $tot
  * @param int $last_item_colspan - the TD 'colspan' to apply to the last cell in the row
  * @param string $url - a base url to redirect sort actions to
  * @param string $return_to - the id of the object to inject output into as a result of the sort action
- * 
+ *
  * @return void
  */
 function html_header_sort($header_items, $sort_column, $sort_direction, $last_item_colspan = 1, $url = '', $return_to = '') {
@@ -927,7 +927,7 @@ function html_header_sort($header_items, $sort_column, $sort_direction, $last_it
  * @param string $form_action - the url to post the 'select all' form to
  * @param string $return_to - the id of the object to inject output into as a result of the sort action
  * @param string $prefix - the prefix to use for the checkbox names
- * 
+ *
  * @return void
  */
 function html_header_sort_checkbox($header_items, $sort_column, $sort_direction, $include_form = true, $form_action = '', $return_to = '', $prefix = 'chk') {
@@ -1096,7 +1096,7 @@ function html_header_sort_checkbox($header_items, $sort_column, $sort_direction,
  * @param array $header_items - an array containing a list of items to be included in the header
  *   alternatively and array of header names and alignment array('display' = 'blah', 'align' = 'blah')
  * @param int $last_item_colspan - the TD 'colspan' to apply to the last cell in the row
- * 
+ *
  * @return void
  */
 function html_header($header_items, $last_item_colspan = 1) {
@@ -1142,7 +1142,7 @@ function html_header($header_items, $last_item_colspan = 1) {
  * @param array $header_name - an array of the display name of the header for the section and
  *   optional alignment.
  * @param int $last_item_colspan - the TD 'colspan' to apply to the last cell in the row
- * 
+ *
  * @return void
  */
 function html_section_header($header_item, $last_item_colspan = 1) {
@@ -1167,7 +1167,7 @@ function html_section_header($header_item, $last_item_colspan = 1) {
  * @param string $form_action - the url to post the 'select all' form to
  * @param bool $resizable - whether the table is resizable
  * @param string $prefix - the prefix to use for the checkbox names
- * 
+ *
  * @return void
  */
 function html_header_checkbox($header_items, $include_form = true, $form_action = '', $resizable = true, $prefix = 'chk') {
@@ -1250,7 +1250,7 @@ function html_header_checkbox($header_items, $include_form = true, $form_action 
  * @param string $column_id - used to identify the key to be used for id data. this
  *   is only applicable if the array is formatted using the second method above
  * @param string $form_previous_value - the current value of this form element
- * 
+ *
  * @return void
  */
 function html_create_list($form_data, $column_display, $column_id, $form_previous_value) {
@@ -1383,7 +1383,7 @@ function html_split_string($string, $length = 90, $forgiveness = 10) {
  * @param string $url_data - any extra GET url information to pass on when referencing any
  *   external url
  * @param bool $disable_controls - whether to hide all edit/delete functionality on this form
- * 
+ *
  * @return void
  */
 function draw_graph_items_list($item_list, $filename, $url_data, $disable_controls) {
@@ -1738,7 +1738,7 @@ function is_menu_pick_active($menu_url) {
  * draw_menu - draws the cacti menu for display in the console
  *
  * @param string $user_menu - the user menu to display
- * 
+ *
  * @return void
  */
 function draw_menu($user_menu = '') {
@@ -1899,7 +1899,7 @@ function draw_menu($user_menu = '') {
  *   be compatible with the form_dropdown() function
  * @param int $delete_action - if there is a delete action that should suppress removal of rows
  *   specify it here.  If you don't want any delete actions, set to 0.
- * 
+ *
  * @return void
  */
 function draw_actions_dropdown($actions_array, $delete_action = 1) {
@@ -1993,7 +1993,7 @@ function draw_actions_dropdown($actions_array, $delete_action = 1) {
  * @param string $matrix_name The name to be displayed in the matrix header.
  * @param string $matrix_text_color The color of the text in the matrix header.
  * @param int $column_span The number of columns the header item should span. Default is 1.
- * 
+ *
  * @return void
  */
 function DrawMatrixHeaderItem($matrix_name, $matrix_text_color, $column_span = 1) {
@@ -2012,7 +2012,7 @@ function DrawMatrixHeaderItem($matrix_name, $matrix_text_color, $column_span = 1
  * to prevent XSS attacks.
  *
  * @param string $text The text to be displayed inside the table cell.
- * 
+ *
  * @return void
  */
 function form_area($text) {
@@ -2470,6 +2470,22 @@ function html_graph_order_filter() {
 	}
 
 	print $output;
+}
+
+function html_thumbnails_filter($callBack = 'applyGraphFilter') {
+	$output  = "<input id='thumbnails' type='checkbox' onClick='$callBack()' " . (get_request_var('thumbnails') == 'true' ? 'checked':'') . ">";
+	$output .= "<label for='thumbnails'>" . __('Thumbnails') . "</label>";
+
+	return $output;
+}
+
+function html_business_hours_filter($callBack = 'applyGraphFilter') {
+	if (read_config_option('business_hours_enable') == 'on') {
+		$output  = "<input id='business_hours' type='checkbox' onClick='$callBack()' " . (get_request_var('business_hours') == 'true' ? 'checked':'') . ">";
+		$output .= "<label for='business_hours'>" . __('Business Hours') . "</label>";
+
+		return $output;
+	}
 }
 
 /**
@@ -3010,7 +3026,7 @@ function html_spikekill_js() {
  *
  * @param string title - the title of the page to place in the browser
  * @param string selectedTheme - optionally sets a specific theme over the current one
- * 
+ *
  * @return void
  */
 function html_common_header($title, $selectedTheme = '') {
@@ -3258,7 +3274,7 @@ function html_common_header($title, $selectedTheme = '') {
  * hooks to modify or extend these mappings.
  *
  * @param string $page The page for which the help URL is to be generated.
- * 
+ *
  * @return string|false The URL to the help documentation if the page is found, false otherwise.
  */
 function html_help_page($page) {
@@ -3345,7 +3361,7 @@ function html_help_page($page) {
  * @param string $legend The legend text to be displayed in the authentication area.
  * @param string $title The title text to be displayed in the authentication form.
  * @param array $hook_args Optional. Additional arguments to be passed to plugin hooks. Default is an empty array.
- * 
+ *
  * @return void
  */
 function html_auth_header($section, $browser_title, $legend, $title, $hook_args = array()) {
@@ -3386,7 +3402,7 @@ function html_auth_header($section, $browser_title, $legend, $title, $hook_args 
  * @param string $section The section identifier used for the plugin hook.
  * @param string $error Optional. The error message to display. Default is an empty string.
  * @param string $html Optional. Additional HTML content to include. Default is an empty string.
- * 
+ *
  * @return void
  */
 function html_auth_footer($section, $error = '', $html = '') {

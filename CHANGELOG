@@ -157,6 +157,7 @@ Cacti CHANGELOG
 -feature#5959: Debounce the Poller Output Not Empty Warning
 -feature#5965: Merge packaging plugin with Cacti and add archiving and restore capabilities
 -feature#5966: Add snmp retries at the device level
+-feature#5971: Add a method to mark missing Data in all graphs globally
 -feature: Allow messages to be popup notifications
 -feature: Upgrade billboard.js to version 3.14.1
 -feature: Upgrade jQueryUI to 1.14.1

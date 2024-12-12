@@ -1076,6 +1076,84 @@ $settings['visual'] = array(
 		'default'       => 'modern',
 		'array'         => $themes
 	),
+	'ugraph_header' => array(
+		'friendly_name' => __('Graping of Unknown Data'),
+		'collapsible'   => 'true',
+		'method'        => 'spacer',
+	),
+	'graph_unknown_data' => array(
+		'friendly_name' => __('Show Unknown Data on Graphs'),
+		'description'   => __('If you check this checkbox, Cacti will display Unknown Data with the background color selected below..'),
+		'method'        => 'checkbox',
+		'default'       => ''
+	),
+	'graph_unknown_color' => array(
+		'friendly_name' => __('Unknown Data Area Fill Color'),
+		'description'   => __('Select the color to use as a custom background color to highlight Unknown Data.'),
+		'method'        => 'drop_color',
+		'default'       => ''
+	),
+	'graph_unknown_opacity' => array(
+		'friendly_name' => __('Unknown Data Area Fill Opacity'),
+		'method'        => 'drop_array',
+		'default'       => 'FF',
+		'array'         => $graph_color_alpha,
+		'description'   => __('The Opacity of the Unknown Data Color.  The lower the value, the more transparent to area fill.')
+	),
+	'business_hours_header' => array(
+		'friendly_name' => __('Business Hour Settings'),
+		'collapsible'   => 'true',
+		'method'        => 'spacer',
+	),
+	'business_hours_enable' => array(
+		'friendly_name' => __('Show Business Hours on Graphs'),
+		'description'   => __('Display business hours on rrd graphs.'),
+		'method'        => 'checkbox',
+		'default'       => '',
+	),
+	'business_hours_start' => array(
+		'friendly_name' => __('Start of Business Day'),
+		'description'   => __('The time your business hours start. Format: hh:mm'),
+		'method'        => 'textbox',
+		'default'       => '08:00',
+		'max_length'    => '6',
+		'size'          => '6'
+	),
+	'business_hours_end' => array(
+		'friendly_name' => __('End of Business Day'),
+		'description'   => __('The time your business hours end. Format: hh:mm'),
+		'method'        => 'textbox',
+		'default'       => '18:00',
+		'max_length'    => '6',
+		'size'          => '6'
+	),
+	'business_hours_hide_weekends' => array(
+		'friendly_name' => __('Hide Weekends'),
+		'description'   => __('Only show business hours during weekdays.'),
+		'method'        => 'checkbox',
+		'default'       => '',
+	),
+	'business_hours_color' => array(
+		'friendly_name' => __('Business Hours Color'),
+		'description'   => __('The color to be shown for business hours'),
+		'method'        => 'drop_color',
+		'default'       => '457',
+	),
+	'business_hours_opacity' => array(
+		'friendly_name' => __('Business Hours Color Opacity'),
+		'description'   => __('The Opacity of the business hours color.  The lower the value, the more transparent to area fill.'),
+		'method'        => 'drop_array',
+		'default'       => '7F',
+		'array'         => $graph_color_alpha,
+	),
+	'business_hours_max_days' => array(
+		'friendly_name' => __('Maximum number of days to show Business Hours'),
+		'description'   => __('After this number of days, the business hours will not be added to the graph. <br/>Recommended: 62 days'),
+		'method'        => 'textbox',
+		'default'       => '62',
+		'max_length'    => '3',
+		'size'          => '3'
+	),
 	'table_header' => array(
 		'friendly_name' => __('Table Settings'),
 		'collapsible'   => 'true',
@@ -1358,55 +1436,6 @@ $settings['visual'] = array(
 		'placeholder'   => __('Enter Valid Font Config Value'),
 		'max_length'    => '100'
 	),
-	'business_hours_header' => array(
-		'friendly_name' => __('Business Hours Settings'),
-		'collapsible'   => 'true',
-		'method'        => 'spacer',
-	),
-	'business_hours_start' => array(
-		'friendly_name' => __('Start of Business Day'),
-		'description'   => __('The time your business hours start. Format: hh:mm'),
-		'method'        => 'textbox',
-		'default'       => '08:00',
-		'max_length'    => '5',
-		'size'          => '60'
-	),
-	'business_hours_end' => array(
-		'friendly_name' => __('End of Business Day'),
-		'description'   => __('The time your business hours end. Format: hh:mm'),
-		'method'        => 'textbox',
-		'default'       => '18:00',
-		'max_length'    => '6',
-		'size'          => '60'
-	),
-	'business_hours_hideWeekends' => array(
-		'friendly_name' => __('Hide Weekends'),
-		'description'   => __('Only show business hours during weekdays.'),
-		'method'        => 'checkbox',
-		'default'       => '',
-	),
-	'business_hours_enable' => array(
-		'friendly_name' => __('Show business hours'),
-		'description'   => __('Display business hours on rrd graphs.'),
-		'method'        => 'checkbox',
-		'default'       => '',
-	),
-	'business_hours_color' => array(
-		'friendly_name' => __('Color to use for business hours'),
-		'description'   => __('The color to be shown for business hours'),
-		'method'        => 'textbox',
-		'default'       => 'ccccccff',
-		'max_length'    => '8',
-		'size'          => '60'
-	),
-	'business_hours_max_days' => array(
-		'friendly_name' => __('Maximum number of days to show business hours'),
-		'description'   => __('After this number of days, the business hours will not be added to the graph. <br/>Recommended: 62 days'),
-		'method'        => 'textbox',
-		'default'       => '62',
-		'max_length'    => '3',
-		'size'          => '60'
-	)
 );
 
 $settings['poller'] = array(
@@ -2943,6 +2972,12 @@ $settings_user = array(
 			'method'        => 'checkbox',
 			'default'       => ''
 		),
+		'show_business_hours' => array(
+			'friendly_name' => __('Show Business Hours'),
+			'description'   => __('Show business hours on the Graphs by default.'),
+			'method'        => 'checkbox',
+			'default'       => ''
+		),
 		'hide_disabled' => array(
 			'friendly_name' => __('Hide Disabled'),
 			'description'   => __('Hides Disabled Devices and Graphs when viewing outside of Console tab.'),
@@ -2994,7 +3029,7 @@ $settings_user = array(
 			'method'        => 'drop_array',
 			'default'       => '10',
 			'array'         => $graphs_per_page
-			)
+		)
 	),
 	'timespan' => array(
 		'default_rra_id' => array(

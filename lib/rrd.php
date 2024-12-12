@@ -1734,6 +1734,7 @@ function rrdtool_function_graph($local_graph_id, $rra_id, $graph_data_array, $rr
 	$sum           = 0;
 	$last_graph_cf = array();
 	$legends       = array();
+	$defs          = array();
 
 	if (cacti_sizeof($graph_items)) {
 		/* we need to add a new column 'cf_reference', so unless PHP 5 is used, this foreach syntax is required */
@@ -1820,7 +1821,10 @@ function rrdtool_function_graph($local_graph_id, $rra_id, $graph_data_array, $rr
 					to a function that matches the digits with letters. rrdtool likes letters instead
 					of numbers in DEF names; especially with CDEFs. CDEFs are created
 					the same way, except a 'cdef' is put on the beginning of the hash */
-					$graph_defs .= 'DEF:' . generate_graph_def_name(strval($i)) . '=' . cacti_escapeshellarg($data_source_path) . ':' . cacti_escapeshellarg($graph_item['data_source_name'], true) . ':' . $consolidation_functions[$graph_cf] . RRD_NL;
+					$def = generate_graph_def_name(strval($i));
+					$defs[] = $def;
+
+					$graph_defs .= "DEF:$def=" . cacti_escapeshellarg($data_source_path) . ':' . cacti_escapeshellarg($graph_item['data_source_name'], true) . ':' . $consolidation_functions[$graph_cf] . RRD_NL;
 
 					$cf_ds_cache[$graph_item['data_template_rrd_id']][$graph_cf] = "$i";
 
@@ -2724,14 +2728,16 @@ function rrdtool_function_graph($local_graph_id, $rra_id, $graph_data_array, $rr
 	}
 
 	if (!isset($graph_data_array['export_csv']) || $graph_data_array['export_csv'] != true) {
-		$graph_array = api_plugin_hook_function('rrd_graph_graph_options', array('graph_opts' => $graph_opts, 'graph_defs' => $graph_defs, 'txt_graph_items' => $txt_graph_items, 'graph_id' => $local_graph_id, 'start' => $graph_start, 'end' => $graph_end));
+		$graph_array = api_plugin_hook_function('rrd_graph_graph_options', array('graph_opts' => $graph_opts, 'graph_defs' => $graph_defs, 'txt_graph_items' => $txt_graph_items, 'graph_id' => $local_graph_id, 'start' => $graph_start, 'end' => $graph_end, 'defs' => $defs));
 
+		$graph_array = add_unknown_data($graph_array);
 		$graph_array = add_business_hours($graph_array);
 
 		if (!empty($graph_array)) {
 			$graph_defs      = $graph_array['graph_defs'];
 			$txt_graph_items = $graph_array['txt_graph_items'];
 			$graph_opts      = $graph_array['graph_opts'];
+			$defs            = $graph_array['defs'];
 		}
 
 		/* either print out the source or pass the source onto rrdtool to get us a nice PNG */
@@ -4614,6 +4620,45 @@ function colourBrightness($hex, $percent) {
 }
 
 /**
+ * add_unknown_data - Add unknown data area fills to graphs if selected by the admin
+ *
+ * @param  array  $data  - The graph_array data containing all rrdtool graph options
+ *
+ * @return array  $data  - The graph_array modified to include unknown data ranges
+ *
+ */
+function add_unknown_data($graph_array) {
+	/* add the cdef for unknown data */
+	if (read_config_option('graph_unknown_data') == 'on') {
+		if (cacti_sizeof($graph_array['defs'])) {
+			foreach($graph_array['defs'] as $i => $d) {
+				$graph_array['graph_defs'] .= "CDEF:unknowndata{$i}='$d,UN,INF,UNKN,IF'" . RRD_NL;
+			}
+
+			$ud_color   = read_config_option('graph_unknown_color');
+			if ($ud_color > 0) {
+				$ud_color = get_color($ud_color);
+			} else {
+				$ud_color = '8F9286';
+			}
+
+			$ud_opacity = read_config_option('graph_unknown_opacity');
+			if ($ud_opacity == '') {
+				$ud_opacity = '7F';
+			}
+
+			$ucolor = $ud_color . $ud_opacity;
+
+			foreach($graph_array['defs'] as $i => $d) {
+				$graph_array['graph_defs'] .= "AREA:unknowndata{$i}#$ucolor:" . RRD_NL;
+			}
+		}
+	}
+
+	return $graph_array;
+}
+
+/**
  * add_business_hours - Add business hours highlight support for all rrdtool based charts
  *
  * @param  (array)  $data    - The graph_array data containing all rrdtool graph options
@@ -4622,7 +4667,7 @@ function colourBrightness($hex, $percent) {
  *
  */
 function add_business_hours($data) {
-	if (read_config_option('business_hours_enable') == 'on') {
+	if (read_config_option('business_hours_enable') == 'on' && get_nfilter_request_var('business_hours') == 'true') {
 		if ($data['start'] < 0) {
 			$bh_graph_start = time() + $data['start'];
 			$bh_graph_end   = time() + $data['end'];
@@ -4665,17 +4710,34 @@ function add_business_hours($data) {
 				$data['graph_defs'] .= 'CDEF:officehours' . $day . '=a,POP,TIME,' . $current_start_bh_time . ',LT,1,0,IF,TIME,' . $current_end_bh_time . ',GT,1,0,IF,MAX,0,GT,0,1,IF' . RRD_NL;
 				$data['graph_defs'] .= 'CDEF:dslimit' . $day . '=INF,officehours' . $day . ',*' . RRD_NL;
 
-				if (preg_match('/[0-9A-Fa-f]{6,8}/', read_config_option('business_hours_color'))) {
-					$bh_color = read_config_option('business_hours_color');
+				$bh_color = read_config_option('business_hours_color');
+				if (!is_numeric($bh_color)) {
+					$bh_color = 'CCCCCC';
 				} else {
-					$bh_color = 'ccccccff';
+					$bh_color = get_color($bh_color);
+
+					if (empty($bh_color0)) {
+						$bh_color = 'CCCCCC';
+					}
+				}
+
+				$bh_opacity = read_config_option('business_hours_opacity');
+
+				if (empty($bh_opacity)) {
+					$bh_opacity = '7F';
+				}
+
+				if (preg_match('/[0-9A-Fa-f]{2}/', $bh_opacity)) {
+					$bh_color .= $bh_opacity;
+				} else {
+					$bh_color .= '7F';
 				}
 
 				if (date('N', $current_start_bh_time) < 6) {
 					$data['graph_defs'] .= 'AREA:dslimit' . $day . '#' . $bh_color . RRD_NL;
 				}
 
-				if (date('N', $current_start_bh_time) > 5 && read_config_option('business_hours_hideWeekends') == '') {
+				if (date('N', $current_start_bh_time) > 5 && read_config_option('business_hours_hide_weekends') == '') {
 					$data['graph_defs'] .= 'AREA:dslimit' . $day . '#'. $bh_color . RRD_NL;
 				}
 			}

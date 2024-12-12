@@ -24,7 +24,7 @@
 
 /**
  * Processes the tree settings for the current user.
- * 
+ *
  * @return void
  */
 function process_tree_settings() {
@@ -512,7 +512,7 @@ function get_tree_path() {
  *
  * @param int $host_id The ID of the host device.
  * @return string The CSS class name corresponding to the device's status.
- * 
+ *
  * @return string
  */
 function get_device_leaf_class($host_id) {
@@ -590,7 +590,7 @@ function draw_dhtml_tree_level($tree_id, $parent = 0, $editing = false) {
  *
  * @param int $tree_id The ID of the tree to draw.
  * @param int $parent The ID of the parent node. Defaults to 0.
- * 
+ *
  * @return array The generated HTML structure as an array of strings.
  */
 function draw_dhtml_tree_level_graphing($tree_id, $parent = 0) {
@@ -638,7 +638,7 @@ function draw_dhtml_tree_level_graphing($tree_id, $parent = 0) {
  * including its devices and graph templates.
  *
  * @param array $leaf An associative array containing site information.
- * 
+ *
  * @return array An array of strings representing the DHTML tree structure.
  */
 function create_site_branch($leaf) {
@@ -736,7 +736,7 @@ function create_branch($leaf) {
  * @param array $leaf The leaf node containing host information.
  * @param int $site_id The site ID associated with the host (default is -1).
  * @param int $ht The host template ID (default is -1).
- * 
+ *
  * @return array The DHTML tree structure with the host branch added.
  */
 function create_host_branch($leaf, $site_id = -1, $ht = -1) {
@@ -782,7 +782,7 @@ function create_host_branch($leaf, $site_id = -1, $ht = -1) {
  * @param array $leaf An associative array containing information about the host.
  * @param int $site_id Optional. The ID of the site. Default is -1.
  * @param int $ht Optional. The ID of the host template. Default is -1.
- * 
+ *
  * @return array An array of HTML list items representing the graph templates.
  */
 function create_graph_template_branch($leaf, $site_id = -1, $ht = -1) {
@@ -816,7 +816,7 @@ function create_graph_template_branch($leaf, $site_id = -1, $ht = -1) {
  * @param array $leaf The leaf node containing host information.
  * @param int $site_id The site ID (default is -1).
  * @param int $ht The host template ID (default is -1).
- * 
+ *
  * @return array The generated DHTML tree structure.
  */
 function create_data_query_branch($leaf, $site_id = -1, $ht = -1) {
@@ -951,11 +951,11 @@ function create_dhtml_tree() {
 
 /**
  * Validates and processes tree-related request variables.
- * 
+ *
  * This function ensures that the request variables related to tree views are
  * properly validated and sanitized. It also handles session storage for these
  * variables and prevents double calls within the same stack.
- * 
+ *
  * @return bool Returns false if the function has already been called in the same stack.
  */
 function html_validate_tree_vars() {
@@ -1063,6 +1063,11 @@ function html_validate_tree_vars() {
 			'options' => array('options' => array('regexp' => '(true|false)')),
 			'pageset' => true,
 			'default' => read_user_setting('thumbnail_section_tree_2') == 'on' ? 'true':'false'
+		),
+		'business_hours' => array(
+			'filter'  => FILTER_VALIDATE_REGEXP,
+			'options' => array('options' => array('regexp' => '(true|false)')),
+			'default' => read_user_setting('show_business_hours', '') == 'on' ? 'true':'false'
 		)
 	);
 
@@ -1346,8 +1351,8 @@ function grow_right_pane_tree($tree_id, $leaf_id, $host_group_data) {
 					</td>
 					<td>
 						<span>
-							<input id='thumbnails' type='checkbox' name='thumbnails' onClick='applyGraphFilter()' <?php print((get_request_var('thumbnails') == 'true' || get_request_var('thumbnails') == 'on') ? 'checked':'');?>>
-							<label for='thumbnails'><?php print __('Thumbnails');?></label>
+							<?php print html_thumbnails_filter();?>
+							<?php print html_business_hours_filter();?>
 						</span>
 					</td>
 				</tr>

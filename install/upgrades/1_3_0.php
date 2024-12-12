@@ -438,6 +438,10 @@ function upgrade_to_1_3_0() {
 		ENGINE=InnoDB
 		ROW_FORMAT=Dynamic
 		COMMENT='Table that Contains User Password Reset Hashes'");
+
+	db_execute('UPDATE settings
+		SET name = "business_hours_hide_weekends"
+		WHERE name = "business_hours_hideWeekends"');
 }
 
 function ldap_convert_1_3_0() {

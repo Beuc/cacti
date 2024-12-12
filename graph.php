@@ -39,7 +39,14 @@ get_filter_request_var('local_graph_id');
 get_filter_request_var('graph_end');
 get_filter_request_var('graph_start');
 get_filter_request_var('view_type', FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => '/^([a-zA-Z0-9]+)$/')));
+get_filter_request_var('business_horus', FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => '/^([a-zA-Z0-9]+)$/')));
 /* ==================================================== */
+
+if (isset_request_var('business_hours')) {
+	$_SESSION['sess_business_hours'] = get_request_var('business_ours');
+} elseif (isset($_SESSION['sess_business_hours'])) {
+	set_request_var('business_hours', $_SESSION['sess_business_hours']);
+}
 
 api_plugin_hook_function('graph');
 
@@ -440,6 +447,7 @@ function graph_zoom(array $rras, string $graph_title) {
 			<input type='hidden' id='graph_start' value='<?php print $graph_start; ?>'>
 			<input type='hidden' id='graph_end' value='<?php print $graph_end; ?>'>
 			<input type='hidden' id='thumbnails' value='<?php print html_escape(get_request_var('thumbnails')); ?>'></input>
+			<input type='hidden' id='business_hours' value='<?php print html_escape(get_request_var('business_hours')); ?>'></input>
 		</div>
 	</div>
 	<?php
@@ -524,6 +532,7 @@ function graph_zoom(array $rras, string $graph_title) {
 						'&graph_height=' + graph_height +
 						'&graph_width=' + graph_width +
 						'&disable_cache=true' +
+						'&business_hours=' + ($('#business_hours').val() == 'true' ? 'true' : 'false') +
 						($('#thumbnails').val() == 'true' ? '&graph_nolegend=true' : ''))
 					.done(function(data) {
 						$('#wrapper_' + data.local_graph_id).html(

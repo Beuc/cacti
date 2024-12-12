@@ -3920,7 +3920,8 @@ function applyGraphFilter() {
 		'&columns=' + $('#columns').val() +
 		'&graphs=' + $('#graphs').val() +
 		'&graph_template_id=' + $('#graph_template_id').val() +
-		'&thumbnails=' + $('#thumbnails').is(':checked'));
+		'&thumbnails=' + $('#thumbnails').is(':checked') +
+		'&business_hours=' + $('#business_hours').is(':checked'));
 
 	loadUrl({ url: href });
 }
@@ -4161,11 +4162,12 @@ function dryRunAbsolute(local_graph_id) {
 }
 
 function redrawGraph(graph_id) {
-	var mainWidth = getMainWidth() - 30;
-	var isThumb = $('#thumbnails').is(':checked');
-	var myColumns = $('#columns').val();
-	var graphRow = $('.tableRowGraph').width();
-	var drillDown = $('.graphDrillDown:first').outerWidth() + 10;
+	var mainWidth  = getMainWidth() - 30;
+	var isThumb    = $('#thumbnails').is(':checked');
+	var isBusiness = $('#business_hours').is(':checked');
+	var myColumns  = $('#columns').val();
+	var graphRow   = $('.tableRowGraph').width();
+	var drillDown  = $('.graphDrillDown:first').outerWidth() + 10;
 
 	if (mainWidth < graphRow) {
 		graphRow = mainWidth - drillDown;
@@ -4186,7 +4188,8 @@ function redrawGraph(graph_id) {
 		'&graph_end=' + graph_end +
 		'&graph_height=' + graph_height +
 		'&graph_width=' + graph_width +
-		(isThumb ? '&graph_nolegend=true' : '');
+		(isThumb ? '&graph_nolegend=true' : '') +
+		'&business_hours=' + (isBusiness ? 'true' : 'false') +
 
 	loadUrl({
 		url: href,
@@ -4333,11 +4336,12 @@ function initializeGraphs(disable_cache) {
 		applyFilter();
 	});
 
-	var mainWidth = getMainWidth() - 30;
-	var myColumns = $('#columns').val();
-	var isThumb = $('#thumbnails').is(':checked');
-	var myWidth = (mainWidth - (30 * myColumns)) / myColumns;
-	var numGraphs = $('.graphWrapper').length;
+	var mainWidth  = getMainWidth() - 30;
+	var myColumns  = $('#columns').val();
+	var isThumb    = $('#thumbnails').is(':checked');
+	var isBusiness = $('#business_hours').is(':checked');
+	var myWidth    = (mainWidth - (30 * myColumns)) / myColumns;
+	var numGraphs  = $('.graphWrapper').length;
 
 	$('.graphWrapper').each(function () {
 		var graph_id = $(this).attr('graph_id');
@@ -4364,7 +4368,8 @@ function initializeGraphs(disable_cache) {
 			'&graph_height=' + graph_height +
 			'&graph_width=' + graph_width +
 			(disable_cache ? '&disable_cache=true' : '') +
-			(isThumb ? '&graph_nolegend=true' : '');
+			(isThumb ? '&graph_nolegend=true' : '') +
+			'&business_hours=' + (isBusiness ? 'true' : 'false');
 
 		$.getJSON(url)
 			.done(function (data) {
@@ -4452,10 +4457,10 @@ function initializeGraphs(disable_cache) {
 	$('a[id$="_util"]').each(function () {
 		var graph_id = $(this).attr('id').replace('graph_', '').replace('_util', '');
 
-		$(this).attr('href', urlPath +
-			'graph.php' +
+		$(this).attr('href', urlPath + 'graph.php' +
 			'?action=zoom' +
 			'&rra_id=0' +
+			'&business_hours=' + (isBusiness ? 'true' : 'false') +
 			'&local_graph_id=' + graph_id +
 			'&graph_start=' + timestampDate1 +
 			'&graph_end=' + timestampDate2);
@@ -4465,7 +4470,13 @@ function initializeGraphs(disable_cache) {
 				return;
 
 			var graph_id = $(this).attr('id').replace('graph_', '').replace('_util', '');
-			var graph_url = urlPath + 'graph.php?action=zoom&local_graph_id=' + graph_id + '&rra_id=0&graph_start=' + getTimestampFromDate($('#date1').val()) + '&graph_end=' + getTimestampFromDate($('#date2').val());
+			var graph_url = urlPath + 'graph.php' +
+				'?action=zoom' +
+				'&local_graph_id=' + graph_id +
+				'&rra_id=0' +
+				'&business_hours=' + (isBusiness ? 'true' : 'false') +
+				'&graph_start=' + getTimestampFromDate($('#date1').val()) +
+				'&graph_end=' + getTimestampFromDate($('#date2').val());
 
 			event.preventDefault();
 			event.stopPropagation();

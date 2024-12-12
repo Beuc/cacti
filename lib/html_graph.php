@@ -173,6 +173,11 @@ function html_graph_validate_preview_request_vars() {
 			'options' => array('options' => array('regexp' => '(true|false)')),
 			'default' => read_user_setting('thumbnail_section_preview', '') == 'on' ? 'true':'false'
 		),
+		'business_hours' => array(
+			'filter'  => FILTER_VALIDATE_REGEXP,
+			'options' => array('options' => array('regexp' => '(true|false)')),
+			'default' => read_user_setting('show_business_hours', '') == 'on' ? 'true':'false'
+		),
 		'graph_source' => array(
 			'filter'  => FILTER_CALLBACK,
 			'default' => '',
@@ -353,8 +358,8 @@ function html_graph_preview_filter($page, $action, $devices_where = '', $templat
 					</td>
 					<td>
 						<span>
-							<input id='thumbnails' type='checkbox' onClick='applyGraphFilter()' <?php print((get_request_var('thumbnails') == 'true') ? 'checked':'');?>>
-							<label for='thumbnails'><?php print __('Thumbnails');?></label>
+							<?php print html_thumbnails_filter();?>
+							<?php print html_business_hours_filter();?>
 						</span>
 					</td>
 				</tr>
