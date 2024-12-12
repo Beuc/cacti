@@ -3897,6 +3897,7 @@ function saveGraphFilter(section) {
 		predefined_timespan: $('#predefined_timespan').val(),
 		predefined_timeshift: $('#predefined_timeshift').val(),
 		thumbnails: $('#thumbnails').is(':checked'),
+		business_hours: $('#business_hours').is(':checked'),
 		__csrf_magic: csrfMagicToken
 	});
 }

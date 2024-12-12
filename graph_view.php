@@ -219,6 +219,7 @@ switch (get_nfilter_request_var('action')) {
 			get_filter_request_var('predefined_timeshift');
 			get_filter_request_var('graphs');
 			get_filter_request_var('thumbnails', FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => '(true|false)')));
+			get_filter_request_var('business_hours', FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => '(true|false)')));
 
 			if (isset_request_var('predefined_timespan')) {
 				set_graph_config_option('default_timespan', get_request_var('predefined_timespan'));
@@ -226,6 +227,10 @@ switch (get_nfilter_request_var('action')) {
 
 			if (isset_request_var('predefined_timeshift')) {
 				set_graph_config_option('default_timeshift', get_request_var('predefined_timeshift'));
+			}
+
+			if (isset_request_var('business_hours')) {
+				set_graph_config_option('show_business_hours', get_request_var('business_hours') == 'true' ? 'on':'');
 			}
 
 			if (isset_request_var('section') && get_nfilter_request_var('section') == 'preview') {
