@@ -41,16 +41,18 @@ if (!isset_request_var('action') || get_nfilter_request_var('action') == 'templa
 		1 => __('Delete'),
 		2 => __('Duplicate'),
 		3 => __('Sync Devices'),
-		4 => __('Archive Template')
+		4 => __('Archive Package'),
+		5 => __('Download Packages')
 	);
 
 	if (!file_exists(CACTI_PATH_PKI . '/package.pub')) {
 		unset($actions[4]);
+		unset($actions[5]);
 	}
 } elseif (get_nfilter_request_var('action') == 'archives' || get_nfilter_request_var('action_type') == 'archives') {
 	$actions = array(
 		1 => __('Delete'),
-		2 => __('Restore'),
+		2 => __('Download Packages'),
 	);
 }
 
