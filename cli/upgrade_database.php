@@ -158,13 +158,15 @@ foreach ($cacti_version_codes as $cacti_upgrade_version => $hash_code) {
 		}
 
 		if (cacti_version_compare($orig_cacti_version, $cacti_upgrade_version, '<')) {
-			db_execute("UPDATE version SET cacti = '" . $cacti_upgrade_version . "'");
+			db_execute_prepared("UPDATE version SET cacti = ?", array($cacti_upgrade_version));
+
 			$orig_cacti_version = $cacti_upgrade_version;
 		}
+
 		$prev_cacti_version = $cacti_upgrade_version;
 	}
 
-	db_execute("UPDATE version SET cacti = '" . $cacti_upgrade_version . "'");
+	db_execute_prepared("UPDATE version SET cacti = ?", array($cacti_upgrade_version));
 
 	if (cacti_version_compare(CACTI_VERSION, $cacti_upgrade_version, '=')) {
 		db_execute("UPDATE version SET cacti = '" . CACTI_VERSION_FULL . "'");
@@ -172,6 +174,8 @@ foreach ($cacti_version_codes as $cacti_upgrade_version => $hash_code) {
 		break;
 	}
 }
+
+print PHP_EOL;
 
 function exit_error($text) {
 	print "ERROR: $text" . PHP_EOL;
