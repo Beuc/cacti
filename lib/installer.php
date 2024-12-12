@@ -3040,7 +3040,7 @@ class Installer implements JsonSerializable {
 		if (cacti_sizeof($topts)) {
 			$output .= '<hr>';
 
-			$output .= Installer::sectionTitle(__('Device Package'));
+			$output .= Installer::sectionTitle(__('Device Packages'));
 			$output .= Installer::sectionNormal(__('The following Device Packages will be Installed or Upgraded'));
 
 			$output .= '<hr>';
