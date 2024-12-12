@@ -477,12 +477,15 @@ $phperrors = array (
 	E_USER_ERROR => 'USER_ERROR',
 	E_USER_WARNING => 'USER_WARNING',
 	E_USER_NOTICE  => 'USER_NOTICE',
-	E_STRICT => 'STRICT',
 	E_RECOVERABLE_ERROR  => 'RECOVERABLE_ERROR',
 	E_DEPRECATED => 'DEPRECATED',
 	E_USER_DEPRECATED  => 'USER_DEPRECATED',
 	E_ALL => 'ALL'
 );
+
+if (version_compare(PHP_VERSION, '8.4', '<')) {
+	$phperrors[E_STRICT] = 'STRICT';
+}
 
 if (cacti_version_compare(get_rrdtool_version(), '1.8.0', '>=')) {
 	$cdef_functions[] = 'ROUND';

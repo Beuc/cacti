@@ -15,6 +15,7 @@ Cacti CHANGELOG
 -issue#5932: When upgrading Cacti, the replicate_out() process runs repeatedly
 -issue#5961: Issues with Replication of Tables and Misleading Full Sync Time
 -issue#5963: Cacti caching for db_table_exists() and db_column_exists() is not connection aware and replication does not replicate empty table structures
+-issue#5986: PHP ERRORS with php8.4 while including global_arrays.php
 -feature#5921: Add HPE Nimble/Alletra template
 -feature#5933: Only attempt to change the table type and character encoding for built-in Cacti tables
 
