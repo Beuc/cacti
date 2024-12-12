@@ -1006,6 +1006,8 @@ function templates() {
 			$sql_join
 			LEFT JOIN host
 			ON host.host_template_id = ht.id
+			LEFT JOIN host_template_archive AS hta
+			ON hta.host_template_id = ht.id
 			$sql_where
 			GROUP BY ht.id
 			$sql_having
@@ -1016,11 +1018,13 @@ function templates() {
 	$sql_limit = ' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows;
 
 	$template_list = db_fetch_assoc_prepared("SELECT
-		ht.id, ht.name, ht.class, ht.version, ht.author, ht.copyright, COUNT(DISTINCT host.id) AS hosts
+		ht.id, ht.name, ht.class, ht.version, ht.author, ht.copyright, COUNT(DISTINCT host.id) AS hosts, COUNT(DISTINCT hta.id) AS `archives`
 		FROM host_template AS ht
 		$sql_join
 		LEFT JOIN host
 		ON host.host_template_id=ht.id
+		LEFT JOIN host_template_archive AS hta
+		ON hta.host_template_id = ht.id
 		$sql_where
 		GROUP BY ht.id
 		$sql_having
@@ -1046,6 +1050,12 @@ function templates() {
 			'align'   => 'center',
 			'sort'    => 'ASC',
 			'tip'     => __('The version of this Device Template.')
+		),
+		'archives' => array(
+			'display' => __('Archives'),
+			'align'   => 'center',
+			'sort'    => 'ASC',
+			'tip'     => __('The number of Archived versions of this Device Template on disk.')
 		),
 		'ht.author' => array(
 			'display' => __('Author'),
@@ -1087,7 +1097,7 @@ function templates() {
 
 	html_start_box('', '100%', '', '3', 'center', '');
 
-	html_header_sort_checkbox($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), false);
+	html_header_sort_checkbox($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), false, 'host_templates.php?action=template');
 
 	$i = 0;
 
@@ -1109,8 +1119,11 @@ function templates() {
 				form_selectable_cell(__('Unassigned'), $template['id']);
 			}
 
-			form_selectable_cell($template['version'], $template['version'], '', 'center');
-			form_selectable_cell($template['author'], $template['author'], '', 'left');
+			$archive_url = 'host_templates.php?action=archives&host_template=' . $template['id'];
+
+			form_selectable_cell($template['version'], $template['id'], '', 'center');
+			form_selectable_cell(filter_value($template['archives'], '', $archive_url), $template['id'], '', 'center');
+			form_selectable_cell($template['author'], $template['id'], '', 'left');
 			form_selectable_cell($template['copyright'], $template['copyright'], '', 'left');
 
 			form_selectable_cell($template['id'], $template['id'], '', 'right');
@@ -1168,6 +1181,11 @@ function archives() {
 			'pageset' => true,
 			'default' => '-1'
 		),
+		'host_template' => array(
+			'filter' => FILTER_DEFAULT,
+			'pageset' => true,
+			'default' => '-1'
+		),
 		'class' => array(
 			'filter'  => FILTER_CALLBACK,
 			'default' => '-1',
@@ -1201,7 +1219,7 @@ function archives() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('Device Templates Archives'), '100%', '', '3', 'center', '');
+	html_start_box(__('Device Template Archives'), '100%', '', '3', 'center', '');
 
 	?>
 	<tr class='even noprint'>
@@ -1219,6 +1237,37 @@ function archives() {
 							if (cacti_sizeof($device_classes)) {
 								foreach ($device_classes as $key => $value) {
 									print "<option value='" . $key . "'" . (get_request_var('class') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
+								}
+							}
+							?>
+						</select>
+					</td>
+					<td>
+						<?php print __('Device Template');?>
+					</td>
+					<td>
+						<select id='host_template' data-defaultLabel='<?php print __('Device Template');?>'>
+							<option value='-1'<?php print (get_request_var('host_template') == '-1' ? ' selected>':'>') . __('All');?></option>
+							<?php
+							if (get_request_var('class') != '-1') {
+								$sql_where    = 'WHERE ht.class = ?';
+								$sql_params[] = get_request_var('class');
+							} else {
+								$sql_where    = '';
+								$sql_params   = array();
+							}
+
+							$device_templates = db_fetch_assoc_prepared("SELECT DISTINCT ht.id, ht.name
+								FROM host_template AS ht
+								INNER JOIN host_template_archive AS hta
+								ON ht.id = hta.host_template_id
+								$sql_where
+								ORDER BY ht.name ASC",
+								$sql_params);
+
+							if (cacti_sizeof($device_templates)) {
+								foreach ($device_templates as $dt) {
+									print "<option value='" . $dt['id'] . "'" . (get_request_var('host_template') == $dt['id'] ? ' selected':'') . '>' . html_escape($dt['name']) . '</option>';
 								}
 							}
 							?>
@@ -1384,6 +1433,11 @@ function archives() {
 		$sql_params[] = get_request_var('class');
 	}
 
+	if (get_request_var('host_template') != '-1') {
+		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . 'ht.host_template_id = ?';
+		$sql_params[] = get_request_var('host_template');
+	}
+
 	if (get_request_var('graph_template') != '-1') {
 		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . 'gt_id = ?';
 		$sql_params[] = get_request_var('graph_template');
@@ -1486,7 +1540,7 @@ function archives() {
 			'sort'    => 'ASC',
 			'tip'     => __('The internal database ID for this Device Template.  Useful when performing automation or debugging.')
 		),
-		'ht.size' => array(
+		'size' => array(
 			'display' => __('Size'),
 			'align'   => 'right',
 			'sort'    => 'DESC',
@@ -1508,7 +1562,7 @@ function archives() {
 
 	html_start_box('', '100%', '', '3', 'center', '');
 
-	html_header_sort_checkbox($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), false);
+	html_header_sort_checkbox($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), false, 'host_templates.php?action=archives');
 
 	$i = 0;
 
