@@ -37,8 +37,6 @@ if (!isset_request_var('view_type')) {
 
 api_plugin_hook_function('graph');
 
-top_graph_header();
-
 switch (get_request_var('action')) {
 	case 'view':
 		html_graph_single_view($rras, $graph_title);
@@ -53,6 +51,4 @@ switch (get_request_var('action')) {
 
 		break;
 }
-
-bottom_footer();
 

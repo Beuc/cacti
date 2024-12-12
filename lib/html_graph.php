@@ -1312,8 +1312,10 @@ function html_graph_list_view() {
 				$graph['description'] = $template_details['graph_description'];
 			}
 
+			$current_page = get_current_page();
+
 			form_alternate_row('line' . $graph['local_graph_id'], true);
-			form_selectable_cell(filter_value($graph['title_cache'], get_request_var('rfilter'), 'graph.php?local_graph_id=' . $graph['local_graph_id'] . '&rra_id=0'), $graph['local_graph_id']);
+			form_selectable_cell(filter_value($graph['title_cache'], get_request_var('rfilter'), $current_page . '?action=view&local_graph_id=' . $graph['local_graph_id'] . '&rra_id=0'), $graph['local_graph_id']);
 
 			if (is_realm_allowed(10)) {
 				if ($graph['site_name'] != '') {
@@ -1690,6 +1692,15 @@ function html_graph_single_view() {
 	$rras = $info['rras'];
 	$graph_title = $info['title'];
 
+	$current_page = get_current_page();
+	if ($current_page == 'graph.php') {
+		top_header();
+	} elseif ($current_page == 'graph_view.php') {
+		top_graph_header();
+	} else {
+		top_general_header();
+	}
+
 	print "<div class='cactiTable'>";
 
 	html_start_box(__esc('Graph Utility View for Graph: %s', $graph_title), '100%', true, '3', 'center', '');
@@ -1857,7 +1868,7 @@ function html_graph_single_view() {
 				graph_end = $(this).attr('graph_end');
 
 				loadUrl({
-					url: 'graph.php?' +
+					url: pageName + '?' +
 						'action=zoom' +
 						'&local_graph_id=' + graph_id +
 						'&rra_id=' + rra_id +
@@ -1895,6 +1906,8 @@ function html_graph_single_view() {
 	html_end_box(false, true);
 
 	print '</div>';
+
+	bottom_footer();
 }
 
 function html_graph_zoom() {
@@ -1996,6 +2009,15 @@ function html_graph_zoom() {
 		$title_font_size = 10;
 	}
 
+	$current_page = get_current_page();
+	if ($current_page == 'graph.php') {
+		top_header();
+	} elseif ($current_page == 'graph_view.php') {
+		top_graph_header();
+	} else {
+		top_general_header();
+	}
+
 	print "<div class='cactiTable'>";
 
 	html_start_box(__esc('Graph Utility View for Graph: %s', $graph_title), '100%', true, '3', 'center', '');
@@ -2056,7 +2078,7 @@ function html_graph_zoom() {
 
 		function graphProperties() {
 			loadUrl({
-				url: urlPath + 'graph.php?action=properties' +
+				url: urlPath + pageName + '?action=properties' +
 					'&local_graph_id=' + graph_id +
 					'&rra_id=<?php print get_request_var('rra_id'); ?>' +
 					'&view_type=<?php print get_request_var('view_type'); ?>' +
@@ -2193,6 +2215,8 @@ function html_graph_zoom() {
 	<?php
 
 	print '</div>';
+
+	bottom_footer();
 }
 
 function html_graph_properties() {
@@ -2201,6 +2225,15 @@ function html_graph_properties() {
 	html_graph_single_validate();
 
 	html_graph_check_access();
+
+	$current_page = get_current_page();
+	if ($current_page == 'graph.php') {
+		top_header();
+	} elseif ($current_page == 'graph_view.php') {
+		top_graph_header();
+	} else {
+		top_general_header();
+	}
 
 	$graph_data_array['print_source'] = true;
 
@@ -2242,5 +2275,7 @@ function html_graph_properties() {
 		</div>
 	</div>
 	<?php
+
+	bottom_footer();
 }
 

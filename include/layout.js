@@ -2285,6 +2285,8 @@ function menuShow() {
 }
 
 function loadTopTab(href, id, force) {
+	var storage = Storages.sessionStorage;
+
 	/* used for debugging */
 	var stack = ''; //getStackTrace(); // new Error().stack;
 	var url   = href;// + (href.indexOf('?') > 0 ? '&' : '?') + 'headercontent=true';
@@ -4267,7 +4269,7 @@ function initializeGraphs(disable_cache) {
 	$('a[id$="_mrtg"]').each(function () {
 		var graph_id = $(this).attr('id').replace('graph_', '').replace('_mrtg', '');
 
-		$(this).attr('href', urlPath + 'graph.php?local_graph_id=' + graph_id);
+		$(this).attr('href', urlPath + pageName + 'action=view&local_graph_id=' + graph_id);
 
 		$(this).off('click').on('click', function (event) {
 			if (!shouldCaptureClick(event))
@@ -4278,7 +4280,7 @@ function initializeGraphs(disable_cache) {
 			event.preventDefault();
 			event.stopPropagation();
 
-			loadUrl({ url: urlPath + 'graph.php?local_graph_id=' + graph_id });
+			loadUrl({ url: urlPath + pageName + '?action=view&local_graph_id=' + graph_id });
 		});
 	});
 
@@ -4458,7 +4460,7 @@ function initializeGraphs(disable_cache) {
 	$('a[id$="_util"]').each(function () {
 		var graph_id = $(this).attr('id').replace('graph_', '').replace('_util', '');
 
-		$(this).attr('href', urlPath + 'graph.php' +
+		$(this).attr('href', urlPath + pageName +
 			'?action=zoom' +
 			'&rra_id=0' +
 			'&business_hours=' + (isBusiness ? 'true' : 'false') +
@@ -4471,7 +4473,7 @@ function initializeGraphs(disable_cache) {
 				return;
 
 			var graph_id = $(this).attr('id').replace('graph_', '').replace('_util', '');
-			var graph_url = urlPath + 'graph.php' +
+			var graph_url = urlPath + pageName +
 				'?action=zoom' +
 				'&local_graph_id=' + graph_id +
 				'&rra_id=0' +

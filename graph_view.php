@@ -52,8 +52,6 @@ switch (get_nfilter_request_var('action')) {
 	case 'ajax_search':
 		get_matching_nodes();
 
-		exit;
-
 		break;
 	case 'ajax_reports':
 		html_graph_get_reports();

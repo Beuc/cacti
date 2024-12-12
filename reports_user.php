@@ -170,7 +170,6 @@ switch (get_request_var('action')) {
 		bottom_footer();
 
 		break;
-
 	default:
 		general_header();
 		reports();

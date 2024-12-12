@@ -2181,24 +2181,42 @@ $navigation = array(
 		'url'     => 'graph_view.php?action=preview',
 		'level'   => '0'
 	),
+	'graph_view.php:view' => array(
+		'title'   => __('Single Graph View'),
+		'mapping' => 'graph_view.php:',
+		'url'     => 'graph_view.php?action=view',
+		'level'   => '1'
+	),
+	'graph_view.php:zoom' => array(
+		'title'   => __('Graph Details View'),
+		'mapping' => 'graph_view.php:',
+		'url'     => 'graph_view.php?action=zoom',
+		'level'   => '1'
+	),
+	'graph_view.php:properties' => array(
+		'title'   => __('Graph Properties'),
+		'mapping' => 'graph_view.php:',
+		'url'     => 'graph_view.php?action=properties',
+		'level'   => '1'
+	),
 	'graph.php:' => array(
 		'title'   => '|current_graph_title|',
-		'mapping' => 'graph_view.php:',
+		'mapping' => CACTI_PATH_URL . 'index.php:',
 		'level'   => '1'
 	),
 	'graph.php:view' => array(
 		'title'   => '|current_graph_title|',
-		'mapping' => 'graph_view.php:',
+		'mapping' => CACTI_PATH_URL . 'index.php:',
 		'level'   => '1'
 	),
 	'graph.php:zoom' => array(
 		'title'   => '|current_graph_title|',
-		'mapping' => 'graph_view.php:',
+		'mapping' => CACTI_PATH_URL . 'index.php:',
 		'level'   => '1'
 	),
 	'graph.php:update_timespan' => array(
 		'title'   => '|current_graph_title|',
-		'mapping' => 'graph_view.php:',
+		'mapping' => CACTI_PATH_URL . 'index.php:',
 		'level'   => '1'
 	),
 	'index.php:' => array(
