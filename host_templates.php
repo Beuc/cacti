@@ -36,14 +36,18 @@ include_once('./lib/template.php');
 include_once('./lib/utility.php');
 include_once('./lib/xml.php');
 
-if (!isset_request_var('action') || get_nfilter_request_var('action') == 'templates') {
+if (!isset_request_var('action') || get_nfilter_request_var('action') == 'templates' || get_nfilter_request_var('action_type') == 'templates') {
 	$actions = array(
 		1 => __('Delete'),
 		2 => __('Duplicate'),
 		3 => __('Sync Devices'),
 		4 => __('Archive Template')
 	);
-} elseif (get_nfilter_request_var('action') == 'archives') {
+
+	if (!file_exists(CACTI_PATH_PKI . '/package.pub')) {
+		unset($actions[4]);
+	}
+} elseif (get_nfilter_request_var('action') == 'archives' || get_nfilter_request_var('action_type') == 'archives') {
 	$actions = array(
 		1 => __('Delete'),
 		2 => __('Restore'),
@@ -222,7 +226,7 @@ function form_actions() {
 				}
 			}
 
-			header('Location: host_templates.php?action=templates&view=templates');
+			header('Location: host_templates.php?action=templates&action=templates');
 		} else {
 			$selected_items = sanitize_unserialize_selected_items(get_nfilter_request_var('selected_items'));
 
@@ -240,7 +244,7 @@ function form_actions() {
 				}
 			}
 
-			header('Location: host_templates.php?action=archives&view=archives');
+			header('Location: host_templates.php?action=archives');
 		}
 
 		exit;
@@ -333,7 +337,7 @@ function form_actions() {
 						'pmessage' => __('Click \'Continue\' to Delete following Device Template Archives.'),
 						'scont'    => __('Delete Device Template Archive'),
 						'pcont'    => __('Delete Device Templates Archives')
-					),
+					)
 				)
 			);
 		}
@@ -1075,9 +1079,9 @@ function templates() {
 		)
 	);
 
-	$nav = html_nav_bar('host_templates.php?filter=' . get_request_var('filter'), MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, cacti_sizeof($display_text) + 1, __('Device Templates'), 'page', 'main');
+	$nav = html_nav_bar('host_templates.php?action=templates', MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, cacti_sizeof($display_text) + 1, __('Device Templates'), 'page', 'main');
 
-	form_start('host_templates.php', 'chk');
+	form_start('host_templates.php?action=templates', 'chk');
 
 	print $nav;
 
@@ -1334,7 +1338,7 @@ function archives() {
 		}
 
 		function clearFilter() {
-			strURL = 'host_templates.php?reset=1&view=archives';
+			strURL = 'host_templates.php?reset=1&action=archives';
 			loadUrl({
 				url: strURL
 			})
@@ -1496,9 +1500,9 @@ function archives() {
 		)
 	);
 
-	$nav = html_nav_bar('host_templates.php?view=1', MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, cacti_sizeof($display_text) + 1, __('Device Templates'), 'page', 'main');
+	$nav = html_nav_bar('host_templates.php?action=archives', MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, cacti_sizeof($display_text) + 1, __('Device Templates'), 'page', 'main');
 
-	form_start('host_templates.php?view=1', 'chk');
+	form_start('host_templates.php?action=archives', 'chk');
 
 	print $nav;
 
