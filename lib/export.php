@@ -1216,3 +1216,4 @@ function get_item_xml($type, $id, $follow_deps) {
 function xml_character_encode($text) {
 	return html_escape($text);
 }
+

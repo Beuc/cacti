@@ -774,6 +774,11 @@ function import_package($xmlfile, $profile_id = 1, $remove_orphans = false, $rep
 									$params[] = $info['email'];
 								}
 
+								if ($dt['homepage'] == '' && $info['homepage'] != '' && !is_array($info['homepage'])) {
+									$sets .= ($sets != '' ? ', ':'') . "homepage = ?";
+									$params[] = $info['homepage'];
+								}
+
 								if ($dt['copyright'] == '' && $info['copyright'] != '' && !is_array($info['copyright'])) {
 									$sets .= ($sets != '' ? ', ':'') . "copyright = ?";
 									$params[] = $info['copyright'];

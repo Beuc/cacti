@@ -1467,6 +1467,14 @@ $fields_host_template_edit = array(
 		'max_length'    => '60',
 		'size'          => '60'
 	),
+	'homepage' => array(
+		'method'        => 'textbox',
+		'friendly_name' => __('Author Homepage'),
+		'description'   => __('The original author\'s Homepage.'),
+		'value'         => '|arg1:homepage|',
+		'max_length'    => '128',
+		'size'          => '80'
+	),
 	'copyright' => array(
 		'method'        => 'drop_array',
 		'friendly_name' => __('Copyright'),

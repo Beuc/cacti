@@ -3001,3 +3001,100 @@ function api_clone_device_template($template_id, $template_name, $include_gt, $c
 
 	return $new_template;
 }
+
+function api_device_template_archive($id, $archive_note) {
+	global $export_types, $export_errors, $debug, $package_file;
+
+	$export_okay = false;
+
+	$host_template = db_fetch_row_prepared('SELECT *
+		FROM host_template
+		WHERE id = ?',
+		array($id));
+
+	if (cacti_sizeof($host_template)) {
+		$xml_data = get_item_xml('host_template', $id, true);
+
+		$info                 = array();
+		$info['name']         = $host_template['name'];
+		$info['author']       = $host_template['author'];
+		$info['homepage']     = $host_template['homepage'];
+		$info['email']        = $host_template['email'];
+		$info['description']  = $host_template['name'] . ' Package';
+		$info['class']        = $host_template['class'];
+		$info['tags']         = $host_template['tags'];
+		$info['installation'] = $host_template['installation'];
+		$info['version']      = $host_template['version'];
+		$info['copyright']    = $host_template['copyright'];
+
+		// Let's store the Template information for subsequent exports
+		$hash = get_export_hash('host_template', $id);
+
+		$export_okay = save_packager_metadata($hash, $info);
+
+		$debug = '';
+
+		if ($export_okay) {
+			$files = find_dependent_files($xml_data);
+
+			/* search xml files for scripts */
+			if (cacti_sizeof($files)) {
+				foreach($files as $file) {
+					if (strpos($file['file'], '.xml') !== false) {
+						$files = array_merge($files, find_dependent_files(file_get_contents($file['file'])));
+					}
+				}
+			}
+
+			$success = package_template($xml_data, $info, $files, $debug);
+
+			if ($export_errors || !$success) {
+				raise_message('package_error_' . $id, __('There were errors packaging your Device Template: %s.  Errors Follow. ', $info['name']) . str_replace("\n", '<br>', $debug), MESSAGE_LEVEL_ERROR);
+				return false;
+			} elseif ($package_file != '' && file_exists($package_file)) {
+				$archive = base64_encode(file_get_contents($package_file));
+				$md5sum  = md5($archive);
+
+				db_execute_prepared('INSERT INTO host_template_archive
+					(host_template_id, hash, name, version, class, tags, author, email, homepage, copyright, installation, archive_note, archive_md5sum, archive_date, archive)
+					VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+					array(
+						$id,
+						$hash,
+						$info['name'],
+						$info['version'],
+						$info['class'],
+						$info['tags'],
+						$info['author'],
+						$info['email'],
+						$info['homepage'],
+						$info['copyright'],
+						$info['installation'],
+						$archive_note,
+						$md5sum,
+						date('Y-m-d H:i:s'),
+						$archive
+					)
+				);
+
+				raise_message("package_success_$id", __('The Device Template %s was Archived Sucessfully.', $info['name']), MESSAGE_LEVEL_INFO);
+				unlink($package_file);
+
+				return true;
+			} else {
+				raise_message("package_error_$id", __('Unable to find Package file for Device Template: %s.', $info['name']), MESSAGE_LEVEL_ERROR);
+
+				return false;
+			}
+		} else {
+			raise_message("export_failed_$id", __('The Export Failed for %s!.  Check the Cacti Log for details', $info['name']), MESSAGE_LEVEL_ERROR);
+
+			return false;
+		}
+	} else {
+		raise_message("export_failed_$id", __('Export Could not find the Device Template with the ID %s!.  Check the Cacti Log for details', $id), MESSAGE_LEVEL_ERROR);
+
+		return false;
+	}
+}
+

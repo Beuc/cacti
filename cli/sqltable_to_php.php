@@ -130,7 +130,7 @@ function sqltable_to_php($table, $create, $plugin = '') {
 				$text .= ", 'type' => " . db_qstr($r['Type']);
 				$text .= ", 'NULL' => " . (strtolower($r['Null']) == 'no' ? 'false' : 'true');
 
-				if (trim($r['Default']) != '') {
+				if ($r['Default'] != '' && trim($r['Default']) != '') {
 					$text .= ", 'default' => '" . $r['Default'] . "'";
 				} elseif (stripos($r['Type'], 'char') !== false) {
 					$text .= ", 'default' => ''";

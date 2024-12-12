@@ -28,15 +28,27 @@ include_once('./lib/api_device.php');
 include_once('./lib/api_graph.php');
 include_once('./lib/api_tree.php');
 include_once('./lib/data_query.php');
+include_once('./lib/export.php');
+include_once('./lib/import.php');
+include_once('./lib/package.php');
 include_once('./lib/poller.php');
 include_once('./lib/template.php');
 include_once('./lib/utility.php');
+include_once('./lib/xml.php');
 
-$actions = array(
-	1 => __('Delete'),
-	2 => __('Duplicate'),
-	3 => __('Sync Devices')
-);
+if (!isset_request_var('action') || get_nfilter_request_var('action') == 'templates') {
+	$actions = array(
+		1 => __('Delete'),
+		2 => __('Duplicate'),
+		3 => __('Sync Devices'),
+		4 => __('Archive Template')
+	);
+} elseif (get_nfilter_request_var('action') == 'archives') {
+	$actions = array(
+		1 => __('Delete'),
+		2 => __('Restore'),
+	);
+}
 
 /* set default action */
 set_default_action();
@@ -92,12 +104,15 @@ switch (get_request_var('action')) {
 		bottom_footer();
 
 		break;
+	case 'archives':
+		top_header();
+		archives();
+		bottom_footer();
 
+		break;
 	default:
 		top_header();
-
-		template();
-
+		templates();
 		bottom_footer();
 
 		break;
@@ -120,6 +135,7 @@ function form_save() {
 		$save['tags']         = form_input_validate(get_nfilter_request_var('tags'), 'tags', '', true, 3);
 		$save['author']       = form_input_validate(get_nfilter_request_var('author'), 'author', '', true, 3);
 		$save['email']        = form_input_validate(get_nfilter_request_var('email'), 'email', '', true, 3);
+		$save['homepage']     = form_input_validate(get_nfilter_request_var('homepage'), 'homepage', '', true, 3);
 		$save['copyright']    = form_input_validate(get_nfilter_request_var('copyright'), 'copyright', '', false, 3);
 		$save['installation'] = form_input_validate(get_nfilter_request_var('installation'), 'installation', '', true, 3);
 
@@ -178,28 +194,54 @@ function form_actions() {
 
 	/* if we are to save this form, instead of display it */
 	if (isset_request_var('selected_items')) {
-		$selected_items = sanitize_unserialize_selected_items(get_nfilter_request_var('selected_items'));
+		if (get_request_var('action_type') == 'templates') {
+			$selected_items = sanitize_unserialize_selected_items(get_nfilter_request_var('selected_items'));
 
-		if ($selected_items != false) {
-			if (get_nfilter_request_var('drp_action') == '1') { // delete
-				db_execute('DELETE FROM host_template WHERE ' . array_to_sql_or($selected_items, 'id'));
-				db_execute('DELETE FROM host_template_snmp_query WHERE ' . array_to_sql_or($selected_items, 'host_template_id'));
-				db_execute('DELETE FROM host_template_graph WHERE ' . array_to_sql_or($selected_items, 'host_template_id'));
+			if ($selected_items != false) {
+				if (get_nfilter_request_var('drp_action') == '1') { // delete
+					db_execute('DELETE FROM host_template WHERE ' . array_to_sql_or($selected_items, 'id'));
+					db_execute('DELETE FROM host_template_snmp_query WHERE ' . array_to_sql_or($selected_items, 'host_template_id'));
+					db_execute('DELETE FROM host_template_graph WHERE ' . array_to_sql_or($selected_items, 'host_template_id'));
 
-				/* "undo" any device that is currently using this template */
-				db_execute('UPDATE host SET host_template_id = 0 WHERE deleted = "" AND ' . array_to_sql_or($selected_items, 'host_template_id'));
-			} elseif (get_nfilter_request_var('drp_action') == '2') { // duplicate
-				for ($i=0;($i<cacti_count($selected_items));$i++) {
-					api_duplicate_device_template($selected_items[$i], get_nfilter_request_var('title_format'));
-				}
-			} elseif (get_nfilter_request_var('drp_action') == '3') { // sync
-				for ($i = 0; ($i < cacti_count($selected_items)); $i++) {
-					api_device_template_sync_template($selected_items[$i]);
+					/* "undo" any device that is currently using this template */
+					db_execute('UPDATE host SET host_template_id = 0 WHERE deleted = "" AND ' . array_to_sql_or($selected_items, 'host_template_id'));
+				} elseif (get_nfilter_request_var('drp_action') == '2') { // duplicate
+					foreach($selected_items as $id) {
+						api_duplicate_device_template($id, get_nfilter_request_var('title_format'));
+					}
+				} elseif (get_nfilter_request_var('drp_action') == '3') { // sync
+					foreach($selected_items as $id) {
+						api_device_template_sync_template($id);
+					}
+				} elseif (get_nfilter_request_var('drp_action') == '4') { // archive template
+					$archive_note = get_request_var('archive_note');
+
+					foreach($selected_items as $id) {
+						api_device_template_archive($id, $archive_note);
+					}
 				}
 			}
-		}
 
-		header('Location: host_templates.php');
+			header('Location: host_templates.php?action=templates&view=templates');
+		} else {
+			$selected_items = sanitize_unserialize_selected_items(get_nfilter_request_var('selected_items'));
+
+			if ($selected_items != false) {
+				if (get_nfilter_request_var('drp_action') == '1') { // delete
+					foreach($selected_items as $id) {
+						$name = db_fetch_cell_prepared('SELECT name
+							FROM host_template_archive
+							WHERE id = ?', array($id));
+
+						db_execute_prepared('DELETE FROM host_template_archive WHERE id = ?', array($id));
+
+						raise_message('archives_removed', __('The Device Template Archive %s has been removed.', $name), MESSAGE_LEVEL_INFO);
+					}
+				}
+			}
+
+			header('Location: host_templates.php?action=archives&view=archives');
+		}
 
 		exit;
 	} else {
@@ -213,49 +255,88 @@ function form_actions() {
 				input_validate_input_number($matches[1], 'chk[1]');
 				/* ==================================================== */
 
-				$ilist .= '<li>' . html_escape(db_fetch_cell_prepared('SELECT name FROM host_template WHERE id = ?', array($matches[1]))) . '</li>';
+				if (get_request_var('action_type') == 'templates') {
+					$ilist .= '<li>' . html_escape(db_fetch_cell_prepared('SELECT name FROM host_template WHERE id = ?', array($matches[1]))) . '</li>';
+				} else {
+					$ilist .= '<li>' . html_escape(db_fetch_cell_prepared('SELECT name FROM host_template_archive WHERE id = ?', array($matches[1]))) . '</li>';
+				}
 
 				$iarray[] = $matches[1];
 			}
 		}
 
-		$form_data = array(
-			'general' => array(
-				'page'       => 'host_templates.php',
-				'actions'    => $actions,
-				'optvar'     => 'drp_action',
-				'item_array' => $iarray,
-				'item_list'  => $ilist
-			),
-			'options' => array(
-				1 => array(
-					'smessage' => __('Click \'Continue\' to Delete the following Device Template.'),
-					'pmessage' => __('Click \'Continue\' to Delete following Device Templates.'),
-					'scont'    => __('Delete Device Template'),
-					'pcont'    => __('Delete Device Templates')
+		if (get_request_var('action_type') == 'templates') {
+			$form_data = array(
+				'general' => array(
+					'page'       => 'host_templates.php?action_type=templates',
+					'actions'    => $actions,
+					'optvar'     => 'drp_action',
+					'item_array' => $iarray,
+					'item_list'  => $ilist
 				),
-				2 => array(
-					'smessage' => __('Click \'Continue\' to Duplicate the following Device Template.'),
-					'pmessage' => __('Click \'Continue\' to Duplicate following Device Templates.'),
-					'scont'    => __('Duplicate Device Template'),
-					'pcont'    => __('Duplicate Device Templates'),
-					'extra'    => array(
-						'title_format' => array(
-							'method'  => 'textbox',
-							'title'   => __('Title Format'),
-							'default' => '<template_title> (1)',
-							'width'   => 25
+				'options' => array(
+					1 => array(
+						'smessage' => __('Click \'Continue\' to Delete the following Device Template.'),
+						'pmessage' => __('Click \'Continue\' to Delete following Device Templates.'),
+						'scont'    => __('Delete Device Template'),
+						'pcont'    => __('Delete Device Templates')
+					),
+					2 => array(
+						'smessage' => __('Click \'Continue\' to Duplicate the following Device Template.'),
+						'pmessage' => __('Click \'Continue\' to Duplicate following Device Templates.'),
+						'scont'    => __('Duplicate Device Template'),
+						'pcont'    => __('Duplicate Device Templates'),
+						'extra'    => array(
+							'title_format' => array(
+								'method'  => 'textbox',
+								'title'   => __('Title Format'),
+								'default' => '<template_title> (1)',
+								'width'   => 25
+							)
 						)
-					)
+					),
+					3 => array(
+						'smessage' => __('Click \'Continue\' to Sync Devices to the following Device Template.'),
+						'pmessage' => __('Click \'Continue\' to Sync Devices to the following Device Templates.'),
+						'scont'    => __('Sync Device Template'),
+						'pcont'    => __('Sync Device Templates')
+					),
+					4 => array(
+						'smessage' => __('Click \'Continue\' to Archive the following Device Template.'),
+						'pmessage' => __('Click \'Continue\' to Archive the following Device Templates.'),
+						'scont'    => __('Archive Device Template'),
+						'pcont'    => __('Archive Device Templates'),
+						'extra'    => array(
+							'archive_note' => array(
+								'method'  => 'textarea',
+								'title'   => __('Archive Note'),
+								'default' => '',
+								'textarea_rows' => 4,
+								'textarea_cols' => 80
+							)
+						)
+					),
+				)
+			);
+		} else {
+			$form_data = array(
+				'general' => array(
+					'page'       => 'host_templates.php?action_type=archive',
+					'actions'    => $actions,
+					'optvar'     => 'drp_action',
+					'item_array' => $iarray,
+					'item_list'  => $ilist
 				),
-				3 => array(
-					'smessage' => __('Click \'Continue\' to Sync Devices to the following Device Template.'),
-					'pmessage' => __('Click \'Continue\' to Sync Devices to the following Device Templates.'),
-					'scont'    => __('Sync Device Template'),
-					'pcont'    => __('Sync Device Templates')
-				),
-			)
-		);
+				'options' => array(
+					1 => array(
+						'smessage' => __('Click \'Continue\' to Delete the following Device Template Archive.'),
+						'pmessage' => __('Click \'Continue\' to Delete following Device Template Archives.'),
+						'scont'    => __('Delete Device Template Archive'),
+						'pcont'    => __('Delete Device Templates Archives')
+					),
+				)
+			);
+		}
 
 		form_continue_confirmation($form_data);
 	}
@@ -276,7 +357,7 @@ function template_item_remove_gt_confirm() {
 		WHERE id = ?',
 		array(get_request_var('id')));
 
-?>
+	?>
 	<tr>
 		<td class='topBoxAlt'>
 			<p><?php print __('Click \'Continue\' to delete the following Graph Template will be disassociated from the Device Template.'); ?></p>
@@ -321,8 +402,7 @@ function template_item_remove_gt() {
 	get_filter_request_var('host_template_id');
 	/* ==================================================== */
 
-	db_execute_prepared(
-		'DELETE FROM host_template_graph
+	db_execute_prepared('DELETE FROM host_template_graph
 		WHERE graph_template_id = ?
 		AND host_template_id = ?',
 		array(get_request_var('id'), get_request_var('host_template_id'))
@@ -343,7 +423,7 @@ function template_item_remove_dq_confirm() {
 
 	$query = db_fetch_row_prepared('SELECT * FROM snmp_query WHERE id = ?', array(get_request_var('id')));
 
-?>
+	?>
 	<tr>
 		<td class='topBoxAlt'>
 			<p><?php print __('Click \'Continue\' to delete the following Data Queries will be disassociated from the Device Template.'); ?></p>
@@ -388,8 +468,7 @@ function template_item_remove_dq() {
 	get_filter_request_var('host_template_id');
 	/* ==================================================== */
 
-	db_execute_prepared(
-		'DELETE FROM host_template_snmp_query
+	db_execute_prepared('DELETE FROM host_template_snmp_query
 		WHERE snmp_query_id = ?
 		AND host_template_id = ?',
 		array(get_request_var('id'), get_request_var('host_template_id'))
@@ -465,14 +544,14 @@ function template_edit() {
 		if (cacti_sizeof($selected_graph_templates)) {
 			foreach ($selected_graph_templates as $item) {
 				form_alternate_row("gt$i", true);
-	?>
+				?>
 				<td class='left'>
 					<strong><?php print $i; ?>)</strong> <?php print html_escape($item['name']); ?>
 				</td>
 				<td class='right'>
 					<a class='delete deleteMarker fa fa-times' title='<?php print __esc('Delete'); ?>' href='<?php print html_escape('host_templates.php?action=item_remove_gt_confirm&id=' . $item['id'] . '&host_template_id=' . get_request_var('id')); ?>'></a>
 				</td>
-		<?php
+				<?php
 				form_end_row();
 
 				$i++;
@@ -523,14 +602,14 @@ function template_edit() {
 		if (cacti_sizeof($selected_data_queries)) {
 			foreach ($selected_data_queries as $item) {
 				form_alternate_row("dq$i", true);
-		?>
+				?>
 				<td class='left'>
 					<strong><?php print $i; ?>)</strong> <?php print html_escape($item['name']); ?>
 				</td>
 				<td class='right'>
 					<a class='delete deleteMarker fa fa-times' title='<?php print __esc('Delete'); ?>' href='<?php print html_escape('host_templates.php?action=item_remove_dq_confirm&id=' . $item['id'] . '&host_template_id=' . get_request_var('id')); ?>'></a>
 				</td>
-		<?php
+				<?php
 				form_end_row();
 
 				$i++;
@@ -562,7 +641,7 @@ function template_edit() {
 			</td>
 		</tr>
 
-	<?php
+		<?php
 
 		html_end_box();
 
@@ -637,7 +716,7 @@ function template_edit() {
 	<?php
 }
 
-function template() {
+function templates() {
 	global $actions, $item_rows, $device_classes;
 
 	/* ================= input validation and session storage ================= */
@@ -646,6 +725,12 @@ function template() {
 			'filter'  => FILTER_VALIDATE_INT,
 			'pageset' => true,
 			'default' => '-1'
+		),
+		'action' => array(
+			'filter'  => FILTER_CALLBACK,
+			'default' => 'templates',
+			'pageset' => true,
+			'options' => array('options' => 'sanitize_search_string')
 		),
 		'page' => array(
 			'filter'  => FILTER_VALIDATE_INT,
@@ -665,7 +750,6 @@ function template() {
 			'filter'  => FILTER_CALLBACK,
 			'default' => '-1',
 			'pageset' => true,
-			'sort'    => 'ASC',
 			'options' => array('options' => 'sanitize_search_string')
 		),
 		'sort_column' => array(
@@ -726,7 +810,7 @@ function template() {
 							<option value='-1'<?php print (get_request_var('graph_template') == '-1' ? ' selected>':'>') . __('All');?></option>
 							<?php
 							if (get_request_var('class') == -1) {
-								$graph_templates = db_fetch_assoc('SELECT DISTINCT id, name
+								$graph_templates = db_fetch_assoc('SELECT DISTINCT rs.id, rs.name
 									FROM (
 										SELECT gt.id, gt.name
 										FROM graph_templates AS gt
@@ -742,7 +826,7 @@ function template() {
 									) AS rs
 									ORDER BY name');
 							} else {
-								$graph_templates = db_fetch_assoc_prepared('SELECT DISTINCT ht.id, ht.name
+								$graph_templates = db_fetch_assoc_prepared('SELECT DISTINCT rs.id, rs.name
 									FROM (
 										SELECT gt.id, gt.name, htg.host_template_id
 										FROM graph_templates AS gt
@@ -758,7 +842,7 @@ function template() {
 									) AS rs
 									INNER JOIN host_template AS ht
 									ON rs.host_template_id = ht.id
-									WHERE ht.id = ?
+									WHERE ht.class = ?
 									ORDER BY name',
 									array(get_request_var('class')));
 							}
@@ -769,6 +853,15 @@ function template() {
 								}
 							}
 							?>
+						</select>
+					</td>
+					<td>
+						<?php print __('View');?>
+					</td>
+					<td>
+						<select id='action' data-defaultLabel='<?php print __('View');?>'>
+							<option value='templates'<?php print (get_request_var('action') == 'templates' ? ' selected>':'>') . __('Templates');?></option>
+							<option value='archives'<?php print (get_request_var('action') == 'archives' ? ' selected>':'>') . __('Archives');?></option>
 						</select>
 					</td>
 					<td>
@@ -814,7 +907,8 @@ function template() {
 		</td>
 		<script type='text/javascript'>
 		function applyFilter() {
-			strURL  = 'host_templates.php?header=false';
+			strURL  = 'host_templates.php';
+			strURL += '?action='+$('#action').val();
 			strURL += '&filter='+$('#filter').val();
 			strURL += '&class='+$('#class').val();
 			strURL += '&rows='+$('#rows').val();
@@ -833,7 +927,7 @@ function template() {
 		}
 
 		$(function() {
-			$('#graph_template, #class, #rows').change(function() {
+			$('#graph_template, #class, #rows, #action').change(function() {
 				applyFilter();
 			});
 
@@ -1023,7 +1117,7 @@ function template() {
 			form_end_row();
 		}
 	} else {
-		print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Device Templates Found') . "</em></td></tr>\n";
+		print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Device Templates Found') . "</em></td></tr>";
 	}
 
 	html_end_box(false);
@@ -1031,6 +1125,432 @@ function template() {
 	if (cacti_sizeof($template_list)) {
 		print $nav;
 	}
+
+	form_hidden_box('action_type','templates','');
+
+	/* draw the dropdown containing a list of available actions for this form */
+	draw_actions_dropdown($actions);
+
+	form_end();
+}
+
+function archives() {
+	global $actions, $item_rows, $device_classes;
+
+	/* ================= input validation and session storage ================= */
+	$filters = array(
+		'rows' => array(
+			'filter'  => FILTER_VALIDATE_INT,
+			'pageset' => true,
+			'default' => '-1'
+		),
+		'action' => array(
+			'filter'  => FILTER_CALLBACK,
+			'default' => 'templates',
+			'pageset' => true,
+			'options' => array('options' => 'sanitize_search_string')
+		),
+		'page' => array(
+			'filter'  => FILTER_VALIDATE_INT,
+			'default' => '1'
+		),
+		'filter' => array(
+			'filter'  => FILTER_DEFAULT,
+			'pageset' => true,
+			'default' => ''
+		),
+		'graph_template' => array(
+			'filter' => FILTER_DEFAULT,
+			'pageset' => true,
+			'default' => '-1'
+		),
+		'class' => array(
+			'filter'  => FILTER_CALLBACK,
+			'default' => '-1',
+			'pageset' => true,
+			'options' => array('options' => 'sanitize_search_string')
+		),
+		'sort_column' => array(
+			'filter'  => FILTER_CALLBACK,
+			'default' => 'name',
+			'options' => array('options' => 'sanitize_search_string')
+		),
+		'sort_direction' => array(
+			'filter'  => FILTER_CALLBACK,
+			'default' => 'ASC',
+			'options' => array('options' => 'sanitize_search_string')
+		),
+		'has_hosts' => array(
+			'filter'  => FILTER_VALIDATE_REGEXP,
+			'options' => array('options' => array('regexp' => '(true|false)')),
+			'pageset' => true,
+			'default' => read_config_option('default_has') == 'on' ? 'true' : 'false'
+		)
+	);
+
+	validate_store_request_vars($filters, 'sess_hta');
+	/* ================= input validation ================= */
+
+	if (get_request_var('rows') == '-1') {
+		$rows = read_config_option('num_rows_table');
+	} else {
+		$rows = get_request_var('rows');
+	}
+
+	html_start_box(__('Device Templates Archives'), '100%', '', '3', 'center', '');
+
+	?>
+	<tr class='even noprint'>
+		<td>
+		<form id='form_host_template' action='host_templates.php'>
+			<table class='filterTable'>
+				<tr>
+					<td>
+						<?php print __('Class');?>
+					</td>
+					<td>
+						<select id='class' data-defaultLabel='<?php print __('Class');?>'>
+							<option value='-1'<?php print (get_request_var('class') == '-1' ? ' selected>':'>') . __('All');?></option>
+							<?php
+							if (cacti_sizeof($device_classes)) {
+								foreach ($device_classes as $key => $value) {
+									print "<option value='" . $key . "'" . (get_request_var('class') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
+								}
+							}
+							?>
+						</select>
+					</td>
+					<td>
+						<?php print __('Graph Template');?>
+					</td>
+					<td>
+						<select id='graph_template' data-defaultLabel='<?php print __('Graph Template');?>'>
+							<option value='-1'<?php print (get_request_var('graph_template') == '-1' ? ' selected>':'>') . __('All');?></option>
+							<?php
+							if (get_request_var('class') == -1) {
+								$graph_templates = db_fetch_assoc('SELECT DISTINCT rs.id, rs.name
+									FROM (
+										SELECT gt.id, gt.name, htg.host_template_id
+										FROM graph_templates AS gt
+										INNER JOIN host_template_graph AS htg
+										ON htg.graph_template_id = gt.id
+										UNION
+										SELECT gt.id, gt.name, htsq.host_template_id
+										FROM graph_templates AS gt
+										INNER JOIN snmp_query_graph AS sqg
+										ON gt.id = sqg.graph_template_id
+										INNER JOIN host_template_snmp_query AS htsq
+										ON sqg.snmp_query_id = htsq.snmp_query_id
+									) AS rs
+									INNER JOIN host_template_archive AS ht
+									ON rs.host_template_id = ht.host_template_id
+									ORDER BY name');
+							} else {
+								$graph_templates = db_fetch_assoc_prepared('SELECT DISTINCT rs.id, rs.name
+									FROM (
+										SELECT gt.id, gt.name, htg.host_template_id
+										FROM graph_templates AS gt
+										INNER JOIN host_template_graph AS htg
+										ON htg.graph_template_id = gt.id
+										UNION
+										SELECT gt.id, gt.name, htsq.host_template_id
+										FROM graph_templates AS gt
+										INNER JOIN snmp_query_graph AS sqg
+										ON gt.id = sqg.graph_template_id
+										INNER JOIN host_template_snmp_query AS htsq
+										ON sqg.snmp_query_id = htsq.snmp_query_id
+									) AS rs
+									INNER JOIN host_template_archive AS ht
+									ON rs.host_template_id = ht.host_template_id
+									WHERE ht.host_template_id = ?
+									ORDER BY name',
+									array(get_request_var('class')));
+							}
+
+							if (cacti_sizeof($graph_templates)) {
+								foreach ($graph_templates as $row) {
+									print "<option value='" . $row['id'] . "'" . (get_request_var('graph_template') == $row['id'] ? ' selected ':'') . '>' . html_escape($row['name']) . '</option>';
+								}
+							}
+							?>
+						</select>
+					</td>
+					<td>
+						<?php print __('View');?>
+					</td>
+					<td>
+						<select id='action' data-defaultLabel='<?php print __('View');?>'>
+							<option value='templates'<?php print (get_request_var('action') == 'templates' ? ' selected>':'>') . __('Templates');?></option>
+							<option value='archives'<?php print (get_request_var('action') == 'archives' ? ' selected>':'>') . __('Archives');?></option>
+						</select>
+					</td>
+					<td>
+						<span>
+							<input type='submit' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc('Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
+							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Clear Filters');?>'>
+						</span>
+					</td>
+				</tr>
+			</table>
+			<table class='filterTable'>
+				<tr>
+					<td>
+						<?php print __('Search');?>
+					</td>
+					<td>
+						<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
+					</td>
+					<td>
+						<?php print __('Device Templates');?>
+					</td>
+					<td>
+						<select id='rows' data-defaultLabel='<?php print __('Device Templates');?>'>
+							<option value='-1'<?php print (get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
+							<?php
+							if (cacti_sizeof($item_rows)) {
+								foreach ($item_rows as $key => $value) {
+									print "<option value='" . $key . "'" . (get_request_var('rows') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
+								}
+							}
+							?>
+						</select>
+					</td>
+				</tr>
+			</table>
+		</form>
+		</td>
+		<script type='text/javascript'>
+		function applyFilter() {
+			strURL  = 'host_templates.php';
+			strURL += '?action='+$('#action').val();
+			strURL += '&filter='+$('#filter').val();
+			strURL += '&class='+$('#class').val();
+			strURL += '&rows='+$('#rows').val();
+			strURL += '&graph_template='+$('#graph_template').val();
+			strURL += '&has_hosts='+$('#has_hosts').is(':checked');
+			loadUrl({
+				url: strURL
+			});
+		}
+
+		function clearFilter() {
+			strURL = 'host_templates.php?reset=1&view=archives';
+			loadUrl({
+				url: strURL
+			})
+		}
+
+		$(function() {
+			$('#graph_template, #class, #rows, #action').change(function() {
+				applyFilter();
+			});
+
+			$('#clear').click(function() {
+				clearFilter();
+			});
+
+			$('#has_hosts').click(function() {
+				applyFilter();
+			});
+
+			$('#form_host_template').on('submit', function(event) {
+				event.preventDefault();
+				applyFilter();
+			});
+		});
+		</script>
+	</tr>
+	<?php
+
+	html_end_box();
+
+	/* form the 'where' clause for our main sql query */
+	$sql_where  = '';
+	$sql_params = array();
+	$sql_join   = '';
+
+	if (get_request_var('filter') != '') {
+		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . 'ht.name LIKE ? OR ht.archive_note LIKE ?';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
+	}
+
+	if (get_request_var('class') != '-1') {
+		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . 'ht.class = ?';
+		$sql_params[] = get_request_var('class');
+	}
+
+	if (get_request_var('graph_template') != '-1') {
+		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . 'gt_id = ?';
+		$sql_params[] = get_request_var('graph_template');
+
+		$sql_join   = "INNER JOIN (
+			SELECT DISTINCT host_template_id, id AS gt_id
+			FROM (
+				SELECT htg.host_template_id, gt.id
+				FROM graph_templates AS gt
+				INNER JOIN host_template_graph AS htg
+				ON htg.graph_template_id = gt.id
+				UNION
+				SELECT htsq.host_template_id, gt.id
+				FROM graph_templates AS gt
+				INNER JOIN snmp_query_graph AS sqg
+				ON gt.id = sqg.graph_template_id
+				INNER JOIN host_template_snmp_query AS htsq
+				ON sqg.snmp_query_id = htsq.snmp_query_id
+			) AS rs
+		) AS htdata
+		ON htdata.host_template_id = ht.id";
+	}
+
+	if (get_request_var('has_hosts') == 'true') {
+		$sql_having = 'HAVING hosts > 0';
+	} else {
+		$sql_having = '';
+	}
+
+	$total_rows = db_fetch_cell_prepared("SELECT COUNT(`rows`)
+		FROM (
+			SELECT
+			COUNT(ht.id) AS `rows`, COUNT(DISTINCT host.id) AS hosts
+			FROM host_template_archive AS ht
+			$sql_join
+			LEFT JOIN host
+			ON host.host_template_id = ht.id
+			$sql_where
+			GROUP BY ht.id
+			$sql_having
+		) AS rs",
+		$sql_params);
+
+	$sql_order = get_order_string();
+	$sql_limit = ' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows;
+
+	$archives = db_fetch_assoc_prepared("SELECT
+		ht.id, ht.name, ht.class, ht.version, ht.author, ht.copyright, archive_note, archive_date, LENGTH(archive) AS size, COUNT(DISTINCT host.id) AS hosts
+		FROM host_template_archive AS ht
+		$sql_join
+		LEFT JOIN host
+		ON host.host_template_id=ht.id
+		$sql_where
+		GROUP BY ht.id
+		$sql_having
+		$sql_order
+		$sql_limit",
+		$sql_params);
+
+	$display_text = array(
+		'name' => array(
+			'display' => __('Device Template Name'),
+			'align'   => 'left',
+			'sort'    => 'ASC',
+			'tip'     => __('The name of this Device Template.')
+		),
+		'ht.class' => array(
+			'display' => __('Device Class'),
+			'align'   => 'left',
+			'sort'    => 'ASC',
+			'tip'     => __('The Class of this Device Template.  The Class Name should be representative of it\'s function.')
+		),
+		'ht.version' => array(
+			'display' => __('Version'),
+			'align'   => 'center',
+			'sort'    => 'ASC',
+			'tip'     => __('The version of this Device Template.')
+		),
+		'ht.author' => array(
+			'display' => __('Author'),
+			'align'   => 'left',
+			'sort'    => 'ASC',
+			'tip'     => __('The author of this Device Template.')
+		),
+		'ht.copyright' => array(
+			'display' => __('Copyright'),
+			'align'   => 'left',
+			'sort'    => 'ASC',
+			'tip'     => __('The copyright of this Device Template.')
+		),
+		'ht.archive_note' => array(
+			'display' => __('Archive Notes'),
+			'align'   => 'left',
+			'sort'    => 'ASC',
+			'tip'     => __('Hover over the column to see the archive notes.')
+		),
+		'ht.id' => array(
+			'display' => __('ID'),
+			'align'   => 'right',
+			'sort'    => 'ASC',
+			'tip'     => __('The internal database ID for this Device Template.  Useful when performing automation or debugging.')
+		),
+		'ht.size' => array(
+			'display' => __('Size'),
+			'align'   => 'right',
+			'sort'    => 'DESC',
+			'tip'     => __('The size of the Device Template Archive in the Database.')
+		),
+		'ht.archive_date' => array(
+			'display' => __('Archive Date'),
+			'align'   => 'right',
+			'sort'    => 'ASC',
+			'tip'     => __('The internal database ID for this Device Template.  Useful when performing automation or debugging.')
+		)
+	);
+
+	$nav = html_nav_bar('host_templates.php?view=1', MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, cacti_sizeof($display_text) + 1, __('Device Templates'), 'page', 'main');
+
+	form_start('host_templates.php?view=1', 'chk');
+
+	print $nav;
+
+	html_start_box('', '100%', '', '3', 'center', '');
+
+	html_header_sort_checkbox($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), false);
+
+	$i = 0;
+
+	if (cacti_sizeof($archives)) {
+		foreach ($archives as $a) {
+			if ($a['hosts'] > 0) {
+				$disabled = true;
+			} else {
+				$disabled = false;
+			}
+
+			form_alternate_row('line' . $a['id'], true, $disabled);
+
+			form_selectable_cell(filter_value($a['name'], get_request_var('filter')), $a['id']);
+
+			if ($a['class'] != '') {
+				form_selectable_cell($device_classes[$a['class']], $a['id']);
+			} else {
+				form_selectable_cell(__('Unassigned'), $a['id']);
+			}
+
+			form_selectable_cell($a['version'], $a['id'], '', 'center');
+			form_selectable_cell($a['author'], $a['id'], '', 'left');
+			form_selectable_cell($a['copyright'], $a['id'], '', 'left');
+
+			form_selectable_cell(filter_value(__('Notes'), '', '#', $a['archive_note']), $a['id'], '', 'left');
+
+			form_selectable_cell($a['id'], $a['id'], '', 'right');
+
+			form_selectable_cell(number_format_i18n($a['size'], 2, 1000), $a['id'], '', 'right');
+			form_selectable_cell($a['archive_date'], $a['id'], '', 'right');
+			form_checkbox_cell($a['name'], $a['id'], $disabled);
+
+			form_end_row();
+		}
+	} else {
+		print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Device Template Archives Found') . "</em></td></tr>";
+	}
+
+	html_end_box(false);
+
+	if (cacti_sizeof($archives)) {
+		print $nav;
+	}
+
+	form_hidden_box('action_type','archives','');
 
 	/* draw the dropdown containing a list of available actions for this form */
 	draw_actions_dropdown($actions);

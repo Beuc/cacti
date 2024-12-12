@@ -51,7 +51,7 @@ function title_trim(string $text, int $max_length): string {
  *
  * @return null|string the filtered string
  */
-function filter_value(?string $value, string $filter, string $href = ''): ?string {
+function filter_value(?string $value, string $filter, string $href = '', string $title = ''): ?string {
 	static $charset;
 
 	if ($charset == '') {
@@ -75,7 +75,7 @@ function filter_value(?string $value, string $filter, string $href = ''): ?strin
 	}
 
 	if ($href != '') {
-		$value = '<a class="linkEditMain" href="' . htmlspecialchars($href, ENT_QUOTES, $charset, false) . '">' . $value  . '</a>';
+		$value = '<a class="linkEditMain" href="' . html_escape($href) . '" title="' . html_escape($title) . '">' . $value  . '</a>';
 	}
 
 	return $value;
@@ -1207,7 +1207,7 @@ function raise_message_javascript(string $title, string $header, string $message
 /**
  * Displays all of the cached messages from the raise_message() function and clears
  * the message cache
- * 
+ *
  * @return string
  */
 function display_output_messages() {
@@ -1306,7 +1306,7 @@ function clear_messages() {
 /**
  * kill_session_var - kills a session variable using unset()
  * @param mixed $var_name
- * 
+ *
  * @return void
  */
 function kill_session_var($var_name) {
@@ -1317,7 +1317,7 @@ function kill_session_var($var_name) {
 
 /**
  * force_session_data - forces session data into the session if the session was closed for some reason
- * 
+ *
  * @return bool
  */
 function force_session_data() {
@@ -1459,7 +1459,7 @@ function get_selective_log_level(): ?int {
  * @param bool $output - whether to output the log line to the browser using print() or not
  * @param string $environ - tells from where the script was called from
  * @param int $level - only log if above the specified log level
- * 
+ *
  * @return bool
  */
 function cacti_log($string, $output = false, $environ = 'CMDPHP', $level = '') {
@@ -1656,7 +1656,7 @@ function cacti_log($string, $output = false, $environ = 'CMDPHP', $level = '') {
  * @param  $total_rows   - (int) the total number of rows in the logfile
  * @param  $matches      - (bool) match or does not match the filter
  * @param  $expand_text  - (bool) expand text to perform replacements
- * 
+ *
  * @return array
  */
 function tail_file(string $file_name, int $number_of_lines, ?int $message_type = -1, ?string $filter = '', ?int &$page_nr = 1, ?int &$total_rows = 0, ?bool $matches = true, ?bool $expand_text = false): array {
@@ -1914,7 +1914,7 @@ function determine_display_log_entry($message_type, $line, $filter, $matches = t
  * @param Net_Ping $ping - results of the ping command.
  * @param int $ping_availability - the availability of the ping
  * @param bool $print_data_to_stdout - whether to print the data to the standard output
- * 
+ *
  * @return void
  */
 function update_host_status(int $status, int $host_id, Net_Ping &$ping, int $ping_availability, bool $print_data_to_stdout) {
@@ -2154,7 +2154,7 @@ function update_host_status(int $status, int $host_id, Net_Ping &$ping, int $pin
  * ignoring space and tab, and case insensitive.
  *
  * @param string $result - the string to test
- * 
+ *
  * @return bool
  */
 function is_hexadecimal($result) {
@@ -2372,7 +2372,7 @@ function is_valid_pathname($path) {
  * @param string $message - the message to output to the log
  * @param array|string|null $data  - the data to be carried with the message
  * @param int $level - the level of verbosity to use
- * 
+ *
  * @return void
  */
 function dsv_log($message, $data = null, $level = POLLER_VERBOSITY_LOW) {
@@ -3621,7 +3621,7 @@ function generate_graph_def_name($graph_item_id) {
  *
  * @param string $string - the input string that contains the field variables in a certain order
  * @param int $data_input_id - The ID of the data input method
- * 
+ *
  * @return void
  */
 function generate_data_input_field_sequences($string, $data_input_id) {
@@ -3656,7 +3656,7 @@ function generate_data_input_field_sequences($string, $data_input_id) {
  * @param int    $target_id - The ID of the (parent) graph item of the target group
  * @param string $direction - ('next' or 'previous') whether the graph group is to be swapped with
  *   group above or below the current group
- * 
+ *
  * @return void
  */
 function move_graph_group($graph_template_item_id, $graph_group_array, $target_id, $direction) {

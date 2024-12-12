@@ -94,43 +94,45 @@ function upgrade_to_1_3_0() {
 	/* remove all the legacy debounce entries */
 	db_install_execute('DELETE FROM settings WHERE name LIKE "debounce_%" AND value > 0');
 
-	/* temporary workaround till project finished */
-	db_install_execute("CREATE TABLE IF NOT EXISTS `plugin_available` (
-		`plugin` varchar(32) NOT NULL DEFAULT '',
-		`description` varchar(128) NOT NULL DEFAULT '',
-		`author` varchar(40) NOT NULL DEFAULT '',
-		`webpage` varchar(128) NOT NULL DEFAULT '',
-		`tag_name` varchar(20) NOT NULL DEFAULT '',
-		`published_at` timestamp NULL DEFAULT NULL,
-		`compat` varchar(20) NOT NULL DEFAULT '',
-		`requires` varchar(128) NOT NULL DEFAULT '',
-		`body` blob DEFAULT NULL,
-		`info` blob DEFAULT NULL,
-		`readme` blob DEFAULT NULL,
-		`changelog` blob DEFAULT NULL,
-		`archive` longblob DEFAULT NULL,
-		`last_updated` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-		PRIMARY KEY (`plugin`,`tag_name`))
-		ENGINE=InnoDB
-		ROW_FORMAT=DYNAMIC");
+	$data = array();
+	$data['columns'][] = array('name' => 'plugin', 'type' => 'varchar(32)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'description', 'type' => 'varchar(128)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'author', 'type' => 'varchar(40)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'webpage', 'type' => 'varchar(128)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'tag_name', 'type' => 'varchar(20)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'published_at', 'type' => 'timestamp', 'NULL' => true);
+	$data['columns'][] = array('name' => 'compat', 'type' => 'varchar(20)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'requires', 'type' => 'varchar(128)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'body', 'type' => 'blob', 'NULL' => true);
+	$data['columns'][] = array('name' => 'info', 'type' => 'blob', 'NULL' => true);
+	$data['columns'][] = array('name' => 'readme', 'type' => 'blob', 'NULL' => true);
+	$data['columns'][] = array('name' => 'changelog', 'type' => 'blob', 'NULL' => true);
+	$data['columns'][] = array('name' => 'archive', 'type' => 'longblob', 'NULL' => true);
+	$data['columns'][] = array('name' => 'last_updated', 'type' => 'timestamp', 'NULL' => true, 'default' => 'current_timestamp()');
+	$data['primary'] = 'plugin`,`tag_name';
+	$data['type'] = 'InnoDB';
+	$data['row_format'] = 'Dynamic';
+	db_update_table('plugin_available', $data);
 
-	db_install_execute("CREATE TABLE IF NOT EXISTS `plugin_archive` (
-		`id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
-		`plugin` varchar(32) NOT NULL DEFAULT '',
-		`description` varchar(64) NOT NULL DEFAULT '',
-		`author` varchar(64) NOT NULL DEFAULT '',
-		`webpage` varchar(255) NOT NULL DEFAULT '',
-		`user_id` int(10) unsigned NOT NULL DEFAULT 0,
-		`version` varchar(10) NOT NULL DEFAULT '',
-		`requires` varchar(128) DEFAULT '',
-		`compat` varchar(20) NOT NULL DEFAULT '',
-		`dir_md5sum` varchar(32) NOT NULL DEFAULT '',
-		`last_updated` timestamp NULL DEFAULT NULL,
-		`archive` longblob DEFAULT NULL,
-		PRIMARY KEY (`id`),
-		KEY `directory` (`plugin`))
-		ENGINE=InnoDB
-		ROW_FORMAT=DYNAMIC");
+	$data = array();
+	$data['columns'][] = array('name' => 'id', 'unsigned' => true, 'type' => 'mediumint(8)', 'NULL' => false, 'auto_increment' => true);
+	$data['columns'][] = array('name' => 'plugin', 'type' => 'varchar(32)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'description', 'type' => 'varchar(64)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'author', 'type' => 'varchar(64)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'webpage', 'type' => 'varchar(255)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'user_id', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'version', 'type' => 'varchar(10)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'requires', 'type' => 'varchar(128)', 'NULL' => true, 'default' => '');
+	$data['columns'][] = array('name' => 'compat', 'type' => 'varchar(20)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'dir_md5sum', 'type' => 'varchar(32)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'last_updated', 'type' => 'timestamp', 'NULL' => true);
+	$data['columns'][] = array('name' => 'archive_note', 'type' => 'varchar(256)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'archive', 'type' => 'longblob', 'NULL' => true);
+	$data['primary'] = 'id';
+	$data['keys'][] = array('name' => 'directory', 'columns' => array('plugin'));
+	$data['type'] = 'InnoDB';
+	$data['row_format'] = 'Dynamic';
+	db_update_table('plugin_archive', $data);
 
 	//Not sure why we were adding this...
 	//db_install_add_column('user_domains', array('name' => 'tls_verify', 'type' => 'int', 'null' => false, 'default' => '0'));
@@ -142,13 +144,15 @@ function upgrade_to_1_3_0() {
 		WHERE IFNULL(h.disabled,"") = "on"
 		OR IFNULL(s.disabled, "") = "on"');
 
-	db_install_execute("CREATE TABLE IF NOT EXISTS poller_time_stats (
-		id bigint(20) unsigned NOT NULL auto_increment,
-		poller_id int(10) unsigned NOT NULL default '1',
-		total_time double default NULL,
-		`time` timestamp NOT NULL default '0000-00-00 00:00:00',
-		PRIMARY KEY (id))
-		ENGINE=InnoDB ROW_FORMAT=Dynamic;");
+	$data = array();
+	$data['columns'][] = array('name' => 'id', 'unsigned' => true, 'type' => 'bigint(20)', 'NULL' => false, 'auto_increment' => true);
+	$data['columns'][] = array('name' => 'poller_id', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'default' => '1');
+	$data['columns'][] = array('name' => 'total_time', 'type' => 'double', 'NULL' => true);
+	$data['columns'][] = array('name' => 'time', 'type' => 'timestamp', 'NULL' => false, 'default' => '0000-00-00 00:00:00');
+	$data['primary'] = 'id';
+	$data['type'] = 'InnoDB';
+	$data['row_format'] = 'Dynamic';
+	db_update_table('poller_time_stats', $data);
 
 	$ldap_converted = read_config_option('install_ldap_builtin');
 
@@ -158,23 +162,25 @@ function upgrade_to_1_3_0() {
 
 	upgrade_dsstats();
 
-	db_install_execute("CREATE TABLE IF NOT EXISTS host_value_cache (
-		host_id mediumint(8) unsigned NOT NULL default '0',
-		dimension varchar(40) NOT NULL default '',
-		value varchar(8192) NOT NULL default '',
-  		time_to_live int(11) NOT NULL default '-1',
-  		last_updated TIMESTAMP default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-		PRIMARY KEY (host_id, dimension))
-		ENGINE=InnoDB
-		ROW_FORMAT=Dynamic");
+	$data = array();
+	$data['columns'][] = array('name' => 'host_id', 'unsigned' => true, 'type' => 'mediumint(8)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'dimension', 'type' => 'varchar(40)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'value', 'type' => 'varchar(8192)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'time_to_live', 'type' => 'int(11)', 'NULL' => false, 'default' => '-1');
+	$data['columns'][] = array('name' => 'last_updated', 'type' => 'timestamp', 'NULL' => true, 'default' => 'current_timestamp()');
+	$data['primary'] = 'host_id`,`dimension';
+	$data['type'] = 'InnoDB';
+	$data['row_format'] = 'Dynamic';
+	db_update_table('host_value_cache', $data);
 
-	db_install_execute("CREATE TABLE IF NOT EXISTS `data_source_stats_command_cache` (
-		`local_data_id` int(10) unsigned NOT NULL DEFAULT 0,
-		`stats_command` BLOB NOT NULL DEFAULT '',
-		PRIMARY KEY (`local_data_id`))
-		ENGINE=InnoDB
-		ROW_FORMAT=DYNAMIC
-		COMMENT='Holds the RRDfile Stats Commands'");
+	$data = array();
+	$data['columns'][] = array('name' => 'local_data_id', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'stats_command', 'type' => 'blob', 'NULL' => false, 'default' => '');
+	$data['primary'] = 'local_data_id';
+	$data['type'] = 'InnoDB';
+	$data['comment'] = 'Holds the RRDfile Stats Commands';
+	$data['row_format'] = 'Dynamic';
+	db_update_table('data_source_stats_command_cache', $data);
 
 	install_unlink('aggregate_items.php');
 	install_unlink('color_template_items.php');
@@ -183,19 +189,20 @@ function upgrade_to_1_3_0() {
 	install_unlink('graph_templates_inputs.php');
 
 	/* create new automation template rules table */
-	db_install_execute("CREATE TABLE IF NOT EXISTS `automation_templates_rules` (
-		`id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-		`hash` varchar(32) NOT NULL DEFAULT '',
-		`template_id` int(10) unsigned NOT NULL DEFAULT 0,
-		`rule_type` tinyint(3) unsigned NOT NULL DEFAULT 0,
-		`rule_id` int(10) unsigned NOT NULL DEFAULT 0,
-		`sequence` tinyint(3) unsigned NOT NULL DEFAULT 1,
-		`exit_rules` char(2) NOT NULL DEFAULT '',
-		PRIMARY KEY (`id`),
-		UNIQUE KEY `unique_key` (`template_id`,`rule_type`,`rule_id`))
-		ENGINE=InnoDB
-		ROW_FORMAT=DYNAMIC
-		COMMENT='Holds mappings of Automation Templates to Rules'");
+	$data = array();
+	$data['columns'][] = array('name' => 'id', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'auto_increment' => true);
+	$data['columns'][] = array('name' => 'hash', 'type' => 'varchar(32)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'template_id', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'rule_type', 'unsigned' => true, 'type' => 'tinyint(3)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'rule_id', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'sequence', 'unsigned' => true, 'type' => 'tinyint(3)', 'NULL' => false, 'default' => '1');
+	$data['columns'][] = array('name' => 'exit_rules', 'type' => 'char(2)', 'NULL' => false, 'default' => '');
+	$data['primary'] = 'id';
+	$data['keys'][] = array('name' => 'unique_key', 'unique' => true, 'columns' => array('template_id','rule_type','rule_id'));
+	$data['type'] = 'InnoDB';
+	$data['comment'] = 'Holds mappings of Automation Templates to Rules';
+	$data['row_format'] = 'Dynamic';
+	db_update_table('automation_templates_rules', $data);
 
 	/* add automation hashes */
 	$tables = array(
@@ -367,7 +374,6 @@ function upgrade_to_1_3_0() {
 	$data['primary'] = 'id';
 	$data['keys'][] = array('name' => 'location_branch', 'columns' => array('repo_location','repo_branch'));
 	$data['type'] = 'InnoDB';
-	$data['charset'] = 'utf8mb4';
 	$data['comment'] = 'Holds Repository Locations that hold Packages';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('package_repositories', $data);
@@ -382,7 +388,6 @@ function upgrade_to_1_3_0() {
 	$data['primary'] = 'id';
 	$data['keys'][] = array('name' => 'md5sum', 'columns' => array('md5sum'), 'unique' => true);
 	$data['type'] = 'InnoDB';
-	$data['charset'] = 'utf8mb4';
 	$data['comment'] = 'Hold Trusted Package Public Keys';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('package_public_keys', $data);
@@ -411,15 +416,39 @@ function upgrade_to_1_3_0() {
 	$data['columns'][] = array('name' => 'tags', 'type' => 'varchar(128)', 'NULL' => false, 'default' => '');
 	$data['columns'][] = array('name' => 'author', 'type' => 'varchar(40)', 'NULL' => false, 'default' => '');
 	$data['columns'][] = array('name' => 'email', 'type' => 'varchar(60)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'homepage', 'type' => 'varchar(128)', 'NULL' => false, 'default' => '');
 	$data['columns'][] = array('name' => 'copyright', 'type' => 'varchar(40)', 'NULL' => false, 'default' => '');
 	$data['columns'][] = array('name' => 'installation', 'type' => 'varchar(1024)', 'NULL' => false, 'default' => '');
 	$data['columns'][] = array('name' => 'devices', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'default' => '0');
 	$data['primary'] = 'id';
 	$data['keys'][] = array('name' => 'name', 'columns' => array('name'));
 	$data['type'] = 'InnoDB';
-	$data['charset'] = 'utf8mb4';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('host_template', $data);
+
+	$data = array();
+	$data['columns'][] = array('name' => 'id', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'auto_increment' => true);
+	$data['columns'][] = array('name' => 'host_template_id', 'unsigned' => true, 'type' => 'mediumint(8)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'hash', 'type' => 'varchar(32)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'name', 'type' => 'varchar(100)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'version', 'type' => 'varchar(20)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'class', 'type' => 'varchar(40)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'tags', 'type' => 'varchar(128)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'author', 'type' => 'varchar(40)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'email', 'type' => 'varchar(60)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'homepage', 'type' => 'varchar(128)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'copyright', 'type' => 'varchar(40)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'installation', 'type' => 'varchar(1024)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'archive_note', 'type' => 'varchar(256)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'archive_date', 'type' => 'timestamp', 'NULL' => false, 'default' => 'current_timestamp()');
+	$data['columns'][] = array('name' => 'archive_md5sum', 'type' => 'varchar(32)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'archive', 'type' => 'longblob', 'NULL' => true);
+	$data['primary'] = 'id';
+	$data['keys'][] = array('name' => 'host_template_id', 'columns' => array('host_template_id'));
+	$data['keys'][] = array('name' => 'name', 'columns' => array('name'));
+	$data['type'] = 'InnoDB';
+	$data['row_format'] = 'Dynamic';
+	db_update_table('host_template_archive', $data);
 
 	/* provide the primary admin access to packages */
 	$admin = read_config_option('admin_user');
@@ -430,14 +459,15 @@ function upgrade_to_1_3_0() {
 			VALUES (29, ?)', array($admin));
 	}
 
-	db_execute("CREATE TABLE IF NOT EXISTS `user_auth_reset_hashes` (
-		`user_id` int(10) unsigned NOT NULL default '0',
-		`hash` varchar(100) NOT NULL default '',
-		`expiry` timestamp NOT NULL default '0000-00-00 00:00:00',
-		PRIMARY KEY (`user_id`,`expiry`))
-		ENGINE=InnoDB
-		ROW_FORMAT=Dynamic
-		COMMENT='Table that Contains User Password Reset Hashes'");
+	$data = array();
+	$data['columns'][] = array('name' => 'user_id', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'hash', 'type' => 'varchar(100)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'expiry', 'type' => 'timestamp', 'NULL' => false, 'default' => '0000-00-00 00:00:00');
+	$data['primary'] = 'user_id`,`expiry';
+	$data['type'] = 'InnoDB';
+	$data['comment'] = 'Table that Contains User Password Reset Hashes';
+	$data['row_format'] = 'Dynamic';
+	db_update_table('user_auth_reset_hashes', $data);
 
 	db_execute('UPDATE settings
 		SET name = "business_hours_hide_weekends"

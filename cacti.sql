@@ -2143,6 +2143,7 @@ CREATE TABLE host_template (
   `tags` varchar(128) NOT NULL default '',
   `author` varchar(40) NOT NULL default '',
   `email` varchar(60) NOT NULL default '',
+  `homepage` varchar(128) NOT NULL default '',
   `copyright` varchar(40) NOT NULL default '',
   `installation` varchar(1024) NOT NULL default '',
   `devices` int(10) unsigned NOT NULL default '0',
@@ -2152,6 +2153,36 @@ CREATE TABLE host_template (
 
 --
 -- Dumping data for table `host_template`
+--
+
+--
+-- Table structure for table `host_template_archive`
+--
+
+CREATE TABLE host_template_archive (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `host_template_id` mediumint(8) unsigned NOT NULL default '0',
+  `hash` varchar(32) NOT NULL default '',
+  `name` varchar(100) NOT NULL default '',
+  `version` varchar(20) NOT NULL default '',
+  `class` varchar(40) NOT NULL default '',
+  `tags` varchar(128) NOT NULL default '',
+  `author` varchar(40) NOT NULL default '',
+  `email` varchar(60) NOT NULL default '',
+  `homepage` varchar(128) NOT NULL default '',
+  `copyright` varchar(40) NOT NULL default '',
+  `installation` varchar(1024) NOT NULL default '',
+  `archive_note` varchar(256) NOT NULL default '',
+  `archive_date` timestamp NOT NULL default CURRENT_TIMESTAMP,
+  `archive_md5sum` varchar(32) NOT NULL default '',
+  `archive` longblob,
+  PRIMARY KEY (id),
+  KEY `host_template_id` (`host_template_id`),
+  KEY `name` (`name`)
+) ENGINE=InnoDB ROW_FORMAT=Dynamic;
+
+--
+-- Dumping data for table `host_template_archive`
 --
 
 --
