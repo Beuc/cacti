@@ -4269,18 +4269,21 @@ function initializeGraphs(disable_cache) {
 	$('a[id$="_mrtg"]').each(function () {
 		var graph_id = $(this).attr('id').replace('graph_', '').replace('_mrtg', '');
 
-		$(this).attr('href', urlPath + pageName + 'action=view&local_graph_id=' + graph_id);
+		var tree = $('#navigation').length ? true:false;
+
+		$(this).attr('href', urlPath + pageName + 'action=view' + (tree ? '-tree':'-preview') + '&local_graph_id=' + graph_id);
 
 		$(this).off('click').on('click', function (event) {
 			if (!shouldCaptureClick(event))
 				return;
 
 			var graph_id = $(this).attr('id').replace('graph_', '').replace('_mrtg', '');
+			var tree = $('#navigation').length ? true:false;
 
 			event.preventDefault();
 			event.stopPropagation();
 
-			loadUrl({ url: urlPath + pageName + '?action=view&local_graph_id=' + graph_id });
+			loadUrl({ url: urlPath + pageName + '?action=view' + (tree ? '-tree':'-preview') + '&local_graph_id=' + graph_id });
 		});
 	});
 
@@ -4459,9 +4462,10 @@ function initializeGraphs(disable_cache) {
 
 	$('a[id$="_util"]').each(function () {
 		var graph_id = $(this).attr('id').replace('graph_', '').replace('_util', '');
+		var tree = $('#navigation').length ? true:false;
 
 		$(this).attr('href', urlPath + pageName +
-			'?action=zoom' +
+			'?action=zoom' + (tree ? '-tree':'-preview') +
 			'&rra_id=0' +
 			'&business_hours=' + (isBusiness ? 'true' : 'false') +
 			'&local_graph_id=' + graph_id +
@@ -4473,8 +4477,9 @@ function initializeGraphs(disable_cache) {
 				return;
 
 			var graph_id = $(this).attr('id').replace('graph_', '').replace('_util', '');
+			var tree = $('#navigation').length ? true:false;
 			var graph_url = urlPath + pageName +
-				'?action=zoom' +
+				'?action=zoom' + (tree ? '-tree':'-preview') +
 				'&local_graph_id=' + graph_id +
 				'&rra_id=0' +
 				'&business_hours=' + (isBusiness ? 'true' : 'false') +

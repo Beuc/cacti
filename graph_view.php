@@ -85,14 +85,20 @@ switch (get_nfilter_request_var('action')) {
 		html_graph_list_view();
 
 		break;
+	case 'view-preview':
+	case 'view-tree':
 	case 'view':
 		html_graph_single_view();
 
 		break;
+	case 'zoom-preview':
+	case 'zoom-tree':
 	case 'zoom':
 		html_graph_zoom();
 
 		break;
+	case 'properties-preview':
+	case 'properties-tree':
 	case 'properties':
 		html_graph_properties();
 

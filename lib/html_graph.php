@@ -1866,10 +1866,11 @@ function html_graph_single_view() {
 				rra_id = $(this).attr('rra_id');
 				graph_start = $(this).attr('graph_start');
 				graph_end = $(this).attr('graph_end');
+				var tree = $('#navigation').length ? true:false;
 
 				loadUrl({
 					url: pageName + '?' +
-						'action=zoom' +
+						'action=zoom' + (tree ? '-tree':'-preview') +
 						'&local_graph_id=' + graph_id +
 						'&rra_id=' + rra_id +
 						'&graph_start=' + graph_start +

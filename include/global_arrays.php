@@ -2181,21 +2181,39 @@ $navigation = array(
 		'url'     => 'graph_view.php?action=preview',
 		'level'   => '0'
 	),
-	'graph_view.php:view' => array(
+	'graph_view.php:view-preview' => array(
 		'title'   => __('Single Graph View'),
-		'mapping' => 'graph_view.php:',
+		'mapping' => 'graph_view.php:preview',
 		'url'     => 'graph_view.php?action=view',
 		'level'   => '1'
 	),
-	'graph_view.php:zoom' => array(
+	'graph_view.php:view-tree' => array(
+		'title'   => __('Single Graph View'),
+		'mapping' => 'graph_view.php:tree',
+		'url'     => 'graph_view.php?action=view',
+		'level'   => '1'
+	),
+	'graph_view.php:zoom-preview' => array(
 		'title'   => __('Graph Details View'),
-		'mapping' => 'graph_view.php:',
+		'mapping' => 'graph_view.php:preview',
 		'url'     => 'graph_view.php?action=zoom',
 		'level'   => '1'
 	),
-	'graph_view.php:properties' => array(
+	'graph_view.php:zoom-tree' => array(
+		'title'   => __('Graph Details View'),
+		'mapping' => 'graph_view.php:tree',
+		'url'     => 'graph_view.php?action=zoom',
+		'level'   => '1'
+	),
+	'graph_view.php:properties-preview' => array(
 		'title'   => __('Graph Properties'),
-		'mapping' => 'graph_view.php:',
+		'mapping' => 'graph_view.php:preview',
+		'url'     => 'graph_view.php?action=properties',
+		'level'   => '1'
+	),
+	'graph_view.php:properties-tree' => array(
+		'title'   => __('Graph Properties'),
+		'mapping' => 'graph_view.php:tree',
 		'url'     => 'graph_view.php?action=properties',
 		'level'   => '1'
 	),
