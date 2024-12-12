@@ -111,9 +111,9 @@ function get_export_hash($export_type, $export_item_id) {
 function form_save() {
 	global $export_types, $export_errors, $debug, $package_file;
 
-    /* ================= input validation ================= */
-    get_filter_request_var('export_item_id');
-    /* ==================================================== */
+	/* ================= input validation ================= */
+	get_filter_request_var('export_item_id');
+	/* ==================================================== */
 
 	$export_okay = false;
 
@@ -175,10 +175,6 @@ function form_save() {
 		exit;
 	}
 }
-
-/* ---------------------------
-    Template Export Functions
-   --------------------------- */
 
 function find_dependent_files($xml_data, $raise_message = false) {
 	$files = array();
