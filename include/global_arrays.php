@@ -466,24 +466,27 @@ $cdef_functions = array(1 =>
 	'ROLL'
 );
 
-$phperrors = array(
-	E_ERROR              => 'ERROR',
-	E_WARNING            => 'WARNING',
-	E_PARSE              => 'PARSE',
-	E_NOTICE             => 'NOTICE',
-	E_CORE_ERROR         => 'CORE_ERROR',
-	E_CORE_WARNING       => 'CORE_WARNING',
-	E_COMPILE_ERROR      => 'COMPILE_ERROR',
-	E_COMPILE_WARNING    => 'COMPILE_WARNING',
-	E_USER_ERROR         => 'USER_ERROR',
-	E_USER_WARNING       => 'USER_WARNING',
-	E_USER_NOTICE        => 'USER_NOTICE',
-	E_STRICT             => 'STRICT',
+$phperrors = array (
+	E_ERROR => 'ERROR',
+	E_WARNING => 'WARNING',
+	E_PARSE => 'PARSE',
+	E_NOTICE => 'NOTICE',
+	E_CORE_ERROR => 'CORE_ERROR',
+	E_CORE_WARNING => 'CORE_WARNING',
+	E_COMPILE_ERROR  => 'COMPILE_ERROR',
+	E_COMPILE_WARNING => 'COMPILE_WARNING',
+	E_USER_ERROR => 'USER_ERROR',
+	E_USER_WARNING => 'USER_WARNING',
+	E_USER_NOTICE  => 'USER_NOTICE',
 	E_RECOVERABLE_ERROR  => 'RECOVERABLE_ERROR',
 	E_DEPRECATED         => 'DEPRECATED',
 	E_USER_DEPRECATED    => 'USER_DEPRECATED',
 	E_ALL                => 'ALL'
 );
+
+if (version_compare(PHP_VERSION, '8.4', '<')) {
+	$phperrors[E_STRICT] = 'STRICT';
+}
 
 if (cacti_version_compare(get_rrdtool_version(), '1.8.0', '>=')) {
 	$cdef_functions[] = 'ROUND';
