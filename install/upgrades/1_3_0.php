@@ -427,7 +427,7 @@ function upgrade_to_1_3_0() {
 	if ($admin > 0) {
 		db_execute_prepared('REPLACE INTO user_auth_realm
 			(realm_id, user_id)
-			VALUES (29, ?)', array($user));
+			VALUES (29, ?)', array($admin));
 	}
 
 	db_execute("CREATE TABLE IF NOT EXISTS `user_auth_reset_hashes` (
