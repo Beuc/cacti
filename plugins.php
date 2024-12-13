@@ -1103,7 +1103,7 @@ function update_show_current() {
 					'tip'     => __('A description that the Plugins author has given to the Plugin.')
 				),
 				'nosort01'  => array(
-					'display' => __('Notes'),
+					'display' => __('Archive Notes'),
 					'align'   => 'left',
 					'tip'     => __('Hover over the Notes column to see the Archive notes.')
 				),
