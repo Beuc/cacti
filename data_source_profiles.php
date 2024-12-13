@@ -28,7 +28,8 @@ include_once('./lib/utility.php');
 
 $actions = array(
 	1 => __('Delete'),
-	2 => __('Duplicate')
+	2 => __('Duplicate'),
+	3 => __('Export')
 );
 
 /* set default action */
@@ -36,7 +37,21 @@ set_default_action();
 
 switch (get_request_var('action')) {
 	case 'save':
-		form_save();
+		if (isset_request_var('save_component_import')) {
+			profile_import_process();
+		} else {
+			form_save();
+		}
+
+		break;
+	case 'import':
+		top_header();
+		profile_import();
+		bottom_footer();
+
+		break;
+	case 'export':
+		profile_export();
 
 		break;
 	case 'actions':
@@ -97,7 +112,6 @@ switch (get_request_var('action')) {
 		bottom_footer();
 
 		break;
-
 	default:
 		top_header();
 
@@ -106,6 +120,429 @@ switch (get_request_var('action')) {
 		bottom_footer();
 
 		break;
+}
+
+function profile_export() {
+	/* if we are to save this form, instead of display it */
+	if (isset_request_var('selected_items')) {
+		$selected_items = sanitize_unserialize_selected_items(get_nfilter_request_var('selected_items'));
+
+		if ($selected_items != false) {
+			if(cacti_sizeof($selected_items) == 1) {
+				$export_data = profile_export_execute($selected_items[0]);
+			} else {
+				foreach($selected_items as $id) {
+					$profiles[] = $id;
+				}
+
+				$export_data = profile_export_execute($profiles);
+			}
+
+			if (cacti_sizeof($export_data)) {
+				$export_file_name = $export_data['export_name'];
+
+				header('Content-type: application/json');
+				header('Content-Disposition: attachment; filename=' . $export_file_name);
+
+				$output = json_encode($export_data, JSON_PRETTY_PRINT);
+
+				print $output;
+			}
+		}
+	}
+}
+
+function profile_import() {
+	$form_data = array(
+		'import_file' => array(
+			'friendly_name' => __('Import Data Source Profile from Local File',),
+			'description' => __('If the JSON file containing the Data Source Profile data is located on your local machine, select it here.'),
+			'method' => 'file',
+			'accept' => '.json'
+		),
+		'import_text' => array(
+			'method' => 'textarea',
+			'friendly_name' => __('Import Data Source Profile from Text'),
+			'description' => __('If you have the JSON file containing the Data Source Profile data as text, you can paste it into this box to import it.'),
+			'value' => '',
+			'default' => '',
+			'textarea_rows' => '10',
+			'textarea_cols' => '80',
+			'class' => 'textAreaNotes'
+		)
+	);
+
+	form_start('data_source_profiles.php', 'chk', true);
+
+	if ((isset($_SESSION['import_debug_info'])) && (is_array($_SESSION['import_debug_info']))) {
+		html_start_box(__('Import Results'), '80%', '', '3', 'center', '');
+
+		print '<tr class="tableHeader"><th>' . __('Cacti has imported the following items:'). '</th></tr>';
+
+		foreach ($_SESSION['import_debug_info'] as $line) {
+			print '<tr><td>' . $line . '</td></tr>';
+		}
+
+		html_end_box();
+
+		kill_session_var('import_debug_info');
+	}
+
+	html_start_box(__('Import Data Source Profiles'), '80%', false, '3', 'center', '');
+
+	draw_edit_form(
+		array(
+			'config' => array('no_form_tag' => true),
+			'fields' => $form_data
+		)
+	);
+
+	form_hidden_box('save_component_import', '1', '');
+
+	print "	<tr><td><hr/></td></tr><tr>
+		<td class='saveRow'>
+			<input type='hidden' name='action' value='save'>
+			<input type='submit' value='" . __esc('Import') . "' title='" . __esc('Import Data Source Profiles') . "' class='ui-button ui-corner-all ui-widget ui-state-active'>
+		</td>
+		<script type='text/javascript'>
+		$(function() {
+			Pace.stop();
+			clearAllTimeouts();
+		});
+		</script>
+	</tr>";
+
+	html_end_box();
+}
+
+function profile_import_execute($json_data) {
+	global $config;
+
+	$debug_data = array();
+
+	/**
+	 * This version of the import process does not need to concern itself with
+	 * hashes, so we will use a top down approach.
+	 */
+	if (is_array($json_data) && cacti_sizeof($json_data) && isset($json_data['profile'])) {
+		$error = false;
+		$save  = array();
+
+		foreach ($json_data['profile'] as $data) {
+			$perror = false;
+			$name   = $data['name'];
+
+			/* mark the columns in the data that need to be excluded */
+			$exclude[] = 'rras';
+			$exclude[] = 'cfs';
+
+			if (!profile_validate_import_columns('data_source_profiles', $data, $debug_data, $exclude)) {
+				$debug_data['errors'][] = __('The Data Source Profile import columns do not match the database schema');
+				$error = true;
+				$perror = true;
+			}
+
+			if (!cacti_sizeof($data['cfs'])) {
+				$error = true;
+				$debug_data['errors'][] = __('The Data Source Profile export %s did not include any CFs!', $data['name']);
+				$perror = true;
+			}
+
+			if (!cacti_sizeof($data['rras'])) {
+				$error = true;
+				$debug_data['errors'][] = __('The Data Source Profile export %s did not include any RRAs!', $data['name']);
+				$perror = true;
+			}
+
+			/* skip the import if there were precheck errors */
+			if ($perror) {
+				continue;
+			}
+
+			/* check to see if the profile exists already */
+			$id = db_fetch_cell_prepared('SELECT id
+				FROM data_source_profiles
+				WHERE hash = ?',
+				array($data['hash']));
+
+			/* save the core data */
+			$save = $data;
+
+			/* unset the related data */
+			unset($save['id']);
+			unset($save['rras']);
+			unset($save['cfs']);
+
+			if ($id > 0) {
+				$exists = true;
+				$save['id'] = $id;
+			} else {
+				$exists = false;
+				$save['id'] = 0;
+			}
+
+			$data_source_profile_id = sql_save($save, 'data_source_profiles');
+
+			/**
+			 * next we will update the consolidation functions
+			 * and then remove any that were not present
+			 * in the import file.
+			 */
+			foreach($data['cfs'] as $cf) {
+				db_execute_prepared('REPLACE INTO data_source_profiles_cf
+					(data_source_profile_id, consolidation_function_id)
+					VALUES (?, ?)',
+					array($data_source_profile_id, $cf));
+			}
+
+			/* next do the removal of non-found cfs */
+			db_execute_prepared('DELETE FROM data_source_profiles_cf
+				WHERE data_source_profile_id = ?
+				AND consolidation_function_id NOT IN (' . implode(',', array_values($data['cfs'])) . ')',
+				array($data_source_profile_id));
+
+			/**
+			 * next we will do the RRA's one at a time noting their id if they exist
+			 * and the ID's of those that were added.
+			 */
+			$ids = array();
+
+			foreach($data['rras'] as $rra) {
+				$id = db_fetch_cell_prepared('SELECT id
+					FROM data_source_profiles_rra
+					WHERE name = ?
+					AND steps = ?
+					AND `rows` = ?
+					AND timespan = ?
+					AND data_source_profile_id = ?',
+					array(
+						$rra['name'],
+						$rra['steps'],
+						$rra['rows'],
+						$rra['timespan'],
+						$data_source_profile_id
+					)
+				);
+
+				$save = $rra;
+				$save['data_source_profile_id'] = $data_source_profile_id;
+
+				if ($id > 0) {
+					$save['id'] = $id;
+					$ids[$id] = $id;
+				} else {
+					$save['id'] = 0;
+				}
+
+				$rra_id = sql_save($save, 'data_source_profiles_rra');
+
+				$ids[$rra_id] = $rra_id;
+			}
+
+			/* finally, remove any rras that were not updated */
+			db_execute_prepared('DELETE FROM data_source_profiles_rra
+				WHERE data_source_profile_id = ?
+				AND id NOT IN (' . implode(',', array_values($ids)) . ')',
+				array($data_source_profile_id));
+
+			if ($data_source_profile_id > 0) {
+				if ($config['is_web']) {
+					$debug_data['success'][] = __esc('Data Source Profile \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+				} else {
+					$debug_data['success'][] = __('Data Source Profile \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+				}
+			} else {
+				if ($config['is_web']) {
+					$debug_data['failure'][] = __esc('Data Source Profile \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+				} else {
+					$debug_data['failure'][] = __('Data Source Profile \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+				}
+			}
+		}
+	} else {
+		$debug_data['failure'][] = __('Data Source Profile Import data is either for another object type or not JSON formatted.');
+	}
+
+	return $debug_data;
+}
+
+function profile_validate_import_columns($table, &$data, &$debug_data, $exclude = array()) {
+	if (cacti_sizeof($data)) {
+		foreach($data as $column => $cdata) {
+			if (!db_column_exists($table, $column) && !in_array($column, $exclude, true)) {
+				$debug_data['errors'][] = __('Template column \'' . $column . '\' is not valid column.');
+
+				cacti_log('Template column \'' . $column . '\' is not valid column.', false, 'AUTOM8');
+
+				return false;
+			}
+		}
+	} else {
+		return false;
+	}
+
+	return true;
+}
+
+function profile_import_process() {
+	$json_data = json_decode(get_nfilter_request_var('import_text'), true);
+
+	// If we have text, then we were trying to import text, otherwise we are uploading a file for import
+	if (empty($json_data)) {
+		$json_data = profile_validate_upload();
+	}
+
+	$return_data = profile_import_execute($json_data);
+
+	if (sizeof($return_data) && isset($return_data['success'])) {
+		foreach ($return_data['success'] as $message) {
+			$debug_data[] = '<span class="deviceUp">' . __('NOTE:') . '</span> ' . $message;
+			cacti_log('NOTE: Data Source Profile Import Succeeded!.  Message: '. $message, false, 'AUTOM8');
+		}
+	}
+
+	if (isset($return_data['errors'])) {
+		foreach ($return_data['errors'] as $error) {
+			$debug_data[] = '<span class="deviceDown">' . __('ERROR:') . '</span> ' . $error;
+			cacti_log('NOTE: Data Source Profile Import Error!.  Message: '. $message, false, 'AUTOM8');
+		}
+	}
+
+	if (isset($return_data['failure'])) {
+		foreach ($return_data['failure'] as $message) {
+			$debug_data[] = '<span class="deviceDown">' . __('ERROR:') . '</span> ' . $message;
+			cacti_log('NOTE: Data Source Profile Import Failed!.  Message: '. $message, false, 'AUTOM8');
+		}
+	}
+
+	if (cacti_sizeof($debug_data)) {
+		$_SESSION['import_debug_info'] = $debug_data;
+	}
+
+	header('Location: data_source_profiles.php?action=import');
+
+	exit();
+}
+
+function profile_validate_upload() {
+	/* check file transfer if used */
+	if (isset($_FILES['import_file'])) {
+		/* check for errors first */
+		if ($_FILES['import_file']['error'] != 0) {
+			switch ($_FILES['import_file']['error']) {
+				case 1:
+					raise_message('ftb', __('The file is too big.'), MESSAGE_LEVEL_ERROR);
+					break;
+				case 2:
+					raise_message('ftb2', __('The file is too big.'), MESSAGE_LEVEL_ERROR);
+					break;
+				case 3:
+					raise_message('ift', __('Incomplete file transfer.'), MESSAGE_LEVEL_ERROR);
+					break;
+				case 4:
+					raise_message('nfu', __('No file uploaded.'), MESSAGE_LEVEL_ERROR);
+					break;
+				case 6:
+					raise_message('tfm', __('Temporary folder missing.'), MESSAGE_LEVEL_ERROR);
+					break;
+				case 7:
+					raise_message('ftwf', __('Failed to write file to disk'), MESSAGE_LEVEL_ERROR);
+					break;
+				case 8:
+					raise_message('fusbe', __('File upload stopped by extension'), MESSAGE_LEVEL_ERROR);
+					break;
+			}
+
+			if (is_error_message()) {
+				return false;
+			}
+		}
+
+		/* check mine type of the uploaded file */
+		if ($_FILES['import_file']['type'] != 'application/json') {
+			raise_message('ife', __('Invalid file extension.'), MESSAGE_LEVEL_ERROR);
+
+			return false;
+		}
+
+		return json_decode(file_get_contents($_FILES['import_file']['tmp_name']), true);
+	}
+
+	raise_message('nfu2', __('No file uploaded.'), MESSAGE_LEVEL_ERROR);
+
+	return false;
+}
+
+function profile_export_execute($profile_ids) {
+	/**
+	 * Tables for export include:
+	 *
+	 * data_source_profiles
+	 * data_source_profiles_cf
+	 * data_source_profiles_rra
+	 *
+	 * There are no hashes in the sub-tables.  On import
+	 * we will simply remove any non-matching entries
+	 * in the sub-tables if the hash of the data source
+	 * profile is found on the foreign system.
+	 *
+	 */
+	if (!is_array($profile_ids)) {
+		$export_name = db_fetch_cell_prepared("SELECT CONCAT('profile_', name)
+			FROM data_source_profiles
+			WHERE id = ?",
+			array($profile_ids));
+
+		$profile_ids = array($profile_ids);
+	} else {
+		$export_name = 'profiles_multiple';
+	}
+
+	$json_array = array();
+
+	$json_array['name']        = clean_up_name(strtolower($export_name));
+	$json_array['export_name'] = $json_array['name'] . '.json';
+
+	if (cacti_sizeof($profile_ids)) {
+		$profiles = array();
+
+		foreach($profile_ids as $id) {
+			/* get the row of data */
+			$profile = db_fetch_row_prepared('SELECT *
+				FROM data_source_profiles
+				WHERE id = ?',
+				array($id));
+
+			unset($profile['id']);
+			unset($profile['default']);
+			unset($profile['data_sources']);
+			unset($profile['templates']);
+
+			$tmp_cfs = array_rekey(
+				db_fetch_assoc_prepared('SELECT consolidation_function_id AS id
+					FROM data_source_profiles_cf
+					WHERE data_source_profile_id = ?',
+					array($id)),
+				'id', 'id'
+			);
+
+			$consolidations = array_values($tmp_cfs);
+
+			$rras = db_fetch_assoc_prepared('SELECT name, steps, `rows`, timespan
+				FROM data_source_profiles_rra
+				WHERE data_source_profile_id = ?',
+				array($id));
+
+			$profile['cfs']  = $consolidations;
+			$profile['rras'] = $rras;
+
+			$profiles[] = $profile;
+		}
+
+		$json_array['profile'] = $profiles;
+	}
+
+	return $json_array;
 }
 
 function form_save() {
@@ -264,6 +701,27 @@ function form_actions() {
 				db_execute('DELETE FROM data_source_profiles_cf WHERE ' . array_to_sql_or($selected_items, 'data_source_profile_id'));
 			} elseif (get_request_var('drp_action') == '2') { // duplicate
 				duplicate_data_source_profile($selected_items, get_nfilter_request_var('title_format'));
+			} elseif (get_request_var('drp_action') == '3') { // export
+				top_header();
+
+				print '<script text="text/javascript">
+					function DownloadStart(url) {
+						document.getElementById("download_iframe").src = url;
+						setTimeout(function() {
+							document.location = "data_source_profiles.php";
+							Pace.stop();
+						}, 500);
+					}
+
+					$(function() {
+						//debugger;
+						DownloadStart(\'data_source_profiles.php?action=export&selected_items=' . get_nfilter_request_var('selected_items') . '\');
+					});
+				</script>
+				<iframe id="download_iframe" style="display:none;"></iframe>';
+
+				bottom_footer();
+				exit;
 			}
 		}
 
@@ -315,7 +773,13 @@ function form_actions() {
 							'width'   => 25
 						)
 					)
-				)
+				),
+				3 => array(
+					'smessage' => __('Click \'Continue\' to Export the following Data Source Profile.'),
+					'pmessage' => __('Click \'Continue\' to Export following Data Source Profiles.'),
+					'scont'    => __('Export Data Source Profile'),
+					'pcont'    => __('Export Data Source Profiles')
+				),
 			)
 		);
 
@@ -952,6 +1416,7 @@ function profile() {
 						<span>
 							<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __esc('Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
 							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Clear Filters');?>'>
+							<input type='button' class='ui-button ui-corner-all ui-widget' id='import' value='<?php print __esc('Import');?>' title='<?php print __esc('Import Data Source Profile');?>'>
 						</span>
 					</td>
 				</tr>
@@ -972,6 +1437,11 @@ function profile() {
 				loadUrl({url:strURL})
 			}
 
+			function importProfiles() {
+				strURL = 'data_source_profiles.php?action=import';
+				loadUrl({ url: strURL });
+			}
+
 			$(function() {
 				$('#has_data').click(function() {
 					applyFilter();
@@ -979,6 +1449,10 @@ function profile() {
 
 				$('#clear').click(function() {
 					clearFilter();
+				});
+
+				$('#import').click(function() {
+					importProfiles();
 				});
 
 				$('#form_dsp').submit(function(event) {

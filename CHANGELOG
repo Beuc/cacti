@@ -42,6 +42,7 @@ Cacti CHANGELOG
 -feature#1585: Confirmation screen should show what options have been picked
 -feature#1987: Plugins should be able to be downloaded, installed, and upgraded from Plugin Management
 -feature#2166: LDAP configuration should only use 'user_domains_ldap'
+-feature#2333: The ability to export/import preset data profiles
 -feature#2429: Allow Device SNMP Options to be Templated
 -feature#2437: Create system-wide Proxy settings for plugins
 -feature#2439: Allow CDEF to be used as a filter for Graph/Graph Templates
