@@ -1313,11 +1313,18 @@ function device_javascript(bool $hasHost = true) {
 				$('#location').val($('#location_input').val());
 			});
 
-			loadUrl({
-				url: urlPath + 'host.php?action=ping_host&id=' + $('#id').val(),
-				elementId: 'ping_results',
-				noState: true,
-				funcEnd: 'ping_results_finalize',
+			//ToDo: Load URL breaks dropdown's on the host page
+
+			//loadUrl({
+			//	url: urlPath + 'host.php?action=ping_host&id=' + $('#id').val(),
+			//	elementId: 'ping_results',
+			//	noState: true,
+			//	funcEnd: 'ping_results_finalize',
+			//});
+
+			$.get(urlPath + 'host.php?action=ping_host&id=' + $('#id').val(), function(data) {
+				$('#ping_results').html(data);
+				hostInfoHeight = $('.hostInfoHeader').height();
 			});
 		});
 
