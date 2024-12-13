@@ -886,8 +886,6 @@ function update_show_current() {
 
 					displayFileDialog(url, dialogTitle, 400, 700);
 				});
-
-				applySkin();
 			});
 			</script>
 		</td>
