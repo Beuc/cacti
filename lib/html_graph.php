@@ -58,45 +58,44 @@ function set_default_graph_action() {
 	if (!isset_request_var('action')) {
 		/* setup the default action */
 		if (!isset($_SESSION['sess_graph_view_action'])) {
-			switch(read_user_setting('default_view_mode')) {
-				case '1':
-					if (is_view_allowed('show_tree')) {
-						set_request_var('action', 'tree');
+			/* go through the settings and create a default */
+			$modes = array(
+				'tree'    => array('permission' => 'show_tree',    'id' => '1'),
+				'preview' => array('permission' => 'show_preview', 'id' => '3'),
+				'list'    => array('permission' => 'show_list',    'id' => '2'),
+			);
+
+			$user_setting = read_user_setting('default_view_mode');
+			$good_mode    = '';
+
+			/* check the defaults */
+			foreach($modes as $action => $info) {
+				if (is_view_allowed($info['permission']) && $user_setting == $info['id']) {
+					$good_mode = $action;
+					set_request_var('action', $action);
+					$_SESSION['sess_graph_view_action'] = $good_mode;
+					break;
+				}
+			}
+
+			if ($good_mode == '') {
+				foreach($modes as $action => $info) {
+					if (is_view_allowed($info['permission'])) {
+						$good_mode = $action;
+						set_request_var('action', $action);
+						$_SESSION['sess_graph_view_action'] = $good_mode;
+						break;
 					}
+				}
+			}
 
-					break;
-				case '2':
-					if (is_view_allowed('show_list')) {
-						set_request_var('action', 'list');
-					}
-
-					break;
-				case '3':
-					if (is_view_allowed('show_preview')) {
-						set_request_var('action', 'preview');
-					}
-
-					break;
-
-				default:
-					break;
+			if ($good_mode == '') {
+				raise_message('no_mode', __('Your User account does not have access to any Graph data'), MESSAGE_LEVEL_ERROR);
 			}
 		} elseif (in_array($_SESSION['sess_graph_view_action'], array('tree', 'list', 'preview'), true)) {
 			if (is_view_allowed('show_' . $_SESSION['sess_graph_view_action'])) {
 				set_request_var('action', $_SESSION['sess_graph_view_action']);
 			}
-		}
-	}
-
-	if (!isset_request_var('action')) {
-		if (is_view_allowed('show_tree')) {
-			set_request_var('action', 'tree');
-		} elseif (is_view_allowed('show_preview')) {
-			set_request_var('action', 'preview');
-		} elseif (is_view_allowed('show_list')) {
-			set_request_var('action', 'list');
-		} else {
-			set_request_var('action', '');
 		}
 	}
 
@@ -954,7 +953,7 @@ function html_graph_preview_view() {
 }
 
 function html_graph_list_view() {
-	global $graph_timespans, $alignment, $graph_sources;
+	global $graph_timespans, $alignment, $graph_sources, $item_rows;
 
 	if (!is_view_allowed('show_list')) {
 		header('Location: permission_denied.php');
