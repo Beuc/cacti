@@ -948,7 +948,7 @@ function applySkin() {
 		copyToClipboard(containerId);
 	});
 
-	$('i, a, th, img, input, label, select, button, .drillDown, .checkboxSlider')
+	$('i, a, th, td, img, input, label, select, button, .drillDown, .checkboxSlider')
 		.tooltip()
 		.on('focus', function () {
 			if ($(this).tooltip('instance')) {
@@ -2495,6 +2495,11 @@ function loadUrl(options) {
 	}
 
 	options = sanitizeAjaxOptions(options);
+
+	/**
+	 * Warn the user if they have made changes in a form but haven not
+ 	 * saved those options.
+	 */
 	if (!options.force) {
 		cont = checkFormStatus(options.url, options.loadType, options.scroll);
 	} else {
@@ -2519,6 +2524,7 @@ function loadUrl(options) {
 		 */
 
 		$.ajaxQ.abortAll();
+
 		return $.get(options.url)
 			.done(function (html) {
 				handleAjaxResponse(html, options);
@@ -3009,8 +3015,10 @@ function setupSpecialKeys() {
 	}
 }
 
-/** setupSortable - This function will set all actions for sortable columns
- *  every time a page is regenerated */
+/**
+ * setupSortable - This function will set all actions for sortable columns
+ * every time a page is regenerated
+ */
 function setupSortable() {
 	$('th.sortable').on('click', function (e) {
 		document.getSelection().removeAllRanges();
@@ -3067,8 +3075,10 @@ function setupBreadcrumbs() {
 	});
 }
 
-/** saveTableWidths - This function will initialize table widths on page
- *  load.  It includes the 'initial' boolean to initialize the page */
+/**
+ * saveTableWidths - This function will initialize table widths on page
+ * load.  It includes the 'initial' boolean to initialize the page
+ */
 function saveTableWidths(initial) {
 	// We will save columns widths persistently
 	var storage = Storages.localStorage;

@@ -155,6 +155,7 @@ Cacti CHANGELOG
 -feature#5952: Create a new form dropdown type called drop_icon
 -feature#5954: Add Check boxes to Graph Templates Change Page
 -feature#5955: When Changing a Profile Update Other Data
+-feature#5958: When archiving a plugin, give the user the ability to add a note
 -feature#5959: Debounce the Poller Output Not Empty Warning
 -feature#5965: Merge packaging plugin with Cacti and add archiving and restore capabilities
 -feature#5966: Add snmp retries at the device level

@@ -332,7 +332,9 @@ switch($action) {
 
 		break;
 	case 'archive':
-		api_plugin_archive($plugin);
+		$archive_note = get_nfilter_request_var('archive_note');
+
+		api_plugin_archive($plugin, $archive_note);
 
 		header('Location: plugins.php');
 
@@ -589,6 +591,12 @@ function update_show_current() {
 	$rmarchive_msg   = __esc('Deleting this Plugin Archive is not reversible without a table restore.  If you really want to Delete the Plugin Archive, click \'Delete\' below.  Otherwise click \'Cancel\'.');
 	$rmarchive_title = __esc('Are you sure you want to Delete this Archive?');
 
+	$archive_msg   = __esc('Archiving makes a backup of the plugin that you may restore at a later date.  Before archiving, you may enter an archive note that will be stored with the Archive for later reference.  If you really want to Archive the Plugin, click \'Delete\' below.  Otherwise click \'Cancel\'.');
+
+	$archive_form  = '<form name="dialogForm" id="dialogForm"><p><b><label for="archive_note">' . __('Archive Note') . '</label></b>&nbsp;<input type="text" size="80" value="" name="archive_note" id="archive_note"></p></form>';
+
+	$archive_title = __esc('Are you sure you want to Archive this Plugin?');
+
 	html_start_box(__('Plugin Management'), '100%', '', '3', 'center', '');
 
 	?>
@@ -681,7 +689,7 @@ function update_show_current() {
 				loadUrl({url:strURL})
 			}
 
-			function displayDialog(url, dialogTitle, dialogMessage, buttonContinue, buttonCancel, height, width) {
+			function displayDialog(url, dialogTitle, dialogMessage, dialogForm, buttonContinue, buttonCancel, height, width) {
 				if ($('#pidialog').dialog('instance')) {
 					$('#pidialog').dialog('close');
 				}
@@ -699,12 +707,19 @@ function update_show_current() {
 						id: 'btnContinue',
 						click: function() {
 							$(this).dialog('close');
-							loadUrl({url: url});
+
+							if ($('#dialogForm').length) {
+								var post = $('#dialogForm').serializeObject();
+								post['__csrf_magic'] = csrfMagicToken;
+								postUrl({url: url, noState: true}, post);
+							} else {
+								loadUrl({url: url});
+							}
 						}
 					}
 				};
 
-				var message = "<div id='pidialog' style='display:none;'><div>"+dialogMessage+"</div></div>";
+				var message = "<div id='pidialog' style='display:none;'><div><p>"+dialogMessage+"</p></div><div>"+dialogForm+"</div></div>";
 
 				if ($('#pidialog').length == 0) {
 					$('#main').append(message);
@@ -780,8 +795,8 @@ function update_show_current() {
 
 					$('#dnd').tableDnD({
 						onDrag: function(table, row) {
-							console.log(table);
-							console.log(row);
+//							console.log(table);
+//							console.log(row);
 						},
 						onDrop: function(table, row) {
 							loadUrl({url:'plugins.php?action=ajax_dnd&'+$.tableDnD.serialize()})
@@ -794,11 +809,12 @@ function update_show_current() {
 
 					var dialogTitle    = '<?php print $resarchive_title;?>';
 					var dialogMessage  = '<?php print $resarchive_msg;?>';
+					var dialogForm     = '';
 					var buttonContinue = '<?php print __('Restore Archive');?>';
 					var buttonCancel   = '<?php print __('Cancel');?>';
 					var url            = $(this).attr('href');
 
-					displayDialog(url, dialogTitle, dialogMessage, buttonContinue, buttonCancel, 80, 400);
+					displayDialog(url, dialogTitle, dialogMessage, dialogForm, buttonContinue, buttonCancel, 80, 400);
 				});
 
 				$('.pirmarchive').off('click').on('click', function(event) {
@@ -806,11 +822,25 @@ function update_show_current() {
 
 					var dialogTitle    = '<?php print $rmarchive_title;?>';
 					var dialogMessage  = '<?php print $rmarchive_msg;?>';
+					var dialogForm     = '';
 					var buttonContinue = '<?php print __('Delete Archive');?>';
 					var buttonCancel   = '<?php print __('Cancel');?>';
 					var url            = $(this).attr('href');
 
-					displayDialog(url, dialogTitle, dialogMessage, buttonContinue, buttonCancel, 80, 400);
+					displayDialog(url, dialogTitle, dialogMessage, dialogForm, buttonContinue, buttonCancel, 80, 400);
+				});
+
+				$('.piarchive').off('click').on('click', function(event) {
+					event.preventDefault();
+
+					var dialogTitle    = '<?php print $archive_title;?>';
+					var dialogMessage  = '<?php print $archive_msg;?>';
+					var dialogForm     = '<?php print $archive_form;?>';
+					var buttonContinue = '<?php print __('Archive Plugin');?>';
+					var buttonCancel   = '<?php print __('Cancel');?>';
+					var url            = $(this).attr('href');
+
+					displayDialog(url, dialogTitle, dialogMessage, dialogForm, buttonContinue, buttonCancel, 120, 600);
 				});
 
 				$('.pirmdata').off('click').on('click', function(event) {
@@ -818,11 +848,12 @@ function update_show_current() {
 
 					var dialogTitle    = '<?php print $rmdata_title;?>';
 					var dialogMessage  = '<?php print $rmdata_msg;?>';
+					var dialogForm     = '';
 					var buttonContinue = '<?php print __('Remove Data');?>';
 					var buttonCancel   = '<?php print __('Cancel');?>';
 					var url            = $(this).attr('href');
 
-					displayDialog(url, dialogTitle, dialogMessage, buttonContinue, buttonCancel, 80, 400);
+					displayDialog(url, dialogTitle, dialogMessage, dialogForm, buttonContinue, buttonCancel, 80, 400);
 				});
 
 				$('.piuninstall').off('click').on('click', function(event) {
@@ -830,18 +861,19 @@ function update_show_current() {
 
 					var dialogTitle    = '<?php print $uninstall_title;?>';
 					var dialogMessage  = '<?php print $uninstall_msg;?>';
+					var dialogForm     = '';
 					var buttonContinue = '<?php print __('Uninstall');?>';
 					var buttonCancel   = '<?php print __('Cancel');?>';
 					var url            = $(this).attr('href');
 
-					displayDialog(url, dialogTitle, dialogMessage, buttonContinue, buttonCancel, 80, 400);
+					displayDialog(url, dialogTitle, dialogMessage, dialogForm, buttonContinue, buttonCancel, 80, 400);
 				});
 
 				$('.pireadme').off('click').on('click', function(event) {
 					event.preventDefault();
 
-					var dialogTitle = '<?php print __esc('Plugin Reame File');?>';
-					var url         = $(this).attr('href');
+					var dialogTitle   = '<?php print __esc('Plugin Reame File');?>';
+					var url           = $(this).attr('href');
 
 					displayFileDialog(url, dialogTitle, 400, 700);
 				});
@@ -854,6 +886,8 @@ function update_show_current() {
 
 					displayFileDialog(url, dialogTitle, 400, 700);
 				});
+
+				applySkin();
 			});
 			</script>
 		</td>
@@ -1004,7 +1038,8 @@ function update_show_current() {
 			$sql = "SELECT pa.id, pa.plugin, pa.description, pi.status, pi.remote_status,
 				pa.author, pa.webpage, pi.version, pi.capabilities, pi.requires, pi.last_updated,
 				pa.requires AS archive_requires, pa.compat AS archive_compat, pa.version AS archive_version,
-				pa.user_id, pa.last_updated AS archive_date, pa.dir_md5sum, length(archive) AS archive_length
+				pa.user_id, pa.archive_note, pa.last_updated AS archive_date,
+				pa.dir_md5sum, LENGTH(archive) AS archive_length
 				FROM plugin_archive AS pa
 				LEFT JOIN $table AS pi
 				ON pa.plugin = pi.plugin
@@ -1019,7 +1054,7 @@ function update_show_current() {
 				pa.plugin, pa.description AS avail_description,
 				pa.author AS avail_author, pa.webpage AS avail_webpage,
 				pa.compat AS avail_compat, pa.published_at AS avail_published, pa.tag_name AS avail_tag_name,
-				pa.requires AS avail_requires, length(pa.changelog) AS changelog, length(archive) AS archive_length
+				pa.requires AS avail_requires, LENGTH(pa.changelog) AS changelog, LENGTH(archive) AS archive_length
 				FROM plugin_available AS pa
 				LEFT JOIN $table AS pi
 				ON pa.plugin = pi.plugin
@@ -1069,6 +1104,11 @@ function update_show_current() {
 					'sort'    => 'ASC',
 					'tip'     => __('A description that the Plugins author has given to the Plugin.')
 				),
+				'nosort01'  => array(
+					'display' => __('Notes'),
+					'align'   => 'left',
+					'tip'     => __('Hover over the Notes column to see the Archive notes.')
+				),
 				'pi.status' => array(
 					'display' => $config['poller_id'] == 1 ? __('Status'):__('Main / Remote Status'),
 					'align'   => 'left',
@@ -1087,17 +1127,11 @@ function update_show_current() {
 					'sort'    => 'ASC',
 					'tip'     => __('The Cacti version ranges required to use this Plugin.')
 				),
-				'pi.version' => array(
-					'display' => __('Installed Version'),
+				'nosort02' => array(
+					'display' => __('Versions'),
 					'align'   => 'right',
 					'sort'    => 'ASC',
-					'tip'     => __('The version of this Plugin.')
-				),
-				'pa.version' => array(
-					'display' => __('Version'),
-					'align'   => 'right',
-					'sort'    => 'ASC',
-					'tip'     => __('The version of this Plugin.')
+					'tip'     => __('The Installed version over the Archived version of the Plugin.')
 				),
 				'pa.archive_length' => array(
 					'display' => __('Size'),
@@ -1628,6 +1662,12 @@ function format_archive_plugin_row($plugin, $table) {
 
 	$row .= "<td class='nowrap'>" . filter_value($plugin['description'], get_request_var('filter')) . '</td>';
 
+	if ($plugin['archive_note'] != '') {
+		$row .= "<td class='nowrap' title='" . html_escape($plugin['archive_note']) . "'>" . __esc('Notes') . '</td>';
+	} else {
+		$row .= "<td class='nowrap'>-</td>";
+	}
+
 	$row .= "<td class='nowrap'>" . $status . '</td>';
 
 	if ($plugin['archive_requires'] != '') {
@@ -1645,15 +1685,16 @@ function format_archive_plugin_row($plugin, $table) {
 	$plugin['archive_compat'] = plugin_display_compat($plugin['archive_compat']);
 
 	$row .= "<td class='prewrap'>" . filter_value($plugin['author'], get_request_var('filter')) . '</td>';
-	$row .= "<td class='left'>"   . html_escape($plugin['archive_compat'])                     . '</td>';
+
+	$row .= "<td class='left'>"   . html_escape($plugin['archive_compat']) . '</td>';
 
 	if ($plugin['version'] == '') {
-		$row .= "<td class='right'>" . __esc('Not Installed')          . '</td>';
+		$row .= "<td class='right'>" . __esc('Not Installed') .
+			'/' . html_escape($plugin['archive_version'])           . '</td>';
 	} else {
-		$row .= "<td class='right'>" . html_escape($plugin['version']) . '</td>';
+		$row .= "<td class='right'>" . html_escape($plugin['version']) .
+			'/' . html_escape($plugin['archive_version'])           . '</td>';
 	}
-
-	$row .= "<td class='right'>" . html_escape($plugin['archive_version'])  . '</td>';
 
 	$size   = $plugin['archive_length'];
 	$suffix = '';
@@ -1889,7 +1930,7 @@ function plugin_actions($plugin, $table) {
 	if ($config['poller_id'] > 1) {
 		if (strpos($plugin['capabilities'], 'remote_collect:1') !== false || strpos($plugin['capabilities'], 'remote_poller:1') !== false) {
 			if ($plugin['remote_status'] == 1) { // Installed and Active
-				// TO-DO: Disabling here does not make much sense as the main will be replicated
+				// ToDo: Disabling here does not make much sense as the main will be replicated
 				// with any change of any other plugin thus undoing.  Fix that moving forward
 				//$link .= "<a class='pidisable' href='" . html_escape(CACTI_PATH_URL . 'plugins.php?action=remote_disable&plugin=' . $plugin['plugin']) . "' title='" . __esc('Disable Plugin Locally') . "'><i class='fa fa-cog deviceDown'></i></a>";
 			} elseif ($plugin['remote_status'] == 4) { // Installed but inactive

@@ -1654,7 +1654,7 @@ function api_plugin_archive_restore($plugin, $id, $type = 'archive') {
 	}
 }
 
-function api_plugin_archive($plugin) {
+function api_plugin_archive($plugin, $note = '') {
 	$plugin_data = db_fetch_row_prepared('SELECT *
 		FROM plugin_config
 		WHERE directory = ?',
@@ -1695,8 +1695,8 @@ function api_plugin_archive($plugin) {
 
 		if (file_exists($tmpafile)) {
 			db_execute_prepared('INSERT INTO plugin_archive
-				(plugin, description, author, webpage, version, requires, compat, user_id, dir_md5sum, last_updated, archive)
-				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+				(plugin, description, author, webpage, version, requires, compat, user_id, dir_md5sum, last_updated, archive_note, archive)
+				VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
 				array(
 					$plugin,
 					$plugin_data['name'],
@@ -1708,6 +1708,7 @@ function api_plugin_archive($plugin) {
 					SESS_USER_ID,
 					$md5sum,
 					date('Y-m-d H:i:s'),
+					$note,
 					base64_encode(file_get_contents($tmpafile))
 				)
 			);
