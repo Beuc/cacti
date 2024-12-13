@@ -462,8 +462,8 @@ CREATE TABLE `automation_templates_rules` (
   `rule_id` int(10) unsigned NOT NULL default 0,
   `sequence` tinyint(3) unsigned NOT NULL default 1,
   `exit_rules` char(2) NOT NULL default '',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `unique_key` (`template_id`,`rule_type`,`rule_id`)
+  PRIMARY KEY (`template_id`,`rule_type`,`rule_id`),
+  KEY `id` (`id`)
 ) ENGINE=InnoDB ROW_FORMAT=Dynamic COMMENT='Holds mappings of Automation Templates to Rules';
 
 --

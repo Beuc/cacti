@@ -168,7 +168,7 @@ function upgrade_to_1_3_0() {
 	$data['columns'][] = array('name' => 'value', 'type' => 'varchar(8192)', 'NULL' => false, 'default' => '');
 	$data['columns'][] = array('name' => 'time_to_live', 'type' => 'int(11)', 'NULL' => false, 'default' => '-1');
 	$data['columns'][] = array('name' => 'last_updated', 'type' => 'timestamp', 'NULL' => true, 'default' => 'CURRENT_TIMESTAMP');
-	$data['primary'] = 'host_id`,`dimension';
+	$data['primary'] = 'host_id`,`dimension`,`time_to_live';
 	$data['type'] = 'InnoDB';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('host_value_cache', $data);
@@ -197,8 +197,8 @@ function upgrade_to_1_3_0() {
 	$data['columns'][] = array('name' => 'rule_id', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'default' => '0');
 	$data['columns'][] = array('name' => 'sequence', 'unsigned' => true, 'type' => 'tinyint(3)', 'NULL' => false, 'default' => '1');
 	$data['columns'][] = array('name' => 'exit_rules', 'type' => 'char(2)', 'NULL' => false, 'default' => '');
-	$data['primary'] = 'id';
-	$data['keys'][] = array('name' => 'unique_key', 'unique' => true, 'columns' => array('template_id','rule_type','rule_id'));
+	$data['primary'] = 'template_id`,`rule_type`,`rule_id';
+	$data['keys'][] = array('name' => 'id', 'columns' => array('id'));
 	$data['type'] = 'InnoDB';
 	$data['comment'] = 'Holds mappings of Automation Templates to Rules';
 	$data['row_format'] = 'Dynamic';
@@ -469,9 +469,16 @@ function upgrade_to_1_3_0() {
 	$data['row_format'] = 'Dynamic';
 	db_update_table('user_auth_reset_hashes', $data);
 
-	db_execute('UPDATE settings
-		SET name = "business_hours_hide_weekends"
-		WHERE name = "business_hours_hideWeekends"');
+	/* clear up setting change */
+	$exists = db_fetch_cell_prepared('SELECT name FROM settings WHERE name = "business_hours_hideWeekends"');
+	if ($exists != '') {
+		$exists = db_fetch_cell_prepared('SELECT name FROM settings WHERE name = "business_hours_hide_weekends"');
+		if ($exists != '') {
+			db_execute('DELETE FROM settings WHERE name = "business_hours_hideWeekends"');
+		} else {
+			db_execute('UPDATE settings SET name = "business_hours_hide_weekends" WHERE name = "business_hours_hideWeekends"');
+		}
+	}
 }
 
 function ldap_convert_1_3_0() {

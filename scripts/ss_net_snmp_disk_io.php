@@ -91,9 +91,17 @@ function ss_net_snmp_disk_io($host_id_or_hostname = '') {
 			db_fetch_cell_prepared('SELECT value
 				FROM host_value_cache
 				WHERE host_id = ?
-				AND dimension = ?',
+				AND dimension = ?
+				LIMIT 1',
 				array($host_id, $dimension)), true
 		);
+
+		/* remove the old entry or entries */
+		db_execute_prepared('DELETE FROM host_value_cache
+			WHERE host_id = ?
+			AND dimension = ?
+			AND time_to_live = ?',
+			array($host_id, $dimension, $ttl));
 
 		if (!empty($previous)) {
 			$found = true;
@@ -152,7 +160,8 @@ function ss_net_snmp_disk_io($host_id_or_hostname = '') {
 				continue;
 			}
 
-			$parts                                     = explode('.', $measure['oid']);
+			$parts = explode('.', $measure['oid']);
+
 			$indexes[$parts[cacti_sizeof($parts) - 1]] = $parts[cacti_sizeof($parts) - 1];
 		}
 	}
