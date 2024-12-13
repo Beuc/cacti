@@ -46,16 +46,17 @@ function initialize_realtime_step_and_window() {
  *
  * This function checks if a request variable 'action' is set. If not, it sets up a default action
  * based on the user's settings and permissions. The function prioritizes the following actions:
- * 'tree', 'list', and 'preview', in that order. If none of these actions are allowed, it sets the
- * action to an empty string.
+ * 'tree', 'list', and 'preview', in that order. If none of these actions are allowed it attempts
+ * to find the first action that the user has permission to.  If it can not find one of these
+ * the user is actually in an area that they do not have permission to, so we raise a message.
  *
- * The function also updates the session variable 'sess_graph_view_action' with the current action,
- * unless the action is 'get_node'.
+ * The function leverages the session sess_graph_view_action to remember the last page that
+ * the user visited.  There are only three good values here: tree, preview, and list.
  *
  * @return void
  */
 function set_default_graph_action() {
-	if (!isset_request_var('action')) {
+	if (!isset_request_var('action') && get_nfilter_request_var('action') == '') {
 		/* setup the default action */
 		if (!isset($_SESSION['sess_graph_view_action'])) {
 			/* go through the settings and create a default */
@@ -92,15 +93,13 @@ function set_default_graph_action() {
 			if ($good_mode == '') {
 				raise_message('no_mode', __('Your User account does not have access to any Graph data'), MESSAGE_LEVEL_ERROR);
 			}
-		} elseif (in_array($_SESSION['sess_graph_view_action'], array('tree', 'list', 'preview'), true)) {
-			if (is_view_allowed('show_' . $_SESSION['sess_graph_view_action'])) {
-				set_request_var('action', $_SESSION['sess_graph_view_action']);
+		} else {
+			if (in_array($_SESSION['sess_graph_view_action'], array('tree', 'list', 'preview'), true)) {
+				if (is_view_allowed('show_' . $_SESSION['sess_graph_view_action'])) {
+					set_request_var('action', $_SESSION['sess_graph_view_action']);
+				}
 			}
 		}
-	}
-
-	if (get_nfilter_request_var('action') != 'get_node') {
-		$_SESSION['sess_graph_view_action'] = get_nfilter_request_var('action');
 	}
 }
 
