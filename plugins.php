@@ -1688,10 +1688,10 @@ function format_archive_plugin_row($plugin, $table) {
 
 	if ($plugin['version'] == '') {
 		$row .= "<td class='right'>" . __esc('Not Installed') .
-			'/' . html_escape($plugin['archive_version'])           . '</td>';
+			' / ' . html_escape($plugin['archive_version'])           . '</td>';
 	} else {
 		$row .= "<td class='right'>" . html_escape($plugin['version']) .
-			'/' . html_escape($plugin['archive_version'])           . '</td>';
+			' / ' . html_escape($plugin['archive_version'])           . '</td>';
 	}
 
 	$size   = $plugin['archive_length'];
