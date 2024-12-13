@@ -488,7 +488,7 @@ function settings() {
 		)
 	);
 
-	form_save_buttons($buttons, false);
+	form_save_buttons($buttons, false, $_SESSION['profile_referer']);
 
 	form_end();
 }
@@ -594,9 +594,9 @@ function settings_2fa() {
 		)
 	);
 
-	form_save_buttons($buttons);
+	form_save_buttons($buttons, true, $_SESSION['profile_referer']);
 
-?>
+	?>
 	<script type='text/javascript'>
 		var tfa_enabled = <?php print $current_user['tfa_enabled'] != '' ? 'true' : 'false'; ?>;
 		var tfa_text = '<?php print $current_user['tfa_enabled']   != '' ? __('Enabled') : __('Disabled'); ?>';

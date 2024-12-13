@@ -546,7 +546,7 @@ function draw_edit_control($field_name, &$field_array) {
  * @param string $value - the display value for the button
  * @param string $title - the hover title for the button
  * @param string $action - the onClick action for the button
- * 
+ *
  * @return void
  */
 function form_button($form_name, $value, $title = '', $action = '') {
@@ -565,7 +565,7 @@ function form_button($form_name, $value, $title = '', $action = '') {
  * @param string $value The display text of the submit button.
  * @param string $title Optional. The title attribute for the submit button.
  * @param string $action Optional. JavaScript code to execute on button click.
- * 
+ *
  * @return void
  */
 function form_submit($form_name, $value, $title = '', $action = '') {
@@ -616,7 +616,7 @@ function form_file($form_name, $form_size = 30, $form_accept = '') {
  *   exists or not. a $current_id of '0' indicates that no current value exists,
  *   a non-zero value indicates that a current value does exist
  * @param mixed $data - array containing 'text' element for display and if 'error' element present, shows failure
- * 
+ *
  * @return void
  */
 
@@ -691,7 +691,7 @@ function form_filepath_box($form_name, $form_previous_value, $form_default_value
  * @param int $current_id - used to determine if a current value for this form element
  *   exists or not. a $current_id of '0' indicates that no current value exists,
  *   a non-zero value indicates that a current value does exist
- * 
+ *
  * @return void
  */
 function form_dirpath_box($form_name, $form_previous_value, $form_default_value, $form_max_length, $form_size = 30, $type = 'text', $current_id = 0) {
@@ -743,7 +743,7 @@ function form_dirpath_box($form_name, $form_previous_value, $form_default_value,
  *   a non-zero value indicates that a current value does exist
  * @param string $placeholder - place a placeholder over an empty field
  * @param string $title - use a title attribute when hovering over the textbox
- * 
+ *
  * @return void
  */
 function form_text_box($form_name, $form_previous_value, $form_default_value, $form_max_length, $form_size = 30, $type = 'text', $current_id = 0, $placeholder = '', $title = '') {
@@ -779,7 +779,7 @@ function form_text_box($form_name, $form_previous_value, $form_default_value, $f
  * @param string $form_name - the name of this form element
  * @param string $form_previous_value - the current value of this form element
  * @param bool $form_default_value - the value of this form element to use if there is no current value available
- * 
+ *
  * @return void
  */
 function form_hidden_box($form_name, $form_previous_value, $form_default_value, $in_form = false) {
@@ -810,7 +810,7 @@ function form_hidden_box($form_name, $form_previous_value, $form_default_value, 
  *   no current value available
  * @param string $css_class - any css that needs to be applied to this form element
  * @param string $on_change - onChange modifier
- * 
+ *
  * @return void
  */
 function form_dropdown($form_name, $form_data, $column_display, $column_id, $form_previous_value, $form_none_entry, $form_default_value, $class = '', $on_change = '') {
@@ -875,7 +875,7 @@ function form_dropdown($form_name, $form_data, $column_display, $column_id, $for
  * @param string $form_default_value - the value of this form element to use if there is no current value available
  * @param string $css_class - any css that needs to be applied to this form element
  * @param string $on_change - onChange modifier
- * 
+ *
  * @return void
  */
 function form_dropicon($form_name, $form_data, $column_display, $column_id, $form_previous_value, $form_none_entry, $form_default_value, $class = '', $on_change = '') {
@@ -996,7 +996,7 @@ function form_droplanguage($form_name, $column_display, $column_id, $form_previo
  * @param string $default_value The default value for the form element.
  * @param string $class Optional. Additional CSS classes for the form element.
  * @param string $on_change Optional. JavaScript function to call on form element change.
- * 
+ *
  * @return void
  */
 function form_callback($form_name, $classic_sql, $column_display, $column_id, $action, $previous_id, $previous_value, $none_entry, $default_value, $class = '', $on_change = '') {
@@ -1053,7 +1053,7 @@ function form_callback($form_name, $classic_sql, $column_display, $column_id, $a
  * @param string $on_change - specify a javascript onchange action
  * @param string $title - specify a title for the checkbox on hover
  * @param boolean $show_label - show the form caption in the checkbox
- * 
+ *
  * @return void
  */
 
@@ -1104,7 +1104,7 @@ function form_checkbox($form_name, $form_previous_value, $form_caption, $form_de
  * @param string $form_default_value - the value of this form element to use if there is
  * @param string $class - The object class for customization
  * @param string $on_change - An onChange event to attach to the form object no current value available
- * 
+ *
  * @return void
  */
 function form_radio_button($form_name, $form_previous_value, $form_current_value, $form_caption, $form_default_value, $class = '', $on_change = '') {
@@ -1153,7 +1153,7 @@ function form_radio_button($form_name, $form_previous_value, $form_current_value
  * @param string $class Optional. Additional CSS classes to apply to the textarea element. Default is an empty string.
  * @param string $on_change Optional. JavaScript code to execute when the textarea value changes. Default is an empty string.
  * @param string $placeholder Optional. Placeholder text for the textarea element. Default is an empty string.
- * 
+ *
  * @return void
  */
 function form_text_area($form_name, $form_previous_value, $form_rows, $form_columns, $form_default_value, $class = '', $on_change = '', $placeholder = '') {
@@ -1198,7 +1198,7 @@ function form_text_area($form_name, $form_previous_value, $form_rows, $form_colu
  * @param string $column_id - the name of the key used to reference the keys above
  * @param string $class Optional. Additional CSS classes to apply to the select element.
  * @param string $on_change Optional. JavaScript code to execute when the selection changes.
- * 
+ *
  * @return void
  */
 function form_multi_dropdown($form_name, $array_display, $sql_previous_values, $column_id, $class = '', $on_change = '') {
@@ -1269,7 +1269,7 @@ function form_multi_dropdown($form_name, $array_display, $sql_previous_values, $
  * @param string $form_default_value - the value of this form element to use if there is no current value available
  * @param string $class Optional. Additional CSS classes for the dropdown.
  * @param string $on_change Optional. JavaScript code to execute on change event.
- * 
+ *
  * @return void
  */
 function form_color_dropdown($form_name, $form_previous_value, $form_none_entry, $form_default_value, $class = '', $on_change = '') {
@@ -1458,7 +1458,7 @@ function form_font_box($form_name, $form_previous_value, $form_default_value, $f
  *
  * @param string $plugin_hook - The plugin hook to call for the continuation
  * @param array $save - An array of data to save for the continuation
- * 
+ *
  * @return void - Data is streamed through stdout
  */
 function form_continue_confirmation($form_data, $plugin_hook = '', $save = array()) {
@@ -1714,7 +1714,7 @@ function form_confirm($title_text, $body_text, $cancel_url, $action_url) { ?>
  *
  * @param string $cancel_url - the url to go to when the user clicks 'cancel'
  * @param string $action_url - the url to go to when the user clicks 'delete'
- * 
+ *
  * @return void
  */
 function form_confirm_buttons($action_url, $cancel_url) {
@@ -1738,7 +1738,7 @@ function form_confirm_buttons($action_url, $cancel_url) {
  *   'save' or 'create'. otherwise this field should be properly auto-detected
  * @param string $key_field - the name of the key field in the form
  * @param boolean $ajax - whether or not to use ajax for the return
- * 
+ *
  * @return void
  */
 function form_save_button($cancel_url, $force_type = '', $key_field = 'id', $ajax = true) {
@@ -1810,15 +1810,21 @@ function form_save_button($cancel_url, $force_type = '', $key_field = 'id', $aja
  *
  * @param array $buttons - an array of 'id', 'value', 'method', 'type'
  * @param bool $ajax     - handle the return with ajax or a page load
+ * @param string $url    - provide a custom cancel url
  *
  * @return void
  */
-function form_save_buttons($buttons, $ajax = true) {
-	if (isset($_SERVER['HTTP_REFERER'])) {
-		$url_components = parse_url($_SERVER['HTTP_REFERER']);
-		$cancel_url = $url_components['path'];
+function form_save_buttons($buttons, $ajax = true, $url = '') {
+	if ($url == '') {
+		if (isset($_SERVER['HTTP_REFERER'])) {
+			$url_components = parse_url($_SERVER['HTTP_REFERER']);
+			$cancel_url = $url_components['path'];
+		} else {
+			$cancel_url = '';
+		}
 	} else {
-		$cancel_url = '';
+		$url_components = parse_url($url);
+		$cancel_url = $url_components['path'];
 	}
 
 	?>
@@ -1884,7 +1890,7 @@ function form_save_buttons($buttons, $ajax = true) {
  * @param string $action - a mandatory php file URI
  * @param string $id     - an optional id, if empty, one will be generated
  * @param bool $multipart - whether or not to use multipart encoding
- * 
+ *
  * @return void
  */
 function form_start($action, $id = '', $multipart = false) {
