@@ -1170,3 +1170,14 @@ function api_tree_sort_branch($leaf_id, $tree_id = 0, $lock = true) {
 		//api_tree_release_lock('tree-lock');
 	}
 }
+
+function api_tree_get_max_sequence() {
+	$max_seq = db_fetch_cell('SELECT MAX(sequence) FROM graph_tree');
+
+	if ($max_seq == null) {
+		return 0;
+	}
+
+	return $max_seq;
+}
+

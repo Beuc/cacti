@@ -211,11 +211,7 @@ function automation_import_process() {
 		$json_data = automation_validate_upload();
 	}
 
-	if (is_array($json_data) && cacti_sizeof($json_data) && isset($json_data['graph_rules'])) {
-		foreach($json_data['graph_rules'] as $graph_rule) {
-			$return_data += automation_graph_rule_import($graph_rule);
-		}
-	}
+	$return_data = automation_graph_rule_import($json_data);
 
 	if (sizeof($return_data) && isset($return_data['success'])) {
 		foreach ($return_data['success'] as $message) {

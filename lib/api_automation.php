@@ -4923,7 +4923,10 @@ function automation_device_rule_export($template_ids) {
 					AND mri.rule_type IN (1,2)',
 					array($rule_id));
 
-				/* remove objects that have a hash */
+				/* remove objects that have a hash
+				 * rule_types 1,2 are Graph Rules
+				 * rule_types 3,4 are Tree Rules
+				 */
 				foreach($graph_match_items as $gmindex => $rule_item) {
 					unset($graph_match_items[$gmindex]['id']);
 					unset($graph_match_items[$gmindex]['rule_id']);
@@ -4953,10 +4956,19 @@ function automation_device_rule_export($template_ids) {
 				/* remove objects that have a hash */
 				foreach($tree_rule_items as $trindex => $rule_item) {
 					unset($tree_rule_items[$trindex]['id']);
+
+					$tree_rule_items[$trindex]['rule_id'] = db_fetch_cell_prepared('SELECT hash
+						FROM automation_tree_rules
+						WHERE id = ?',
+						array($rule_item['id']));
 				}
 
 				/* unset the rule id */
 				unset($tree_rules[$index]['id']);
+
+				/* pick up the tree and branch name as they may not be on the foreign system */
+				$tree_rules[$index]['tree_data']        = db_fetch_row_prepared('SELECT name, sort_type FROM graph_tree WHERE id = ?', array($rule['tree_id']));
+				$tree_rules[$index]['tree_branch_data'] = automation_device_rule_export_branches($rule['tree_id'], $rule['tree_item_id']);
 
 				/* collapse the tree rule items */
 				$tree_rules[$index]['tree_rule_items'] = $tree_rule_items;
@@ -4968,7 +4980,10 @@ function automation_device_rule_export($template_ids) {
 					AND mri.rule_type IN (3,4)',
 					array($rule_id));
 
-				/* remove objects that have a hash */
+				/* remove objects that have a hash
+				 * rule_types 1,2 are Graph Rules
+				 * rule_types 3,4 are Tree Rules
+				 */
 				foreach($tree_match_items as $tmindex => $rule_item) {
 					unset($tree_match_items[$tmindex]['id']);
 					unset($tree_match_items[$tmindex]['rule_id']);
@@ -4987,6 +5002,103 @@ function automation_device_rule_export($template_ids) {
 	}
 
 	return $json_array;
+}
+
+function automation_tree_rule_create_tree($tree_data, $branch_data) {
+	if (cacti_sizeof($tree_data)) {
+		$tree_id = db_fetch_cell_prepared('SELECT id FROM graph_tree WHERE name = ?', array($tree_data['name']));
+
+		if (empty($tree_id)) {
+			$save       = array();
+			$save['id'] = 0;
+
+			$save['name']          = $tree_data['name'];
+			$save['sort_type']     = $tree_data['sort_type'];
+			$save['last_modified'] = date('Y-m-d H:i:s', time());
+			$save['enabled']       = 'on';
+			$save['modified_by']   = $_SESSION[SESS_USER_ID];
+			$save['sequence']      = api_tree_get_max_sequence() + 1;
+			$save['user_id']       = $_SESSION[SESS_USER_ID];
+
+			$tree_id = sql_save($save, 'graph_tree');
+		}
+
+		if (!empty($tree_id)) {
+			if (cacti_sizeof($branch_data)) {
+				$parent = 0;
+
+				foreach($branch_data as $branch) {
+					$branch_id = db_fetch_cell_prepared('SELECT id
+						FROM graph_tree_items
+						WHERE parent = ?
+						AND title = ?',
+						array($parent, $branch['title']));
+
+					if (empty($branch_id)) {
+						$save = array();
+						$save = $branch;
+
+						/* what we know from the imported object */
+						$save['id'] = 0;
+						$save['parent']        = $parent;
+						$save['graph_tree_id'] = $tree_id;
+
+						/* since we are only dealing with branches */
+						$save['local_graph_id'] = 0;
+						$save['host_id']        = 0;
+						$save['site_id']        = 0;
+
+						$parent = sql_save($save, 'graph_tree_items');
+					} else {
+						$parent = $branch_id;
+					}
+				}
+			}
+		}
+
+		return array($tree_id, $parent);
+	} else {
+		return array(0, 0);
+	}
+}
+
+function automation_device_rule_export_branches($tree_id, $branch_id) {
+	if ($branch_id == 0) {
+		return array();
+	}
+
+	$branches = array();
+
+	while (true) {
+		$branch = db_fetch_row_prepared('SELECT *
+			FROM graph_tree_items
+			WHERE graph_tree_id = ?
+			AND id = ?',
+			array($tree_id, $branch_id));
+
+		if (cacti_sizeof($branch)) {
+			$parent = $branch['parent'];
+
+			unset($branch['id']);
+			unset($branch['parent']);
+			unset($branch['graph_tree_id']);
+			unset($branch['local_graph_id']);
+			unset($branch['host_id']);
+			unset($branch['site_id']);
+
+			$branches[] = $branch;
+
+			if ($parent == 0) {
+				break;
+			} else {
+				$branch_id = $parent;
+			}
+		} else {
+			break;
+		}
+	}
+
+	return array_reverse($branches);
 }
 
 function automation_graph_rule_export($graph_rule_ids) {
@@ -5109,6 +5221,10 @@ function automation_tree_rule_export($tree_rule_ids) {
 
 			/* unset the rule id */
 			unset($tree_rule['id']);
+
+			/* pick up the tree and branch name as they may not be on the foreign system */
+			$tree_rule['tree_data']        = db_fetch_row_prepared('SELECT name, sort_type FROM graph_tree WHERE id = ?', array($tree_rule['tree_id']));
+			$tree_rule['tree_branch_data'] = automation_device_rule_export_branches($tree_rule['tree_id'], $tree_rule['tree_item_id']);
 
 			/* collapse the graph rule items */
 			$tree_rule['tree_rule_items'] = $tree_rule_items;
@@ -5421,6 +5537,654 @@ function automation_network_import($json_data) {
 	return $debug_data;
 }
 
+function automation_graph_rule_import($json_data) {
+	global $config;
+
+	$debug_data = array();
+
+	/**
+	 * This routine will take two passes through the data.  In the first pass, we will ensure
+	 * that all the required Cacti Template objects are in the database.  If they are not
+	 * then we will abandon the import process.
+	 *
+	 * Once we have verified all the hashes to id's we will commence with the import from
+	 * top to bottom in the JSON array.
+	 */
+	if (is_array($json_data) && cacti_sizeof($json_data) && isset($json_data['graph_rules'])) {
+		$error   = false;
+		$save    = array();
+		$sqids   = array();
+		$sqgtids = array();
+
+		foreach ($json_data['graph_rules'] as $rule) {
+			$hash = $rule['hash'];
+
+			if (isset($rule['snmp_query_id']) && $rule['snmp_query_id'] != '') {
+				$hash = $rule['snmp_query_id'];
+				$snmp_query_id = db_fetch_cell_prepared('SELECT id FROM snmp_query WHERE hash = ?', array($hash));
+
+				if (empty($snmp_query_id)) {
+					$error = true;
+					$debug_data['errors'][] = __('The Cacti install does not include the Data Query with the hash \'%s\'!', $hash);
+				} else {
+					$sqids[$hash] = $snmp_query_id;
+				}
+			}
+
+			if (isset($rule['graph_type_id']) && $rule['graph_type_id'] != '') {
+				$hash = $rule['graph_type_id'];
+				$graph_type_id = db_fetch_cell_prepared('SELECT id FROM snmp_query_graph WHERE hash = ?', array($hash));
+
+				if (empty($graph_type_id)) {
+					$error = true;
+					$debug_data['errors'][] = __('The Cacti install does not include the Data Query Graph mapping with the hash \'%s\'!', $hash);
+				} else {
+					$sqgtids[$hash] = $graph_type_id;
+				}
+			}
+		}
+
+		if (!$error) {
+			foreach($json_data['graph_rules'] as $rule) {
+				$hash = $rule['hash'];
+
+				/* prepare the save array */
+				$save = $rule;
+
+				/* remove object that don't belong */
+				unset($save['graph_rule_items']);
+				unset($save['graph_match_items']);
+
+				$save['id'] = db_fetch_cell_prepared('SELECT id FROM automation_graph_rules WHERE hash = ?', array($hash));
+				$save['snmp_query_id'] = $sqids[$rule['snmp_query_id']];
+				$save['graph_type_id'] = $sqgtids[$rule['graph_type_id']];
+
+				$graph_rule_id = sql_save($save, 'automation_graph_rules');
+
+				$graph_rule_ids[] = $graph_rule_id;
+
+				if ($graph_rule_id) {
+					if ($config['is_web']) {
+						$debug_data['success'][] = __esc('Automation Graph Rule \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+					} else {
+						$debug_data['success'][] = __('Automation Graph Rule \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+					}
+				} else {
+					if ($config['is_web']) {
+						$debug_data['failure'][] = __esc('Automation Graph Rule \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+					} else {
+						$debug_data['failure'][] = __('Automation Graph Rule \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+					}
+				}
+
+				if (cacti_sizeof($rule['graph_rule_items'])) {
+					foreach($rule['graph_rule_items'] as $rule_item) {
+						$hash = $rule_item['hash'];
+
+						$save = $rule_item;
+
+						$save['id']      = db_fetch_cell_prepared('SELECT id FROM automation_graph_rule_items WHERE hash = ?', array($hash));
+						$save['rule_id'] = $graph_rule_id;
+
+						$rule_item_id = sql_save($save, 'automation_graph_rule_items');
+
+						$graph_rule_item_ids[] = $rule_item_id;
+
+						if ($rule_item_id) {
+							if ($config['is_web']) {
+								$debug_data['success'][] = __esc('Automation Graph Rule Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+							} else {
+								$debug_data['success'][] = __('Automation Graph Rule Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+							}
+						} else {
+							if ($config['is_web']) {
+								$debug_data['failure'][] = __esc('Automation Graph Rule Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+							} else {
+								$debug_data['failure'][] = __('Automation Graph Rule Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+							}
+						}
+					}
+				}
+
+				if (cacti_sizeof($rule['graph_match_items'])) {
+					foreach($rule['graph_match_items'] as $match_item) {
+						$hash = $match_item['hash'];
+
+						$save = $match_item;
+
+						$save['id']      = db_fetch_cell_prepared('SELECT id FROM automation_match_rule_items WHERE hash = ?', array($hash));
+						$save['rule_id'] = $graph_rule_id;
+
+						$rule_item_id = sql_save($save, 'automation_match_rule_items');
+
+						$graph_rule_item_ids[] = $rule_item_id;
+
+						if ($rule_item_id) {
+							if ($config['is_web']) {
+								$debug_data['success'][] = __esc('Automation Graph Rule Match Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+							} else {
+								$debug_data['success'][] = __('Automation Graph Rule Match Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+							}
+						} else {
+							if ($config['is_web']) {
+								$debug_data['failure'][] = __esc('Automation Graph Rule Match Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+							} else {
+								$debug_data['failure'][] = __('Automation Graph Rule Match Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+							}
+						}
+					}
+				}
+			}
+		}
+	} else {
+		$debug_data['failure'][] = __('Automation Graph Rule Import data is either for another object type or not JSON formatted.');
+	}
+
+	return $debug_data;
+}
+
+function automation_tree_rule_import($json_data, $tree_branches = false) {
+	global $config;
+
+	$debug_data = array();
+
+	/**
+	 * This routine will take two passes through the data.  In the first pass, we will ensure
+	 * that all the required Cacti Template objects are in the database.  If they are not
+	 * then we will abandon the import process.
+	 *
+	 * Once we have verified all the hashes to id's we will commence with the import from
+	 * top to bottom in the JSON array.
+	 */
+	if (is_array($json_data) && cacti_sizeof($json_data) && isset($json_data['tree_rules'])) {
+		$error   = false;
+		$save    = array();
+
+		foreach($json_data['tree_rules'] as $rule) {
+			$hash = $rule['hash'];
+
+			/* prepare the save array */
+			$save = $rule;
+
+			/* unset the Tree and Branch ids */
+			$save['tree_id']      = 0;
+			$save['tree_item_id'] = 0;
+
+			/* until we get the tree create done */
+			unset($save['tree_data']);
+			unset($save['tree_branch_data']);
+
+			if ($tree_branches) {
+				if (isset($rule['tree_data']) && isset($rule['tree_branch_data'])) {
+					list($save['tree_id'], $save['tree_item_id']) = automation_tree_rule_create_tree($rule['tree_data'], $rule['tree_branch_data']);
+				}
+			}
+
+			$save['id'] = db_fetch_cell_prepared('SELECT id FROM automation_tree_rules WHERE hash = ?', array($hash));
+
+			/* unset things that don't belong */
+			unset($save['tree_rule_items']);
+			unset($save['tree_match_items']);
+
+			$tree_rule_id = sql_save($save, 'automation_tree_rules');
+
+			$tree_rule_ids[] = $tree_rule_id;
+
+			if ($tree_rule_id) {
+				if ($config['is_web']) {
+					$debug_data['success'][] = __esc('Automation Tree Rule \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+				} else {
+					$debug_data['success'][] = __('Automation Tree Rule \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+				}
+			} else {
+				if ($config['is_web']) {
+					$debug_data['failure'][] = __esc('Automation Tree Device Rule \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+				} else {
+					$debug_data['failure'][] = __('Automation Tree Device Rule \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+				}
+			}
+
+			if (cacti_sizeof($rule['tree_rule_items'])) {
+				foreach($rule['tree_rule_items'] as $rule_item) {
+					$hash = $rule_item['hash'];
+
+					$save = $rule_item;
+
+					$save['id']      = db_fetch_cell_prepared('SELECT id FROM automation_tree_rule_items WHERE hash = ?', array($hash));
+					$save['rule_id'] = $tree_rule_id;
+
+					$rule_item_id = sql_save($save, 'automation_tree_rule_items');
+
+					if ($rule_item_id) {
+						if ($config['is_web']) {
+							$debug_data['success'][] = __esc('Automation Tree Rule Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+						} else {
+							$debug_data['success'][] = __('Automation Tree Rule Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+						}
+					} else {
+						if ($config['is_web']) {
+							$debug_data['failure'][] = __esc('Automation Tree Device Rule Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+						} else {
+							$debug_data['failure'][] = __('Automation Tree Device Rule Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+						}
+					}
+
+					$tree_rule_item_ids[] = $rule_item_id;
+				}
+			}
+
+			if (cacti_sizeof($rule['tree_match_items'])) {
+				foreach($rule['tree_match_items'] as $match_item) {
+					$hash = $match_item['hash'];
+
+					$save = $match_item;
+
+					$save['id']      = db_fetch_cell_prepared('SELECT id FROM automation_match_rule_items WHERE hash = ?', array($hash));
+					$save['rule_id'] = $tree_rule_id;
+
+					$rule_item_id = sql_save($save, 'automation_match_rule_items');
+
+					$tree_rule_item_ids[] = $rule_item_id;
+
+					if ($rule_item_id) {
+						if ($config['is_web']) {
+							$debug_data['success'][] = __esc('Automation Tree Rule Match Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+						} else {
+							$debug_data['success'][] = __('Automation Tree Rule Match Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+						}
+					} else {
+						if ($config['is_web']) {
+							$debug_data['failure'][] = __esc('Automation Tree Device Rule Match Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+						} else {
+							$debug_data['failure'][] = __('Automation Tree Device Rule Match Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+						}
+					}
+				}
+			}
+		}
+	} else {
+		$debug_data['failure'][] = __('Automation Tree Rule Import data is either for another object type or not JSON formatted.');
+	}
+
+	return $debug_data;
+}
+
+function automation_template_import($json_data, $tree_branches = false) {
+	global $config;
+
+	$debug_data = array();
+
+	/**
+	 * This routine will take two passes through the data.  In the first pass, we will ensure
+	 * that all the required Cacti Template objects are in the database.  If they are not
+	 * then we will abandon the import process.
+	 *
+	 * Once we have verified all the hashes to id's we will commence with the import from
+	 * top to bottom in the JSON array.
+	 */
+	if (is_array($json_data) && cacti_sizeof($json_data) && isset($json_data['device'])) {
+		$error   = false;
+		$save    = array();
+		$htids   = array();
+		$sqids   = array();
+		$sqgtids = array();
+
+		foreach ($json_data['device'] as $data) {
+			$hash = $data['host_template'];
+			$host_template_id = db_fetch_cell_prepared('SELECT id FROM host_template WHERE hash = ?', array($hash));
+
+			if (empty($host_template_id)) {
+				$error = true;
+				$debug_data['errors'][] = __('The Cacti install does not include the Device Template with the hash \'%s\'!', $hash);
+			} else {
+				$htids[$hash] = $host_template_id;
+			}
+
+			if (cacti_sizeof($data['graph_rules'])) {
+				foreach($data['graph_rules'] AS $rule) {
+					$hash = $rule['hash'];
+
+					if (isset($rule['snmp_query_id']) && $rule['snmp_query_id'] != '') {
+						$hash = $rule['snmp_query_id'];
+						$snmp_query_id = db_fetch_cell_prepared('SELECT id FROM snmp_query WHERE hash = ?', array($hash));
+
+						if (empty($snmp_query_id)) {
+							$error = true;
+							$debug_data['errors'][] = __('The Cacti install does not include the Data Query with the hash \'%s\'!', $hash);
+						} else {
+							$sqids[$hash] = $snmp_query_id;
+						}
+					}
+
+					if (isset($rule['graph_type_id']) && $rule['graph_type_id'] != '') {
+						$hash = $rule['graph_type_id'];
+						$graph_type_id = db_fetch_cell_prepared('SELECT id FROM snmp_query_graph WHERE hash = ?', array($hash));
+
+						if (empty($graph_type_id)) {
+							$error = true;
+							$debug_data['errors'][] = __('The Cacti install does not include the Data Query Graph mapping with the hash \'%s\'!', $hash);
+						} else {
+							$sqgtids[$hash] = $graph_type_id;
+						}
+					}
+				}
+			}
+		}
+
+		if (!$error) {
+			foreach ($json_data['device'] as $data) {
+				$hash = $data['hash'];
+
+				/* prepare the save array */
+				$save = $data;
+
+				$save['id']            = db_fetch_cell_prepared('SELECT id FROM automation_templates WHERE hash = ?', array($hash));
+				$save['host_template'] = $htids[$save['host_template']];
+
+				unset($save['device_rules']);
+				unset($save['graph_rules']);
+				unset($save['tree_rules']);
+
+				$device_rule_id = sql_save($save, 'automation_templates');
+
+				$name = db_fetch_cell_prepared('SELECT name
+					FROM host_template
+					WHERE id = ?',
+					array($save['host_template']));
+
+				if ($device_rule_id) {
+					if ($config['is_web']) {
+						$debug_data['success'][] = __esc('Automation Device Rule \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+					} else {
+						$debug_data['success'][] = __('Automation Device Rule \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+					}
+				} else {
+					if ($config['is_web']) {
+						$debug_data['failure'][] = __esc('Automation Device Rule \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+					} else {
+						$debug_data['failure'][] = __('Automation Device Rule \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+					}
+				}
+
+				/**
+				 * We have to do Graph Rules and Tree Rules Next as
+				 * the Device Template rules require that they exist first.
+				 * Also, it must be noted that the Tree rules specify a
+				 * destination Tree, which may or may not exist on the
+				 * foreign system.
+				 *
+				 * So, for these next set of data, we have to go out of order.
+				 * We will process in the order below.
+				 *
+				 * - Graph Rules
+				 * - Tree Rules (where the tree_id will be set to 0
+				 * - Device Rules
+				 *
+				 */
+
+				/* we will use these ID's to remove deleted objects */
+				$device_rule_ids      = array();
+				$graph_rule_ids       = array();
+				$graph_rule_items_ids = array();
+				$graph_match_item_ids = array();
+
+				if (cacti_sizeof($data['graph_rules'])) {
+					foreach($data['graph_rules'] as $rule) {
+						$hash = $rule['hash'];
+
+						/* prepare the save array */
+						$save = $rule;
+
+						/* remove object that don't belong */
+						unset($save['graph_rule_items']);
+						unset($save['graph_match_items']);
+
+						$save['id'] = db_fetch_cell_prepared('SELECT id FROM automation_graph_rules WHERE hash = ?', array($hash));
+						$save['snmp_query_id'] = $sqids[$rule['snmp_query_id']];
+						$save['graph_type_id'] = $sqgtids[$rule['graph_type_id']];
+
+						$graph_rule_id = sql_save($save, 'automation_graph_rules');
+
+						$graph_rule_ids[] = $graph_rule_id;
+
+						if ($graph_rule_id) {
+							if ($config['is_web']) {
+								$debug_data['success'][] = __esc('Automation Graph Rule \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+							} else {
+								$debug_data['success'][] = __('Automation Graph Rule \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+							}
+						} else {
+							if ($config['is_web']) {
+								$debug_data['failure'][] = __esc('Automation Graph Rule \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+							} else {
+								$debug_data['failure'][] = __('Automation Graph Rule \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+							}
+						}
+
+						if (cacti_sizeof($rule['graph_rule_items'])) {
+							foreach($rule['graph_rule_items'] as $rule_item) {
+								$hash = $rule_item['hash'];
+
+								$save = $rule_item;
+
+								$save['id']      = db_fetch_cell_prepared('SELECT id FROM automation_graph_rule_items WHERE hash = ?', array($hash));
+								$save['rule_id'] = $graph_rule_id;
+
+								$rule_item_id = sql_save($save, 'automation_graph_rule_items');
+
+								$graph_rule_item_ids[] = $rule_item_id;
+
+								if ($rule_item_id) {
+									if ($config['is_web']) {
+										$debug_data['success'][] = __esc('Automation Graph Rule Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+									} else {
+										$debug_data['success'][] = __('Automation Graph Rule Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+									}
+								} else {
+									if ($config['is_web']) {
+										$debug_data['failure'][] = __esc('Automation Graph Rule Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+									} else {
+										$debug_data['failure'][] = __('Automation Graph Rule Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+									}
+								}
+							}
+						}
+
+						if (cacti_sizeof($rule['graph_match_items'])) {
+							foreach($rule['graph_match_items'] as $match_item) {
+								$hash = $match_item['hash'];
+
+								$save = $match_item;
+
+								$save['id']      = db_fetch_cell_prepared('SELECT id FROM automation_match_rule_items WHERE hash = ?', array($hash));
+								$save['rule_id'] = $graph_rule_id;
+
+								$rule_item_id = sql_save($save, 'automation_match_rule_items');
+
+								$graph_rule_item_ids[] = $rule_item_id;
+
+								if ($rule_item_id) {
+									if ($config['is_web']) {
+										$debug_data['success'][] = __esc('Automation Graph Rule Match Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+									} else {
+										$debug_data['success'][] = __('Automation Graph Rule Match Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+									}
+								} else {
+									if ($config['is_web']) {
+										$debug_data['failure'][] = __esc('Automation Graph Rule Match Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+									} else {
+										$debug_data['failure'][] = __('Automation Graph Rule Match Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+									}
+								}
+							}
+						}
+					}
+				}
+
+				if (cacti_sizeof($data['tree_rules'])) {
+					foreach($data['tree_rules'] as $rule) {
+						$hash = $rule['hash'];
+
+						/* prepare the save array */
+						$save = $rule;
+
+						/* unset the Tree id */
+						/* ToDo: Actually Export the names of these to recreate them */
+						$save['tree_id']      = 0;
+						$save['tree_item_id'] = 0;
+
+						/* until we get the tree create done */
+						unset($save['tree_data']);
+						unset($save['tree_branch_data']);
+
+						if ($tree_branches) {
+							if (isset($rule['tree_data']) && isset($rule['tree_branch_data'])) {
+								list($save['tree_id'], $save['tree_item_id']) = automation_tree_rule_create_tree($rule['tree_data'], $rule['tree_branch_data']);
+							}
+						}
+
+						$save['id'] = db_fetch_cell_prepared('SELECT id FROM automation_tree_rules WHERE hash = ?', array($hash));
+
+						/* unset things that don't belong */
+						unset($save['tree_rule_items']);
+						unset($save['tree_match_items']);
+
+						$tree_rule_id = sql_save($save, 'automation_tree_rules');
+
+						$tree_rule_ids[] = $tree_rule_id;
+
+						if ($tree_rule_id) {
+							if ($config['is_web']) {
+								$debug_data['success'][] = __esc('Automation Tree Rule \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+							} else {
+								$debug_data['success'][] = __('Automation Tree Rule \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+							}
+						} else {
+							if ($config['is_web']) {
+								$debug_data['failure'][] = __esc('Automation Tree Device Rule \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+							} else {
+								$debug_data['failure'][] = __('Automation Tree Device Rule \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+							}
+						}
+
+						if (cacti_sizeof($rule['tree_rule_items'])) {
+							foreach($rule['tree_rule_items'] as $rule_item) {
+								$hash = $rule_item['hash'];
+
+								$save = $rule_item;
+
+								$save['id']      = db_fetch_cell_prepared('SELECT id FROM automation_tree_rule_items WHERE hash = ?', array($hash));
+								$save['rule_id'] = $tree_rule_id;
+
+								$rule_item_id = sql_save($save, 'automation_tree_rule_items');
+
+								if ($rule_item_id) {
+									if ($config['is_web']) {
+										$debug_data['success'][] = __esc('Automation Tree Rule Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+									} else {
+										$debug_data['success'][] = __('Automation Tree Rule Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+									}
+								} else {
+									if ($config['is_web']) {
+										$debug_data['failure'][] = __esc('Automation Tree Device Rule Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+									} else {
+										$debug_data['failure'][] = __('Automation Tree Device Rule Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+									}
+								}
+
+								$tree_rule_item_ids[] = $rule_item_id;
+							}
+						}
+
+						if (cacti_sizeof($rule['tree_match_items'])) {
+							foreach($rule['tree_match_items'] as $match_item) {
+								$hash = $match_item['hash'];
+
+								$save = $match_item;
+
+								$save['id']      = db_fetch_cell_prepared('SELECT id FROM automation_match_rule_items WHERE hash = ?', array($hash));
+								$save['rule_id'] = $tree_rule_id;
+
+								$rule_item_id = sql_save($save, 'automation_match_rule_items');
+
+								$tree_rule_item_ids[] = $rule_item_id;
+
+								if ($rule_item_id) {
+									if ($config['is_web']) {
+										$debug_data['success'][] = __esc('Automation Tree Rule Match Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+									} else {
+										$debug_data['success'][] = __('Automation Tree Rule Match Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+									}
+								} else {
+									if ($config['is_web']) {
+										$debug_data['failure'][] = __esc('Automation Tree Device Rule Match Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+									} else {
+										$debug_data['failure'][] = __('Automation Tree Device Rule Match Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+									}
+								}
+							}
+						}
+					}
+				}
+
+				/**
+				 * When we process these actions, we must be aware that the rule types for devices are:
+				 * rule type 1 - Graph Rule
+				 * rule type 2 - Tree Rule
+				 */
+				if (cacti_sizeof($data['device_rules'])) {
+					foreach($data['device_rules'] as $rule) {
+						$hash = $rule['hash'];
+
+						$save = $rule;
+
+						$save['id'] = db_fetch_cell_prepared('SELECT id
+							FROM automation_templates_rules
+							WHERE hash = ?',
+							array($hash));
+
+						$save['template_id'] = $device_rule_id;
+
+						if ($rule['rule_type'] == 1) {      // Graph Rules
+							$save['rule_id'] = db_fetch_cell_prepared('SELECT id
+								FROM automation_graph_rules
+								WHERE hash = ?',
+								array($rule['rule_id']));
+						} elseif ($rule['rule_type'] == 2) { // Tree Rules
+							$save['rule_id'] = db_fetch_cell_prepared('SELECT id
+								FROM automation_tree_rules
+								WHERE hash = ?',
+								array($rule['rule_id']));
+						}
+
+						/* save the automation network first */
+						$id = sql_save($save, 'automation_templates_rules');
+
+						if ($id) {
+							if ($config['is_web']) {
+								$debug_data['success'][] = __esc('Automation Device Rule Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+							} else {
+								$debug_data['success'][] = __('Automation Device Rule Item \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+							}
+						} else {
+							if ($config['is_web']) {
+								$debug_data['failure'][] = __esc('Automation Device Rule Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+							} else {
+								$debug_data['failure'][] = __('Automation Device Rule Item \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+							}
+						}
+					}
+				}
+
+			}
+		}
+	} else {
+		$debug_data['failure'][] = __('Automation Device Rule Import data is either for another object type or not JSON formatted.');
+	}
+
+	return $debug_data;
+}
+
 function automation_validate_import_columns($table, &$data, &$debug_data) {
 	if (cacti_sizeof($data)) {
 		foreach($data as $column => $cdata) {
@@ -5446,11 +6210,8 @@ function automation_validate_import_columns($table, &$data, &$debug_data) {
  * @param  $level - (int) only log if above the specified log level
  */
 function automation_log($string, $level = AUTOMATION_LOG_LOW) {
-
-	if (function_exists('read_config_option')) {
+	if (!defined('AUTOMATION_LEVEL')) {
 		define('AUTOMATION_LEVEL', read_config_option('automation_log_level'));
-	} else {
-		define('AUTOMATION_LEVEL', 1);
 	}
 
 	if (AUTOMATION_LEVEL >= $level) {

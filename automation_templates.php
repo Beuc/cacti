@@ -24,6 +24,7 @@
 
 include('./include/auth.php');
 include_once('./lib/api_automation.php');
+include_once('./lib/api_tree.php');
 include_once('./lib/poller.php');
 include_once('./lib/utility.php');
 
@@ -198,6 +199,13 @@ function automation_import() {
 			'textarea_rows' => '10',
 			'textarea_cols' => '80',
 			'class' => 'textAreaNotes'
+		),
+		'import_trees_branches' => array(
+			'friendly_name' => __('Import Device Rules Trees and Branches'),
+			'description'   => __('Automatically Recreate the Trees and Branches if they do not exist upon Import.'),
+			'method'        => 'checkbox',
+			'value'         => '',
+			'default'       => ''
 		)
 	);
 
@@ -251,11 +259,13 @@ function automation_import_process() {
 		$json_data = automation_validate_upload();
 	}
 
-	if (is_array($json_data) && cacti_sizeof($json_data) && isset($json_data['device'])) {
-		foreach($json_data['device'] as $device) {
-			$return_data += automation_template_import($device);
-		}
+	if (isset_request_var('import_trees_branches')) {
+		$trees = true;
+	} else {
+		$trees = false;
 	}
+
+	$return_data = automation_template_import($json_data, $trees);
 
 	if (sizeof($return_data) && isset($return_data['success'])) {
 		foreach ($return_data['success'] as $message) {

@@ -24,6 +24,7 @@
 
 include('./include/auth.php');
 include_once('./lib/api_automation.php');
+include_once('./lib/api_tree.php');
 include_once('./lib/data_query.php');
 
 $actions = array(
@@ -158,10 +159,17 @@ function automation_import() {
 			'textarea_rows' => '10',
 			'textarea_cols' => '80',
 			'class' => 'textAreaNotes'
+		),
+		'import_trees_branches' => array(
+			'friendly_name' => __('Import Device Rules Trees and Branches'),
+			'description'   => __('Automatically Recreate the Trees and Branches if they do not exist upon Import.'),
+			'method'        => 'checkbox',
+			'value'         => '',
+			'default'       => ''
 		)
 	);
 
-	form_start('automation_graph_rules.php', 'chk', true);
+	form_start('automation_tree_rules.php', 'chk', true);
 
 	if ((isset($_SESSION['import_debug_info'])) && (is_array($_SESSION['import_debug_info']))) {
 		html_start_box(__('Import Results'), '80%', '', '3', 'center', '');
@@ -211,11 +219,13 @@ function automation_import_process() {
 		$json_data = automation_validate_upload();
 	}
 
-	if (is_array($json_data) && cacti_sizeof($json_data) && isset($json_data['tree_rules'])) {
-		foreach($json_data['tree_rules'] as $tree_rule) {
-			$return_data += automation_tree_rule_import($tree_rule);
-		}
+	if (isset_request_var('import_trees_branches')) {
+		$trees = true;
+	} else {
+		$trees = false;
 	}
+
+	$return_data = automation_tree_rule_import($json_data, $trees);
 
 	if (sizeof($return_data) && isset($return_data['success'])) {
 		foreach ($return_data['success'] as $message) {
@@ -242,7 +252,7 @@ function automation_import_process() {
 		$_SESSION['import_debug_info'] = $debug_data;
 	}
 
-	header('Location: automation_graph_rules.php?action=import');
+	header('Location: automation_tree_rules.php?action=import');
 
 	exit();
 }
@@ -726,6 +736,30 @@ function automation_tree_rules_edit() {
 			$form_array = $fields_automation_tree_rules_edit1;
 		}
 
+		if (isset_request_var('name')) {
+			$rule['name'] = get_nfilter_request_var('name');
+		}
+
+		if (isset_request_var('tree_id')) {
+			$rule['tree_id'] = get_nfilter_request_var('tree_id');
+		}
+
+		if (isset_request_var('tree_item_id')) {
+			$rule['tree_item_id'] = get_nfilter_request_var('tree_item_id');
+		}
+
+		if (isset_request_var('leaf_type')) {
+			$rule['leaf_type'] = get_nfilter_request_var('leaf_type');
+		}
+
+		if (isset_request_var('enabled')) {
+			if (get_nfilter_request_var('enabled') == 'true') {
+				$rule['enabled'] = 'on';
+			} else {
+				$rule['enabled'] = '';
+			}
+		}
+
 		draw_edit_form(array(
 			'config' => array('no_form_tag' => true),
 			'fields' => inject_form_variables($form_array, (isset($rule) ? $rule : array()))
@@ -804,7 +838,7 @@ function automation_tree_rules_edit() {
 		strURL += '&tree_id=' + $('#tree_id').val();
 		strURL += '&tree_item_id=' + $('#tree_item_id').val();
 		strURL += '&leaf_type=' + $('#leaf_type').val();
-		strURL += '&enabled=' + $('#enabled').val();
+		strURL += '&enabled=' + $('#enabled').is(':checked');
 
 		loadUrl({url:strURL,undefined,force})
 	}

@@ -192,16 +192,6 @@ switch (get_request_var('action')) {
 		break;
 }
 
-function tree_get_max_sequence() {
-	$max_seq = db_fetch_cell('SELECT MAX(sequence) FROM graph_tree');
-
-	if ($max_seq == null) {
-		return 0;
-	}
-
-	return $max_seq;
-}
-
 function tree_check_sequences() {
 	$bad_seq = db_fetch_cell('SELECT COUNT(sequence)
 		FROM graph_tree
@@ -553,7 +543,7 @@ function form_save() {
 		$save['modified_by']   = $_SESSION[SESS_USER_ID];
 
 		if (isempty_request_var('sequence')) {
-			$save['sequence'] = tree_get_max_sequence() + 1;
+			$save['sequence'] = api_tree_get_max_sequence() + 1;
 		} else {
 			$save['sequence'] = get_request_var('sequence');
 		}
