@@ -78,7 +78,6 @@ switch (get_request_var('action')) {
 		bottom_footer();
 
 		break;
-
 	default:
 		top_header();
 		networks();
@@ -171,6 +170,7 @@ function automation_import() {
 		</td>
 		<script type='text/javascript'>
 		$(function() {
+			Pace.stop();
 			clearAllTimeouts();
 		});
 		</script>

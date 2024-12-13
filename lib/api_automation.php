@@ -5423,7 +5423,7 @@ function automation_network_import($json_data) {
 
 function automation_validate_import_columns($table, &$data, &$debug_data) {
 	if (cacti_sizeof($data)) {
-		foreach($data as $column => $data) {
+		foreach($data as $column => $cdata) {
 			if (!db_column_exists($table, $column)) {
 				$debug_data['errors'][] = __('Template column \'' . $column . '\' is not valid column.');
 
