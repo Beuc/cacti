@@ -41,8 +41,8 @@ if (!isset_request_var('action') || get_nfilter_request_var('action') == 'templa
 		1 => __('Delete'),
 		2 => __('Duplicate'),
 		3 => __('Sync Devices'),
-		4 => __('Archive Package'),
-		5 => __('Download Packages')
+		4 => __('Archive Device Packages'),
+		5 => __('Download Device Packages')
 	);
 
 	if (!file_exists(CACTI_PATH_PKI . '/package.pub')) {
