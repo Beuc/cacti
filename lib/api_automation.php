@@ -2307,9 +2307,12 @@ function get_query_fields($table, $excluded_fields) {
 
 	$table = trim($table);
 
+	$new_fields = array();
+
 	if ($table != 'host_snmp_cache') {
 		$sql    = 'SHOW COLUMNS FROM ' . $table;
 		$fields = array_rekey(db_fetch_assoc($sql), 'Field', 'Type');
+
 		# remove unwanted entries
 		$fields = array_minus($fields, $excluded_fields);
 	} else {
