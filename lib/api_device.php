@@ -3077,7 +3077,7 @@ function api_device_template_archive($id, $archive_note) {
 					)
 				);
 
-				raise_message("package_success_$id", __('The Device Template %s was Archived Sucessfully.', $info['name']), MESSAGE_LEVEL_INFO);
+				raise_message("package_success_$id", __('The Device Template %s was Archived Successfully.', $info['name']), MESSAGE_LEVEL_INFO);
 				unlink($package_file);
 
 				return true;

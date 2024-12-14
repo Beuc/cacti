@@ -1004,7 +1004,7 @@ $settings['snmp'] = array(
 	),
 	'snmp_options_retry_interval' => array(
 		'friendly_name' => __('Downed Device SNMP Recovery Options Retry Frequency'),
-		'description'   => __('When a Device is Down, and has an SNMP Recovery Options Set established, how often do you wish to try to reciver the Device using the SNMP Options Set specified?'),
+		'description'   => __('When a Device is Down, and has an SNMP Recovery Options Set established, how often do you wish to try to retry the Device using the SNMP Options Set specified?'),
 		'method'        => 'drop_array',
 		'default'       => 3600,
 		'array'         => $poller_sync_intervals,
