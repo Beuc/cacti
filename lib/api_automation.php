@@ -360,6 +360,16 @@ function automation_get_matching_device_sql(&$rule, $rule_type) {
 		$sdisabled = "'' AS site_disabled,";
 	}
 
+	/* data query opjects sql */
+	$hsc_sql = make_host_snnp_cache_sql();
+
+	if ($hsc_sql !== false) {
+		$hsc_join = "LEFT JOIN ($hsc_sql) AS hsc
+			ON hsc.host_id = h.id";
+	} else {
+		$hsc_join = "";
+	}
+
 	$sql_query = "SELECT DISTINCT h.id AS host_id, h.hostname, h.description,
 		h.disabled AS disabled, $sdisabled
 		h.status, ht.name AS host_template_name, s.name AS site_name, h.location
@@ -372,6 +382,7 @@ function automation_get_matching_device_sql(&$rule, $rule_type) {
 		ON gl.id = gtg.local_graph_id
 		LEFT JOIN sites AS s
 		ON s.id = h.site_id
+		$hsc_join
 		LEFT JOIN host_template AS ht
 		ON h.host_template_id = ht.id ";
 
@@ -482,12 +493,23 @@ function automation_get_matching_graphs_sql($rule, $rule_type) {
 	/* get the WHERE clause for matching graphs */
 	$sql_where .= ($sql_where != '' ? ' AND ':' WHERE ') . build_matching_objects_filter($rule['id'], $rule_type);
 
+	/* data query opjects sql */
+	$hsc_sql = make_host_snnp_cache_sql();
+
+	if ($hsc_sql !== false) {
+		$hsc_join = "LEFT JOIN ($hsc_sql) AS hsc
+			ON hsc.host_id = h.id";
+	} else {
+		$hsc_join = "";
+	}
+
 	$total_rows_query = "SELECT COUNT(gtg.id)
 		FROM host AS h
 		INNER JOIN graph_local AS gl
 		ON h.id = gl.host_id
 		LEFT JOIN sites AS s
 		ON h.site_id = s.id
+		$hsc_join
 		LEFT JOIN graph_templates AS gt
 		ON gl.graph_template_id = gt.id
 		LEFT JOIN graph_templates_graph AS gtg
@@ -512,6 +534,7 @@ function automation_get_matching_graphs_sql($rule, $rule_type) {
 		ON h.id = gl.host_id
 		LEFT JOIN sites AS s
 		ON h.site_id = s.id
+		$hsc_join
 		LEFT JOIN graph_templates AS gt
 		ON gl.graph_template_id = gt.id
 		LEFT JOIN graph_templates_graph AS gtg
@@ -1306,18 +1329,30 @@ function display_matching_trees($rule_id, $rule_type, $item, $url) {
 	/* build magic query, for matching hosts JOIN tables host and host_template */
 	$leaf_type = db_fetch_cell('SELECT leaf_type FROM automation_tree_rules WHERE id = ' . $rule_id);
 
+	/* data query opjects sql */
+	$hsc_sql = make_host_snnp_cache_sql();
+
+	if ($hsc_sql !== false) {
+		$hsc_join = "LEFT JOIN ($hsc_sql) AS hsc
+			ON hsc.host_id = h.id";
+	} else {
+		$hsc_join = "";
+	}
+
 	if ($leaf_type == TREE_ITEM_TYPE_HOST) {
-		$sql_tables = 'FROM host AS h
-			LEFT JOIN sites s
+		$sql_tables = "FROM host AS h
+			LEFT JOIN sites AS s
 			ON h.site_id = s.id
+			$hsc_join
 			LEFT JOIN host_template AS ht
-			ON h.host_template_id = ht.id';
+			ON h.host_template_id = ht.id";
 
 		$sql_where = 'WHERE h.deleted = ""';
 	} elseif ($leaf_type == TREE_ITEM_TYPE_GRAPH) {
-		$sql_tables = 'FROM host AS h
-			LEFT JOIN sites s
+		$sql_tables = "FROM host AS h
+			LEFT JOIN sites AS s
 			ON h.site_id = s.id
+			$hsc_join
 			LEFT JOIN host_template AS ht
 			ON h.host_template_id = ht.id
 			LEFT JOIN graph_local AS gl
@@ -1325,7 +1360,7 @@ function display_matching_trees($rule_id, $rule_type, $item, $url) {
 			LEFT JOIN graph_templates AS gt
 			ON gl.graph_template_id = gt.id
 			LEFT JOIN graph_templates_graph AS gtg
-			ON gl.id = gtg.local_graph_id';
+			ON gl.id = gtg.local_graph_id";
 
 		$sql_where = 'WHERE gtg.local_graph_id > 0 AND h.deleted = "" ';
 	}
@@ -1335,6 +1370,8 @@ function display_matching_trees($rule_id, $rule_type, $item, $url) {
 		$sql_where .= ' AND (
 			h.hostname LIKE '       . db_qstr('%' . get_request_var('filter') . '%') . '
 			OR h.description LIKE ' . db_qstr('%' . get_request_var('filter') . '%') . '
+			OR h.location LIKE '    . db_qstr('%' . get_request_var('filter') . '%') . '
+			OR s.name LIKE '        . db_qstr('%' . get_request_var('filter') . '%') . '
 			OR ht.name LIKE '       . db_qstr('%' . get_request_var('filter') . '%') . ')';
 	}
 
@@ -2088,12 +2125,23 @@ function get_matching_hosts($rule, $rule_type, $sql_where='') {
 		$sdisabled = "'' AS site_disabled,";
 	}
 
+	/* data query opjects sql */
+	$hsc_sql = make_host_snnp_cache_sql();
+
+	if ($hsc_sql !== false) {
+		$hsc_join = "LEFT JOIN ($hsc_sql) AS hsc
+			ON hsc.host_id = h.id";
+	} else {
+		$hsc_join = "";
+	}
+
 	$sql_query = "SELECT h.id AS host_id, h.hostname, h.description,
 		h.disabled AS disabled, $sdisabled
 		h.status, ht.name AS host_template_name
 		FROM host AS h
 		LEFT JOIN sites AS s
 		ON h.site_id = s.id
+		$hsc_join
 		LEFT JOIN host_template AS ht
 		ON h.host_template_id = ht.id ";
 
@@ -2131,6 +2179,16 @@ function get_matching_graphs($rule, $rule_type, $sql_where = '') {
 		$sdisabled = "'' AS site_disabled,";
 	}
 
+	/* data query opjects sql */
+	$hsc_sql = make_host_snnp_cache_sql();
+
+	if ($hsc_sql !== false) {
+		$hsc_join = "LEFT JOIN ($hsc_sql) AS hsc
+			ON hsc.host_id = h.id";
+	} else {
+		$hsc_join = "";
+	}
+
 	$sql_query = "SELECT h.id AS host_id, h.hostname, h.description,
 		h.disabled, $sdisabled
 		h.status, ht.name AS host_template_name, gtg.id,
@@ -2143,6 +2201,7 @@ function get_matching_graphs($rule, $rule_type, $sql_where = '') {
 		ON gl.host_id = h.id
 		LEFT JOIN sites AS s
 		ON h.site_id = s.id
+		$hsc_join
 		LEFT JOIN host_template AS ht
 		ON h.host_template_id = ht.id";
 
@@ -2224,17 +2283,41 @@ function get_created_graphs($rule) {
 	return $items;
 }
 
+function make_host_snnp_cache_sql() {
+	$fields = db_fetch_assoc('SELECT DISTINCT field_name FROM host_snmp_cache ORDER BY field_name');
+
+	if (cacti_sizeof($fields)) {
+		$sql = 'SELECT host_id ';
+
+		foreach($fields as $field) {
+			$sql .= ", MAX(CASE WHEN field_name = '{$field['field_name']}' THEN field_value ELSE NULL END) AS `{$field['field_name']}`";
+		}
+
+		$sql .= ' FROM host_snmp_cache AS hsc GROUP BY host_id';
+
+		return $sql;
+	} else {
+		return false;
+	}
+}
+
 function get_query_fields($table, $excluded_fields) {
 	$function = automation_function_with_pid(__FUNCTION__);
 	cacti_log($function . ' called', false, 'AUTOM8 TRACE', POLLER_VERBOSITY_HIGH);
 
 	$table = trim($table);
 
-	$sql    = 'SHOW COLUMNS FROM ' . $table;
-	$fields = array_rekey(db_fetch_assoc($sql), 'Field', 'Type');
-	#print '<pre>'; print_r($fields); print '</pre>';
-	# remove unwanted entries
-	$fields = array_minus($fields, $excluded_fields);
+	if ($table != 'host_snmp_cache') {
+		$sql    = 'SHOW COLUMNS FROM ' . $table;
+		$fields = array_rekey(db_fetch_assoc($sql), 'Field', 'Type');
+		# remove unwanted entries
+		$fields = array_minus($fields, $excluded_fields);
+	} else {
+		$fields = array_rekey(
+			db_fetch_assoc('SELECT DISTINCT field_name FROM host_snmp_cache ORDER BY field_name'),
+			'field_name', 'field_name'
+		);
+	}
 
 	# now reformat entries for use with draw_edit_form
 	if (cacti_sizeof($fields)) {
@@ -2258,6 +2341,10 @@ function get_query_fields($table, $excluded_fields) {
 					break;
 				case 'sites':
 					$table = 's';
+
+					break;
+				case 'host_snmp_cache':
+					$table = 'hsc';
 
 					break;
 			}
@@ -2365,6 +2452,7 @@ function global_item_edit($rule_id, $rule_item_id, $rule_type) {
 			$query_fields  = get_query_fields('host_template', array('id', 'hash'));
 			$query_fields += get_query_fields('host', array('id', 'host_template_id'));
 			$query_fields += get_query_fields('sites', array('id'));
+			$query_fields += get_query_fields('host_snmp_cache', array('host_id', 'snmp_query_id', 'oid', 'present', 'last_updated', 'snmp_index'));
 
 			$_fields_rule_item_edit['field']['array'] = $query_fields;
 
@@ -2415,6 +2503,7 @@ function global_item_edit($rule_id, $rule_item_id, $rule_type) {
 			$query_fields  = get_query_fields('host_template', array('id', 'hash'));
 			$query_fields += get_query_fields('host', array('id', 'host_template_id'));
 			$query_fields += get_query_fields('sites', array('id'));
+			$query_fields += get_query_fields('host_snmp_cache', array('host_id', 'snmp_query_id', 'oid', 'present', 'last_updated', 'snmp_index'));
 
 			if ($automation_rule['leaf_type'] == TREE_ITEM_TYPE_HOST) {
 				$title  = __('Device Match Rule');
@@ -2448,6 +2537,7 @@ function global_item_edit($rule_id, $rule_item_id, $rule_type) {
 			$query_fields  = get_query_fields('host_template', array('id', 'hash'));
 			$query_fields += get_query_fields('host', array('id', 'host_template_id'));
 			$query_fields += get_query_fields('sites', array('id'));
+			$query_fields += get_query_fields('host_snmp_cache', array('host_id', 'snmp_query_id', 'oid', 'present', 'last_updated', 'snmp_index'));
 
 			/* list of allowed header types depends on rule leaf_type
 			 * e.g. for a Device Rule, only Device-related header types make sense
