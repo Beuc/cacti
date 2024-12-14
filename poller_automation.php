@@ -536,6 +536,7 @@ function discoverDevices($network_id, $thread) {
 
 					if ($netbios === false) {
 						automation_debug(' Not found');
+
 						$device['hostname']      = $device['ip_address'];
 						$device['dnsname']       = '';
 						$device['dnsname_short'] = '';
@@ -625,9 +626,11 @@ function discoverDevices($network_id, $thread) {
 
 						if (!$result) {
 							automation_debug(' No response');
+
 							updateDownDevice($network_id, $device['ip_address']);
 						} else {
 							automation_debug(' Responded');
+
 							$stats['ping']++;
 							addUpDevice($network_id, getmypid());
 						}

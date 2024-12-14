@@ -87,11 +87,7 @@ function display_matching_hosts($rule, $rule_type, $url) {
 								<?php
 								if (cacti_sizeof($item_rows)) {
 									foreach ($item_rows as $key => $value) {
-										print "<option value='". $key . "'";
-
-										if (get_request_var('rowsd') == $key) {
-											print ' selected';
-										} print '>' . $value . '</option>';
+										print "<option value='". $key . "'" . (get_request_var('rowsd') == $key ? ' selected':'') . '>' . $value . '</option>';
 									}
 								}
 								?>
@@ -172,13 +168,44 @@ function display_matching_hosts($rule, $rule_type, $url) {
 	html_start_box('', '100%', '', '3', 'center', '');
 
 	$display_text = array(
-		'description'        => array(__('Description'), 'ASC'),
-		'hostname'           => array(__('Hostname'), 'ASC'),
-		'status'             => array(__('Status'), 'ASC'),
-		'host_template_name' => array(__('Device Template Name'), 'ASC'),
-		'id'                 => array(__('ID'), 'ASC'),
-		'nosort1'            => array(__('Graphs'), 'ASC'),
-		'nosort2'            => array(__('Data Sources'), 'ASC'),
+		'description' => array(
+			'display' => __('Description'),
+			'sort'    => 'ASC'
+		),
+		'hostname' => array(
+			'display' => __('Hostname'),
+			'sort'    => 'ASC'
+		),
+		'site_name' => array(
+			'display' => __('Site'),
+			'sort'    => 'ASC'
+		),
+		'location' => array(
+			'display' => __('Location'),
+			'sort'    => 'ASC'
+		),
+		'status' => array(
+			'display' => __('Status'),
+			'sort'    => 'ASC',
+			'align'   => 'center'
+		),
+		'host_template_name' => array(
+			'display' => __('Device Template Name'),
+			'sort'    => 'ASC'
+		),
+		'id' => array(
+			'display' => __('ID'),
+			'sort'    => 'ASC',
+			'align'   => 'right'
+		),
+		'nosort1' => array(
+			'display' => __('Graphs'),
+			'align'   => 'right'
+		),
+		'nosort2' => array(
+			'display' => __('Data Sources'),
+			'align'   => 'right'
+		),
 	);
 
 	html_header_sort(
@@ -195,11 +222,13 @@ function display_matching_hosts($rule, $rule_type, $url) {
 
 			form_selectable_cell(filter_value($host['description'], get_request_var('filterd'), 'host.php?action=edit&id=' . $host['host_id']), $host['host_id']);
 			form_selectable_cell(filter_value($host['hostname'], get_request_var('filterd')), $host['host_id']);
-			form_selectable_cell(get_colored_device_status((($host['disabled'] == 'on' || $host['site_disabled'] == 'on') ? true : false), $host['status']), $host['host_id']);
+			form_selectable_cell(filter_value($host['site_name'], get_request_var('filterd')), $host['host_id']);
+			form_selectable_cell(filter_value($host['location'], get_request_var('filterd')), $host['host_id']);
+			form_selectable_cell(get_colored_device_status((($host['disabled'] == 'on' || $host['site_disabled'] == 'on') ? true : false), $host['status']), $host['host_id'], '', 'center');
 			form_selectable_cell(filter_value($host['host_template_name'], get_request_var('filterd')), $host['host_id']);
-			form_selectable_cell(round(($host['host_id']), 2), $host['host_id']);
-			form_selectable_cell((isset($host_graphs[$host['host_id']]) ? $host_graphs[$host['host_id']] : 0), $host['host_id']);
-			form_selectable_cell((isset($host_data_sources[$host['host_id']]) ? $host_data_sources[$host['host_id']] : 0), $host['host_id']);
+			form_selectable_cell(round(($host['host_id']), 2), $host['host_id'], '', 'right');
+			form_selectable_cell((isset($host_graphs[$host['host_id']]) ? $host_graphs[$host['host_id']] : 0), $host['host_id'], '', 'right');
+			form_selectable_cell((isset($host_data_sources[$host['host_id']]) ? $host_data_sources[$host['host_id']] : 0), $host['host_id'], '', 'right');
 
 			form_end_row();
 		}
@@ -225,42 +254,42 @@ function automation_get_matching_device_sql(&$rule, $rule_type) {
 			'filter'  => FILTER_VALIDATE_INT,
 			'pageset' => true,
 			'default' => '-1'
-			),
+		),
 		'paged' => array(
 			'filter'  => FILTER_VALIDATE_INT,
 			'default' => '1'
-			),
+		),
 		'host_status' => array(
 			'filter'  => FILTER_VALIDATE_INT,
 			'pageset' => true,
 			'default' => '-1'
-			),
+		),
 		'host_template_id' => array(
 			'filter'  => FILTER_VALIDATE_INT,
 			'pageset' => true,
 			'default' => '-1'
-			),
+		),
 		'filterd' => array(
 			'filter'  => FILTER_DEFAULT,
 			'pageset' => true,
 			'default' => ''
-			),
+		),
 		'sort_column' => array(
 			'filter'  => FILTER_CALLBACK,
 			'default' => 'description',
 			'options' => array('options' => 'sanitize_search_string')
-			),
+		),
 		'sort_direction' => array(
 			'filter'  => FILTER_CALLBACK,
 			'default' => 'ASC',
 			'options' => array('options' => 'sanitize_search_string')
-			),
+		),
 		'has_graphs' => array(
 			'filter'  => FILTER_VALIDATE_REGEXP,
 			'options' => array('options' => array('regexp' => '(true|false)')),
 			'pageset' => true,
 			'default' => 'true'
-			)
+		)
 	);
 
 	validate_store_request_vars($filters, 'sess_auto');
@@ -288,6 +317,9 @@ function automation_get_matching_device_sql(&$rule, $rule_type) {
 		$sql_where = 'WHERE h.deleted = ""
 			AND (h.hostname LIKE '  . db_qstr('%' . get_request_var('filterd') . '%') . '
 			OR h.description LIKE ' . db_qstr('%' . get_request_var('filterd') . '%') . '
+			OR h.location LIKE '    . db_qstr('%' . get_request_var('filterd') . '%') . '
+			OR h.external_id LIKE ' . db_qstr('%' . get_request_var('filterd') . '%') . '
+			OR s.site LIKE '        . db_qstr('%' . get_request_var('filterd') . '%') . '
 			OR ht.name LIKE '	    . db_qstr('%' . get_request_var('filterd') . '%') . ')';
 	} else {
 		$sql_where = "WHERE h.deleted = ''";
@@ -330,7 +362,7 @@ function automation_get_matching_device_sql(&$rule, $rule_type) {
 
 	$sql_query = "SELECT DISTINCT h.id AS host_id, h.hostname, h.description,
 		h.disabled AS disabled, $sdisabled
-		h.status, ht.name AS host_template_name
+		h.status, ht.name AS host_template_name, s.name AS site_name, h.location
 		FROM host AS h
 		LEFT JOIN graph_local AS gl
 		ON h.id = gl.host_id
@@ -422,9 +454,11 @@ function automation_get_matching_graphs_sql($rule, $rule_type) {
 	if (get_request_var('filter') != '') {
 		$sql_where = 'WHERE (
 			gtg.title_cache LIKE '  . db_qstr('%' . get_request_var('filter') . '%') . '
-			OR gt.name LIKE '	    . db_qstr('%' . get_request_var('filter') . '%') . '
+			OR gt.name LIKE '       . db_qstr('%' . get_request_var('filter') . '%') . '
+			OR s.name LIKE '        . db_qstr('%' . get_request_var('filter') . '%') . '
 			OR h.description LIKE ' . db_qstr('%' . get_request_var('filter') . '%') . '
-			OR h.hostname LIKE '	. db_qstr('%' . get_request_var('filter') . '%') . ')';
+			OR h.location LIKE '    . db_qstr('%' . get_request_var('filter') . '%') . '
+			OR h.hostname LIKE '    . db_qstr('%' . get_request_var('filter') . '%') . ')';
 	} else {
 		$sql_where = '';
 	}
@@ -432,17 +466,17 @@ function automation_get_matching_graphs_sql($rule, $rule_type) {
 	if (get_request_var('host_id') == '-1') {
 		/* Show all items */
 	} elseif (get_request_var('host_id') == '0') {
-		$sql_where .= ($sql_where != '' ? ' AND ':' WHERE ') . ' gl.host_id=0';
+		$sql_where .= ($sql_where != '' ? ' AND ':' WHERE ') . ' gl.host_id = 0';
 	} elseif (!isempty_request_var('host_id')) {
-		$sql_where .= ($sql_where != '' ? ' AND ':' WHERE ') . ' gl.host_id=' . get_request_var('host_id');
+		$sql_where .= ($sql_where != '' ? ' AND ':' WHERE ') . ' gl.host_id = ' . get_request_var('host_id');
 	}
 
 	if (get_request_var('template_id') == '-1') {
 		/* Show all items */
 	} elseif (get_request_var('template_id') == '0') {
-		$sql_where .= ($sql_where != '' ? ' AND ':' WHERE ') . ' gtg.graph_template_id=0';
+		$sql_where .= ($sql_where != '' ? ' AND ':' WHERE ') . ' gtg.graph_template_id = 0';
 	} elseif (!isempty_request_var('template_id')) {
-		$sql_where .= ($sql_where != '' ? ' AND ':' WHERE ') .' gtg.graph_template_id=' . get_request_var('template_id');
+		$sql_where .= ($sql_where != '' ? ' AND ':' WHERE ') .' gtg.graph_template_id = ' . get_request_var('template_id');
 	}
 
 	/* get the WHERE clause for matching graphs */
@@ -472,7 +506,7 @@ function automation_get_matching_graphs_sql($rule, $rule_type) {
 		h.disabled AS disabled, $sdisabled
 		h.status, ht.name AS host_template_name,
 		gtg.id, gtg.local_graph_id, gtg.height, gtg.width,
-		gtg.title_cache, gt.name
+		gtg.title_cache, gt.name, s.name AS site_name, h.locaiton
 		FROM host AS h
 		INNER JOIN graph_local AS gl
 		ON h.id = gl.host_id
@@ -648,13 +682,42 @@ function display_matching_graphs($rule, $rule_type, $url) {
 	html_start_box('', '100%', '', '3', 'center', '');
 
 	$display_text = array(
-		'title_cache'        => array(__('Graph Title'), 'ASC'),
-		'local_graph_id'     => array(__('Graph ID'), 'ASC'),
-		'name'               => array(__('Graph Template Name'), 'ASC'),
-		'description'        => array(__('Device Description'), 'ASC'),
-		'hostname'           => array(__('Hostname'), 'ASC'),
-		'host_template_name' => array(__('Device Template Name'), 'ASC'),
-		'status'             => array(__('Status'), 'ASC'),
+		'title_cache' => array(
+			'display' => __('Graph Title'),
+			'sort'    => 'ASC'
+		),
+		'local_graph_id' => array(
+			'display' => __('Graph ID'),
+			'sort'    => 'ASC'
+		),
+		'name' => array(
+			'display' => __('Graph Template Name'),
+			'sort'    => 'ASC'
+		),
+		'description' => array(
+			'display' => __('Device Description'),
+			'sort'    => 'ASC'
+		),
+		'hostname' => array(
+			'display' => __('Hostname'),
+			'sort'    => 'ASC'
+		),
+		's.name' => array(
+			'display' => __('Site'),
+			'sort'    => 'ASC'
+		),
+		'location' => array(
+			'display' => __('Location'),
+			'sort'    => 'ASC'
+		),
+		'host_template_name' => array(
+			'display' => __('Device Template Name'),
+			'sort'    => 'ASC'
+		),
+		'status' => array(
+			'display' => __('Status'),
+			'sort'    => 'ASC'
+		),
 	);
 
 	html_header_sort(
@@ -1080,36 +1143,36 @@ function display_matching_trees($rule_id, $rule_type, $item, $url) {
 			'filter'  => FILTER_VALIDATE_INT,
 			'pageset' => true,
 			'default' => '-1'
-			),
+		),
 		'page' => array(
 			'filter'  => FILTER_VALIDATE_INT,
 			'default' => '1'
-			),
+		),
 		'host_template_id' => array(
 			'filter'  => FILTER_VALIDATE_INT,
 			'pageset' => true,
 			'default' => '-1'
-			),
+		),
 		'host_status' => array(
 			'filter'  => FILTER_VALIDATE_INT,
 			'pageset' => true,
 			'default' => '-1'
-			),
+		),
 		'filter' => array(
 			'filter'  => FILTER_DEFAULT,
 			'pageset' => true,
 			'default' => ''
-			),
+		),
 		'sort_column' => array(
 			'filter'  => FILTER_CALLBACK,
 			'default' => 'description',
 			'options' => array('options' => 'sanitize_search_string')
-			),
+		),
 		'sort_direction' => array(
 			'filter'  => FILTER_CALLBACK,
 			'default' => 'ASC',
 			'options' => array('options' => 'sanitize_search_string')
-			)
+		)
 	);
 
 	validate_store_request_vars($filters, 'sess_autot');
@@ -1241,14 +1304,14 @@ function display_matching_trees($rule_id, $rule_type, $item, $url) {
 	form_hidden_box('page', '1', '');
 
 	/* build magic query, for matching hosts JOIN tables host and host_template */
-	$leaf_type = db_fetch_cell('SELECT leaf_type FROM automation_tree_rules WHERE id=' . $rule_id);
+	$leaf_type = db_fetch_cell('SELECT leaf_type FROM automation_tree_rules WHERE id = ' . $rule_id);
 
 	if ($leaf_type == TREE_ITEM_TYPE_HOST) {
 		$sql_tables = 'FROM host AS h
 			LEFT JOIN sites s
 			ON h.site_id = s.id
 			LEFT JOIN host_template AS ht
-			ON (h.host_template_id = ht.id)';
+			ON h.host_template_id = ht.id';
 
 		$sql_where = 'WHERE h.deleted = ""';
 	} elseif ($leaf_type == TREE_ITEM_TYPE_GRAPH) {
@@ -1256,29 +1319,29 @@ function display_matching_trees($rule_id, $rule_type, $item, $url) {
 			LEFT JOIN sites s
 			ON h.site_id = s.id
 			LEFT JOIN host_template AS ht
-			ON h.host_template_id=ht.id
+			ON h.host_template_id = ht.id
 			LEFT JOIN graph_local AS gl
-			ON h.id=gl.host_id
+			ON h.id = gl.host_id
 			LEFT JOIN graph_templates AS gt
-			ON (gl.graph_template_id=gt.id)
+			ON gl.graph_template_id = gt.id
 			LEFT JOIN graph_templates_graph AS gtg
-			ON (gl.id=gtg.local_graph_id)';
+			ON gl.id = gtg.local_graph_id';
 
-		$sql_where = 'WHERE gtg.local_graph_id>0 AND h.deleted = "" ';
+		$sql_where = 'WHERE gtg.local_graph_id > 0 AND h.deleted = "" ';
 	}
 
 	/* form the 'where' clause for our main sql query */
 	if (get_request_var('filter') != '') {
 		$sql_where .= ' AND (
-			h.hostname LIKE '	   . db_qstr('%' . get_request_var('filter') . '%') . '
+			h.hostname LIKE '       . db_qstr('%' . get_request_var('filter') . '%') . '
 			OR h.description LIKE ' . db_qstr('%' . get_request_var('filter') . '%') . '
-			OR ht.name LIKE '	   . db_qstr('%' . get_request_var('filter') . '%') . ')';
+			OR ht.name LIKE '       . db_qstr('%' . get_request_var('filter') . '%') . ')';
 	}
 
 	if (db_column_exists('sites', 'disabled')) {
-		$host_where_disabled = "(IFNULL(TRIM(s.disabled),'') == 'on' || IFNULL(TRIM(h.disabled),'') == 'on')";
+		$host_where_disabled = "(IFNULL(TRIM(s.disabled),'') = 'on' || IFNULL(TRIM(h.disabled),'') = 'on')";
 	} else {
-		$host_where_disabled = "(IFNULL(TRIM(h.disabled),'') == 'on')";
+		$host_where_disabled = "(IFNULL(TRIM(h.disabled),'') = 'on')";
 	}
 
 	$host_where_status = get_request_var('host_status');
@@ -2193,6 +2256,10 @@ function get_query_fields($table, $excluded_fields) {
 					$table = 'gt';
 
 					break;
+				case 'sites':
+					$table = 's';
+
+					break;
 			}
 
 			# we want to know later which table was selected
@@ -2297,6 +2364,7 @@ function global_item_edit($rule_id, $rule_item_id, $rule_type) {
 
 			$query_fields  = get_query_fields('host_template', array('id', 'hash'));
 			$query_fields += get_query_fields('host', array('id', 'host_template_id'));
+			$query_fields += get_query_fields('sites', array('id'));
 
 			$_fields_rule_item_edit['field']['array'] = $query_fields;
 
@@ -2346,6 +2414,7 @@ function global_item_edit($rule_id, $rule_item_id, $rule_type) {
 
 			$query_fields  = get_query_fields('host_template', array('id', 'hash'));
 			$query_fields += get_query_fields('host', array('id', 'host_template_id'));
+			$query_fields += get_query_fields('sites', array('id'));
 
 			if ($automation_rule['leaf_type'] == TREE_ITEM_TYPE_HOST) {
 				$title  = __('Device Match Rule');
@@ -2378,6 +2447,7 @@ function global_item_edit($rule_id, $rule_item_id, $rule_type) {
 
 			$query_fields  = get_query_fields('host_template', array('id', 'hash'));
 			$query_fields += get_query_fields('host', array('id', 'host_template_id'));
+			$query_fields += get_query_fields('sites', array('id'));
 
 			/* list of allowed header types depends on rule leaf_type
 			 * e.g. for a Device Rule, only Device-related header types make sense
