@@ -2066,48 +2066,48 @@ $settings['authentication'] = array(
 		'default'       => '',
 	),
 	'secnotify_newuser_subject' => array(
-		'friendly_name' => __('Subject of new user message'),
-		'description'   => __('This is the Email subject that will be used for new user message.'),
+		'friendly_name' => __('Subject of new account message'),
+		'description'   => __('This is the Email subject that will be used for a new account message.'),
 		'method'        => 'textbox',
-		'default'       => 'Cacti - New user created',
+		'default'       => 'New Cacti account created',
 		'max_length'    => 80,
 		'size'          => 80
 	),
 	'secnotify_newuser_message' => array(
-		'friendly_name' => __('Email body for new user message'),
+		'friendly_name' => __('Email body for new account message'),
 		'description'   => __('This is the message that will be send to new user account. Max 1024 characters. HTML is allowed. There are several common replacement tags that may be used in include &#060CACTIURL&#062 &#060USERNAME&#062 &#060PASSWORD&#062'),
 		'method'        => 'textarea',
 		'textarea_rows' => '4',
 		'textarea_cols' => '80',
 		'max_length'    => 1024,
-		'default'       => __('New user created. <br>Server: <a href="<CACTIURL>"><CACTIURL></a><br>Username: <USERNAME><br>To login and set a new password, use <a href="<PWDRESETLINK>">the following link</a><br><br>')
+		'default'       => __('New Cacti account created. <br>Server: <a href="<CACTIURL>"><CACTIURL></a><br>Username: <USERNAME><br>To login and set a new password, click the <a href="<PWDRESETLINK>">password reset link</a><br><br>')
 	),
 	'secnotify_chpass' => array(
-		'friendly_name' => __('Send email when an admin changes a user password'),
-		'description'   => __('When an admin changes the password of an account and the email address for that account is entered, send an informational email to that address.'),
+		'friendly_name' => __('Send email when an admin changes an account password'),
+		'description'   => __('When an admin changes the password of an account and the email address for that account is entered, an informational email will be sent to that address.'),
 		'method'        => 'checkbox',
 		'default'       => '',
 	),
 	'secnotify_chpass_subject' => array(
-		'friendly_name' => __('Subject of reset password message'),
-		'description'   => __('This is the Email subject that will be used when admin change user password or user use \'Forgot password\'.'),
+		'friendly_name' => __('Subject of password reset message'),
+		'description'   => __('This is the Email subject that will be used when an admin changes an account password or a user uses \'Forgot password\'.'),
 		'method'        => 'textbox',
-		'default'       => __('Cacti - password reset'),
+		'default'       => __('Cacti password reset'),
 		'max_length'    => 80,
 		'size'          => 80
 	),
 	'secnotify_chpass_message' => array(
-		'friendly_name' => __('Email body for reset password message'),
+		'friendly_name' => __('Email body for password reset message'),
 		'description'   => __('This is the message that will be sent when a user requests a password reset. Max 1024 characters. HTML is allowed. There are several common replacement tags that may be used in include &#060CACTIURL&#062 &#060USERNAME&#062 &#060PASSWORD&#062'),
 		'method'        => 'textarea',
 		'textarea_rows' => '4',
 		'textarea_cols' => '80',
 		'max_length'    => 1024,
-		'default'       => __('User\'s password has been reset. <br>Server: <a href="<CACTIURL>"><CACTIURL></a><br>Username: <USERNAME><br>To set a new password, use <a href="<PWDRESETLINK>">the following link</a><br><br>')
+		'default'       => __('Your account password has been reset. <br>Server: <a href="<CACTIURL>"><CACTIURL></a><br>Username: <USERNAME><br>To set a new password, click the <a href="<PWDRESETLINK>">password reset link</a><br><br>')
 	),
 	'secnotify_resetlink_timeout' => array(
 		'friendly_name' => __('Reset link validity'),
-		'description'   => __('How long the resetlink is valid in minutes'),
+		'description'   => __('How long the password reset link is valid in minutes'),
 		'method'        => 'drop_array',
 		'default'       => '15',
 		'array'         => array(
