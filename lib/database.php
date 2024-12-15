@@ -1861,7 +1861,7 @@ function db_table_create($table, $data, $log = true, $db_conn = false) {
 					if (is_array($key['columns'])) {
 						$sql .= ",\n " . (isset($key['unique']) ? ' UNIQUE':'') . " INDEX `" . $key['name'] . '` (`' . implode('`,`', $key['columns']) . '`)';
 					} else {
-						$sql .= ",\n " (isset($key['unique']) ? ' UNIQUE':'') . " INDEX `" . $key['name'] . '` (`' . $key['columns'] . '`)';
+						$sql .= ",\n " . (isset($key['unique']) ? ' UNIQUE':'') . " INDEX `" . $key['name'] . '` (`' . $key['columns'] . '`)';
 					}
 				}
 			}
