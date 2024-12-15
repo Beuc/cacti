@@ -114,6 +114,15 @@ $fields_site_edit = array(
 		'size'          => '20',
 		'max_length'    => '30'
 	),
+	'region' => array(
+		'method'        => 'textbox',
+		'friendly_name' => __('Region'),
+		'description'   => __('The Region of the world that this site is in.'),
+		'value'         => '|arg1:region|',
+		'placeholder'   => __('Enter the region of the world'),
+		'size'          => '20',
+		'max_length'    => '30'
+	),
 	'timezone' => array(
 		'method'        => 'drop_callback',
 		'friendly_name' => __('TimeZone'),
@@ -122,7 +131,7 @@ $fields_site_edit = array(
 		'action'        => 'ajax_tz',
 		'id'            => '|arg1:timezone|',
 		'value'         => '|arg1:timezone|'
-		),
+	),
 	'spacer2' => array(
 		'method'        => 'spacer',
 		'friendly_name' => __('Geolocation Information'),

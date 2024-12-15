@@ -3173,6 +3173,7 @@ CREATE TABLE `sites` (
   `state` varchar(20) default NULL,
   `postal_code` varchar(20) default '',
   `country` varchar(30) default '',
+  `region` varchar(30) default '',
   `timezone` varchar(40) default '',
   `latitude` decimal(13,10) NOT NULL default '0.0000000000',
   `longitude` decimal(13,10) NOT NULL default '0.0000000000',
