@@ -1002,7 +1002,7 @@ function automation_tree_rules() {
 								<?php
 								if (cacti_sizeof($item_rows) > 0) {
 									foreach ($item_rows as $key => $value) {
-										print "<option value='" . $key . "'" . (get_request_var('rows') == $key ? ' selected':'') . '>' . $value . "</option>\n";
+										print "<option value='" . $key . "'" . (get_request_var('rows') == $key ? ' selected':'') . '>' . $value . '</option>';
 									}
 								}
 	?>
@@ -1171,7 +1171,7 @@ function automation_tree_rules() {
 			form_end_row();
 		}
 	} else {
-		print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Tree Rules Found') . "</em></td></tr>\n";
+		print '<tr class="tableRow"><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No Tree Rules Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);

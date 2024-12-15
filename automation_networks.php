@@ -1347,60 +1347,60 @@ function networks() {
 	$display_text = array(
 		'name' => array(
 			'display' => __('Network Name'),
-			'align' => 'left',
-			'sort' => 'ASC'
+			'align'   => 'left',
+			'sort'    => 'ASC'
 		),
 		'data_collector' => array(
 			'display' => __('Data Collector'),
-			'align' => 'left',
-			'sort' => 'DESC'
+			'align'   => 'left',
+			'sort'    => 'DESC'
 		),
 		'sched_type' => array(
 			'display' => __('Schedule'),
-			'align' => 'left',
-			'sort' => 'DESC'
+			'align'   => 'left',
+			'sort'    => 'DESC'
 		),
 		'total_ips' => array(
 			'display' => __('Total IPs'),
-			'align' => 'right',
-			'sort' => 'DESC'
+			'align'   => 'right',
+			'sort'    => 'DESC'
 		),
 		'nosort1' => array(
 			'display' => __('Status'),
-			'align' => 'right',
-			'sort' => 'DESC',
-			'tip' => __('The Current Status of this Networks Discovery')
+			'align'   => 'right',
+			'sort'    => 'DESC',
+			'tip'     => __('The Current Status of this Networks Discovery')
 		),
 		'nosort2' => array(
 			'display' => __('Progress'),
-			'align' => 'right',
-			'sort' => 'DESC',
-			'tip' => __('Pending/Running/Done')
+			'align'   => 'right',
+			'sort'    => 'DESC',
+			'tip'     => __('Pending/Running/Done')
 		),
 		'nosort3' => array(
 			'display' => __('Up/SNMP Hosts'),
-			'align' => 'right',
-			'sort' => 'DESC'
+			'align'   => 'right',
+			'sort'    => 'DESC'
 		),
 		'threads' => array(
 			'display' => __('Threads'),
-			'align' => 'right',
-			'sort' => 'DESC'
+			'align'   => 'right',
+			'sort'    => 'DESC'
 		),
 		'last_runtime' => array(
 			'display' => __('Last Runtime'),
-			'align' => 'right',
-			'sort' => 'ASC'
+			'align'   => 'right',
+			'sort'    => 'ASC'
 		),
 		'nosort4' => array(
 			'display' => __('Next Start'),
-			'align' => 'right',
-			'sort' => 'ASC'
+			'align'   => 'right',
+			'sort'    => 'ASC'
 		),
 		'last_started' => array(
 			'display' => __('Last Started'),
-			'align' => 'right',
-			'sort' => 'ASC'
+			'align'   => 'right',
+			'sort'    => 'ASC'
 		)
 	);
 
@@ -1482,7 +1482,7 @@ function networks() {
 			form_end_row();
 		}
 	} else {
-		print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Networks Found') . '</em></td></tr>';
+		print '<tr class="tableRow"><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No Networks Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);

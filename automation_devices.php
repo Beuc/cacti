@@ -296,68 +296,68 @@ function display_discovery_page() {
 	$display_text = array(
 		'host_id' => array(
 			'display' => __('Imported Device'),
-			'align' => 'left',
-			'sort' => 'ASC'
+			'align'   => 'left',
+			'sort'    => 'ASC'
 		),
 		'hostname' => array(
 			'display' => __('Device Name'),
-			'align' => 'left',
-			'sort' => 'ASC'
+			'align'   => 'left',
+			'sort'    => 'ASC'
 		),
 		'ip' => array(
 			'display' => __('IP'),
-			'align' => 'left',
-			'sort' => 'ASC'
+			'align'   => 'left',
+			'sort'    => 'ASC'
 		),
 		'network_id' => array(
 			'display' => __('Network'),
-			'align' => 'left',
-			'sort' => 'ASC'
+			'align'   => 'left',
+			'sort'    => 'ASC'
 		),
 		'sysName' => array(
 			'display' => __('SNMP Name'),
-			'align' => 'left',
-			'sort' => 'ASC'
+			'align'   => 'left',
+			'sort'    => 'ASC'
 		),
 		'sysLocation' => array(
 			'display' => __('Location'),
-			'align' => 'left',
-			'sort' => 'ASC'
+			'align'   => 'left',
+			'sort'    => 'ASC'
 		),
 		'sysContact' => array(
 			'display' => __('Contact'),
-			'align' => 'left',
-			'sort' => 'ASC'
+			'align'   => 'left',
+			'sort'    => 'ASC'
 		),
 		'sysDescr' => array(
 			'display' => __('Description'),
-			'align' => 'left',
-			'sort' => 'ASC'
+			'align'   => 'left',
+			'sort'    => 'ASC'
 		),
 		'os' => array(
 			'display' => __('OS'),
-			'align' => 'left',
-			'sort' => 'ASC'
+			'align'   => 'left',
+			'sort'    => 'ASC'
 		),
 		'time' => array(
 			'display' => __('Uptime'),
-			'align' => 'right',
-			'sort' => 'DESC'
+			'align'   => 'right',
+			'sort'    => 'DESC'
 		),
 		'snmp' => array(
 			'display' => __('SNMP'),
-			'align' => 'right',
-			'sort' => 'DESC'
+			'align'   => 'right',
+			'sort'    => 'DESC'
 		),
 		'up' => array(
 			'display' => __('Status'),
-			'align' => 'right',
-			'sort' => 'ASC'
+			'align'   => 'right',
+			'sort'    => 'ASC'
 		),
 		'mytime' => array(
 			'display' => __('Last Check'),
-			'align' => 'right',
-			'sort' => 'DESC'
+			'align'   => 'right',
+			'sort'    => 'DESC'
 		)
 	);
 
@@ -402,7 +402,7 @@ function display_discovery_page() {
 			form_end_row();
 		}
 	} else {
-		print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Devices Found') . '</em></td></tr>';
+		print '<tr class="tableRow"><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No Devices Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);

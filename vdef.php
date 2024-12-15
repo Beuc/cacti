@@ -813,32 +813,32 @@ function vdef($refresh = true) {
 			'filter'  => FILTER_VALIDATE_INT,
 			'pageset' => true,
 			'default' => '-1'
-			),
+		),
 		'page' => array(
 			'filter'  => FILTER_VALIDATE_INT,
 			'default' => '1'
-			),
+		),
 		'filter' => array(
 			'filter'  => FILTER_DEFAULT,
 			'pageset' => true,
 			'default' => ''
-			),
+		),
 		'sort_column' => array(
 			'filter'  => FILTER_CALLBACK,
 			'default' => 'name',
 			'options' => array('options' => 'sanitize_search_string')
-			),
+		),
 		'sort_direction' => array(
 			'filter'  => FILTER_CALLBACK,
 			'default' => 'ASC',
 			'options' => array('options' => 'sanitize_search_string')
-			),
+		),
 		'has_graphs' => array(
 			'filter'  => FILTER_VALIDATE_REGEXP,
 			'options' => array('options' => array('regexp' => '(true|false)')),
 			'pageset' => true,
 			'default' => read_config_option('default_has') == 'on' ? 'true':'false'
-			)
+		)
 	);
 
 	validate_store_request_vars($filters, 'sess_vdef');
@@ -868,26 +868,26 @@ function vdef($refresh = true) {
 	$display_text = array(
 		'name' => array(
 			'display' => __('VDEF Name'),
-			'align' => 'left',
-			'sort' => 'ASC',
-			'tip' => __esc('The name of this VDEF.')
+			'align'   => 'left',
+			'sort'    => 'ASC',
+			'tip'     => __esc('The name of this VDEF.')
 		),
 		'nosort' => array(
 			'display' => __('Deletable'),
-			'align' => 'right',
-			'tip' => __esc('VDEFs that are in use cannot be Deleted. In use is defined as being referenced by a Graph or a Graph Template.')
+			'align'   => 'right',
+			'tip'     => __esc('VDEFs that are in use cannot be Deleted. In use is defined as being referenced by a Graph or a Graph Template.')
 		),
 		'graphs' => array(
 			'display' => __('Graphs Using'),
-			'align' => 'right',
-			'sort' => 'DESC',
-			'tip' => __esc('The number of Graphs using this VDEF.')
+			'align'   => 'right',
+			'sort'    => 'DESC',
+			'tip'     => __esc('The number of Graphs using this VDEF.')
 		),
 		'templates' => array(
 			'display' => __('Templates Using'),
-			'align' => 'right',
-			'sort' => 'DESC',
-			'tip' => __esc('The number of Graphs Templates using this VDEF.')
+			'align'   => 'right',
+			'sort'    => 'DESC',
+			'tip'     => __esc('The number of Graphs Templates using this VDEF.')
 		)
 	);
 
@@ -902,11 +902,13 @@ function vdef($refresh = true) {
 			}
 
 			form_alternate_row('line' . $vdef['id'], false, $disabled);
+
 			form_selectable_cell(filter_value($vdef['name'], get_request_var('filter'), 'vdef.php?action=edit&id=' . $vdef['id']), $vdef['id']);
 			form_selectable_cell($disabled ? __('No'):__('Yes'), $vdef['id'], '', 'right');
 			form_selectable_cell(number_format_i18n($vdef['graphs'], '-1'), $vdef['id'], '', 'right');
 			form_selectable_cell(number_format_i18n($vdef['templates'], '-1'), $vdef['id'], '', 'right');
 			form_checkbox_cell($vdef['name'], $vdef['id'], $disabled);
+
 			form_end_row();
 		}
 	} else {

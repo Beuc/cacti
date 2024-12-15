@@ -700,32 +700,32 @@ function cdef() {
 			'filter'  => FILTER_VALIDATE_INT,
 			'pageset' => true,
 			'default' => '-1'
-			),
+		),
 		'page' => array(
 			'filter'  => FILTER_VALIDATE_INT,
 			'default' => '1'
-			),
+		),
 		'filter' => array(
 			'filter'  => FILTER_DEFAULT,
 			'pageset' => true,
 			'default' => ''
-			),
+		),
 		'sort_column' => array(
 			'filter'  => FILTER_CALLBACK,
 			'default' => 'name',
 			'options' => array('options' => 'sanitize_search_string')
-			),
+		),
 		'sort_direction' => array(
 			'filter'  => FILTER_CALLBACK,
 			'default' => 'ASC',
 			'options' => array('options' => 'sanitize_search_string')
-			),
+		),
 		'has_graphs' => array(
 			'filter'  => FILTER_VALIDATE_REGEXP,
 			'options' => array('options' => array('regexp' => '(true|false)')),
 			'pageset' => true,
 			'default' => read_config_option('default_has') == 'on' ? 'true':'false'
-			)
+		)
 	);
 
 	validate_store_request_vars($filters, 'sess_cdef');
@@ -767,7 +767,7 @@ function cdef() {
 									} print '>' . html_escape($value) . "</option>";
 								}
 							}
-	?>
+							?>
 						</select>
 					</td>
 					<td>
@@ -861,26 +861,26 @@ function cdef() {
 	$display_text = array(
 		'name' => array(
 			'display' => __('CDEF Name'),
-			'align' => 'left',
-			'sort' => 'ASC',
-			'tip' => __('The name of this CDEF.')
+			'align'   => 'left',
+			'sort'    => 'ASC',
+			'tip'     => __('The name of this CDEF.')
 		),
 		'nosort' => array(
 			'display' => __('Deletable'),
-			'align' => 'right',
-			'tip'  => __('CDEFs that are in use cannot be Deleted.  In use is defined as being referenced by a Graph or a Graph Template.')
+			'align'   => 'right',
+			'tip'     => __('CDEFs that are in use cannot be Deleted.  In use is defined as being referenced by a Graph or a Graph Template.')
 		),
 		'graphs' => array(
 			'display' => __('Graphs Using'),
-			'align' => 'right',
-			'sort' => 'DESC',
-			'tip' => __('The number of Graphs using this CDEF.')
+			'align'   => 'right',
+			'sort'    => 'DESC',
+			'tip'     => __('The number of Graphs using this CDEF.')
 		),
 		'templates' => array(
 			'display' => __('Templates Using'),
-			'align' => 'right',
-			'sort' => 'DESC',
-			'tip' => __('The number of Graphs Templates using this CDEF.')
+			'align'   => 'right',
+			'sort'    => 'DESC',
+			'tip'     => __('The number of Graphs Templates using this CDEF.')
 		)
 	);
 

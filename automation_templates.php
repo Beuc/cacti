@@ -1196,7 +1196,7 @@ function template_edit() {
 				$i++;
 			}
 		} else {
-			print '<tr><td><em>' . __('No Associated Graph Rules') . '</em></td></tr>';
+			print '<tr class="tableRow"><td colspan="3"><em>' . __('No Associated Graph Rules') . '</em></td></tr>';
 		}
 
 		html_end_box();
@@ -1306,7 +1306,7 @@ function template_edit() {
 				$i++;
 			}
 		} else {
-			print '<tr><td><em>' . __('No Associated Tree Rules') . '</em></td></tr>';
+			print '<tr class="tableRow"><td colspan="3"><em>' . __('No Associated Tree Rules') . '</em></td></tr>';
 		}
 
 		$field_label  = __('Add Tree Rule');
@@ -1373,7 +1373,7 @@ function template_edit() {
 					form_end_row();
 				}
 			} else {
-				print '<tr><td><em>' . __('No Associated Threshold Template Rules') . '</em></td></tr>';
+				print '<tr class="tableRow"><td colspan="2"><em>' . __('No Associated Threshold Template Rules') . '</em></td></tr>';
 			}
 
 			$host_template_id = db_fetch_cell_prepared('SELECT host_template
@@ -1767,7 +1767,7 @@ function template() {
 			$i++;
 		}
 	} else {
-		print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Automation Device Templates Found') . "</em></td></tr>";
+		print '<tr class="tableRow"><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No Automation Device Templates Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);
