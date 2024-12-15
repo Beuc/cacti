@@ -364,8 +364,7 @@ function automation_get_matching_device_sql(&$rule, $rule_type) {
 	$hsc_sql = make_host_snnp_cache_sql();
 
 	if ($hsc_sql !== false) {
-		$hsc_join = "LEFT JOIN ($hsc_sql) AS hsc
-			ON hsc.host_id = h.id";
+		$hsc_join = "LEFT JOIN (\n$hsc_sql\n\t\t) AS hsc\n\t\tON hsc.host_id = h.id";
 	} else {
 		$hsc_join = "";
 	}
@@ -942,7 +941,7 @@ function automation_get_new_graphs_sql($rule) {
 			$sql_having = build_graph_object_sql_having($rule, get_request_var('filter'));
 
 			/* now we build up a new query for counting the rows */
-			$rows_query    = "SELECT * \nFROM (\n\t" . trim($sql_query) . "\n) AS `a` " . ($sql_filter != '' ? "\nWHERE (\n\t" . trim($sql_filter) . "\n)":'') . $sql_having;
+			$rows_query    = "SELECT * \nFROM (\n" . trim($sql_query) . "\n) AS `a` " . ($sql_filter != '' ? "\nWHERE (\n" . trim($sql_filter) . "\n)":'') . $sql_having;
 
 			/* construct the indexes query */
 			$indexes_query = $rows_query . "\nLIMIT " . ($rows * (get_request_var('page') - 1)) . ',' . $rows;
@@ -1614,7 +1613,7 @@ function display_match_rule_items($title, $rule, $rule_type, $module) {
 
 	html_end_box(true);
 
-	print '<div id="sql_device_query" style="display:none"><div style="white-space:pre">' . str_replace(array("\n", "\t"), array('<br>', ''), $details['rows_query']) . '</div><br><hr><br><div>' . db_error() . '</div></div>';
+	print '<div id="sql_device_query" style="display:none"><div style="white-space:pre">' . str_replace(array("\n", "\t"), array('<br>', '&nbsp;&nbsp;&nbsp;&nbsp;'), $details['rows_query']) . '</div><br><hr><br><div>' . db_error() . '</div></div>';
 }
 
 function display_graph_rule_items($title, &$rule, $rule_type, $module) {
@@ -2287,13 +2286,13 @@ function make_host_snnp_cache_sql() {
 	$fields = db_fetch_assoc('SELECT DISTINCT field_name FROM host_snmp_cache ORDER BY field_name');
 
 	if (cacti_sizeof($fields)) {
-		$sql = 'SELECT host_id ';
+		$sql = "\t\tSELECT host_id ";
 
 		foreach($fields as $field) {
-			$sql .= ", MAX(CASE WHEN field_name = '{$field['field_name']}' THEN field_value ELSE NULL END) AS `{$field['field_name']}`";
+			$sql .= ",\n\t\t\tMAX(CASE WHEN field_name = '{$field['field_name']}' THEN field_value ELSE NULL END) AS `{$field['field_name']}`";
 		}
 
-		$sql .= ' FROM host_snmp_cache AS hsc GROUP BY host_id';
+		$sql .= "\n\t\t\tFROM host_snmp_cache AS hsc GROUP BY host_id";
 
 		return $sql;
 	} else {
