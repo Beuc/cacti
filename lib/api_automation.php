@@ -233,7 +233,7 @@ function display_matching_hosts($rule, $rule_type, $url) {
 			form_end_row();
 		}
 	} else {
-		print "<tr><td colspan='8'><em>" . __('No Matching Devices') . '</em></td></tr>';
+		print '<tr><td colspan="8"><em>' . __('No Matching Devices') . '</em></td></tr>';
 	}
 
 	html_end_box(false);
@@ -768,7 +768,7 @@ function display_matching_graphs($rule, $rule_type, $url) {
 			form_end_row();
 		}
 	} else {
-		print '<tr><td><em>' . __('No Graphs Found') . '</em></td></tr>';
+		print '<tr><td colspan="8"><em>' . __('No Graphs Found') . '</em></td></tr>';
 	}
 
 	html_end_box(true);
@@ -1606,7 +1606,7 @@ function display_match_rule_items($title, $rule, $rule_type, $module) {
 			$i++;
 		}
 	} else {
-		print "<tr><td colspan='8'><em>" . __('No Device Selection Criteria') . '</em></td></tr>';
+		print '<tr><td colspan="8"><em>' . __('No Device Selection Criteria') . '</em></td></tr>';
 	}
 
 	$details = automation_get_matching_device_sql($rule, $rule_type);
@@ -1691,7 +1691,7 @@ function display_graph_rule_items($title, &$rule, $rule_type, $module) {
 			$i++;
 		}
 	} else {
-		print "<tr><td colspan='8'><em>" . __('No Graph Creation Criteria') . '</em></td></tr>';
+		print '<tr><td colspan="8"><em>' . __('No Graph Creation Criteria') . '</em></td></tr>';
 	}
 
 	html_end_box(true);
@@ -1789,7 +1789,7 @@ function display_tree_rule_items($title, $rule, $item_type, $rule_type, $module)
 			$i++;
 		}
 	} else {
-		print '<tr><td><em>' . __('No Tree Creation Criteria') . '</em></td></tr>';
+		print '<tr><td colspan="8"><em>' . __('No Tree Creation Criteria') . '</em></td></tr>';
 	}
 
 	html_end_box(true);
@@ -5219,6 +5219,8 @@ function automation_tree_rule_create_tree($tree_data, $branch_data) {
 	if (cacti_sizeof($tree_data)) {
 		$tree_id = db_fetch_cell_prepared('SELECT id FROM graph_tree WHERE name = ?', array($tree_data['name']));
 
+		$parent = 0;
+
 		if (empty($tree_id)) {
 			$save       = array();
 			$save['id'] = 0;
@@ -5913,6 +5915,7 @@ function automation_tree_rule_import($json_data, $tree_branches = false) {
 
 		foreach($json_data['tree_rules'] as $rule) {
 			$hash = $rule['hash'];
+			$name = $rule['name'];
 
 			/* prepare the save array */
 			$save = $rule;

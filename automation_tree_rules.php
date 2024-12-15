@@ -719,7 +719,7 @@ function automation_tree_rules_edit() {
 		$header_label = __('Tree Rules Selection [new]');
 	}
 
-	if (get_request_var('tab') == 'rule') {
+	if (get_nfilter_request_var('tab') == 'rule') {
 		/**
 		 * display the rule
 		 */

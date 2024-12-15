@@ -667,7 +667,7 @@ function automation_graph_rules_edit() {
 		html_sub_tabs($tabs, 'action=edit&id=' . get_request_var('id'));
 	}
 
-	if (get_request_var('tab') == 'rule') {
+	if (get_nfilter_request_var('tab') == 'rule') {
 		form_start('automation_graph_rules.php', 'chk');
 
 		html_start_box($header_label, '100%', true, '3', 'center', '');
@@ -713,9 +713,9 @@ function automation_graph_rules_edit() {
 		form_save_button('automation_graph_rules.php', 'return');
 
 		print '<br>';
-	} elseif (get_request_var('tab') == 'hosts') {
+	} elseif (get_nfilter_request_var('tab') == 'hosts') {
 		display_matching_hosts($rule, AUTOMATION_RULE_TYPE_GRAPH_MATCH, 'automation_graph_rules.php?action=edit&id=' . get_request_var('id'));
-	} elseif (get_request_var('tab') == 'objects') {
+	} elseif (get_nfilter_request_var('tab') == 'objects') {
 		display_new_graphs($rule, 'automation_graph_rules.php?action=edit&id=' . get_request_var('id'));
 	}
 
