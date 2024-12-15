@@ -251,6 +251,7 @@ function form_save() {
 		$save['state']        = form_input_validate(get_nfilter_request_var('state'), 'state', '', true, 3);
 		$save['postal_code']  = form_input_validate(get_nfilter_request_var('postal_code'), 'postal_code', '', true, 3);
 		$save['country']      = form_input_validate(get_nfilter_request_var('country'), 'country', '', true, 3);
+		$save['region']       = form_input_validate(get_nfilter_request_var('region'), 'region', '', true, 3);
 		$save['timezone']     = form_input_validate(get_nfilter_request_var('timezone'), 'timezone', '', true, 3);
 		$save['latitude']     = form_input_validate(get_nfilter_request_var('latitude'), 'latitude', '^-?[0-9]\d*(\.\d+)?$', true, 3);
 		$save['longitude']    = form_input_validate(get_nfilter_request_var('longitude'), 'longitude', '^-?[0-9]\d*(\.\d+)?$', true, 3);
