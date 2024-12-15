@@ -855,9 +855,9 @@ function host_edit() {
 				<td class='nowrap right'>
 					<span title='<?php print __esc('Delete Graph Template Association'); ?>' class='deletequery fa fa-times' id='gtremove<?php print $item['id']; ?>' data-id='<?php print $item['id']; ?>'></span>
 				</td>
-		<?php
+				<?php
 
-						form_end_row();
+				form_end_row();
 			}
 		} else {
 			print "<tr class='tableRow'><td colspan='3'><em>" . __('No associated graph templates.') . '</em></td></tr>';
@@ -991,8 +991,9 @@ function host_edit() {
 					<span class='verbosequery fa fa-sync' id='verbose<?php print $item['id']; ?>' title='<?php print __esc('Verbose Query'); ?>' data-id='<?php print $item['id']; ?>'></span>
 					<span class='deletequery fa fa-times' id='remove<?php print $item['id']; ?>' title='<?php print __esc('Remove Query'); ?>' data-id='<?php print $item['id']; ?>'></span>
 				</td>
-		<?php
-					form_end_row();
+
+				<?php
+				form_end_row();
 			}
 		} else {
 			print "<tr class='tableRow'><td colspan='4'><em>" . __('No Associated Data Queries.') . '</em></td></tr>';
@@ -1031,7 +1032,7 @@ function host_edit() {
 			</td>
 		</tr>
 
-	<?php
+		<?php
 		html_end_box();
 
 		api_plugin_hook('device_edit_pre_bottom');
