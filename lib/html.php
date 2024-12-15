@@ -2115,7 +2115,7 @@ function html_show_tabs_left() {
 				array(
 					'title' => __('Reporting'),
 					'id'	   => 'tab-reports',
-					'url'   => CACTI_PATH_URL . ($realm_allowed[21] ? 'reports_admin.php':'reports_user.php'),
+					'url'   => CACTI_PATH_URL . 'reports.php'
 				);
 		}
 	}
@@ -3326,16 +3326,11 @@ function html_help_page($page) {
 		'user_group_admin.php'        => 'User-Group-Management.html',
 		'user_admin.php'              => 'User-Management.html',
 		'vdef.php'                    => 'VDEFs.html',
-		'reports_admin.php'           => 'Reports-Admin.html',
-		'reports_admin.php:details'   => 'Reports-Admin.html',
-		'reports_admin.php:items'     => 'Reports-Items.html',
-		'reports_admin.php:preview'   => 'Reports-Preview.html',
-		'reports_admin.php:events'    => 'Reports-Events.html',
-		'reports_user.php'            => 'Reports-User.html',
-		'reports_user.php:details'    => 'Reports-User.html',
-		'reports_user.php:items'      => 'Reports-Items.html',
-		'reports_user.php:preview'    => 'Reports-Preview.html',
-		'reports_user.php:events'     => 'Reports-Events.html',
+		'reports.php'                 => 'Reports-Admin.html',
+		'reports.php:details'         => 'Reports-Admin.html',
+		'reports.php:items'           => 'Reports-Items.html',
+		'reports.php:preview'         => 'Reports-Preview.html',
+		'reports.php:events'          => 'Reports-Events.html',
 		'clog.php'                    => 'Cacti-Log.html',
 		'clog_user.php'               => 'Cacti-Log.html',
 	);

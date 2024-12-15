@@ -1450,8 +1450,7 @@ $user_auth_realm_filenames = array(
 	'logout.php'                 => -1,
 	'auth_profile.php'           => 20,
 	'auth_changepassword.php'    => -1,
-	'reports_user.php'           => 22,
-	'reports_admin.php'          => 21,
+	'reports.php'                => 22,
 	'automation_graph_rules.php' => 23,
 	'automation_tree_rules.php'  => 23,
 	'automation_templates.php'   => 23,
@@ -2870,63 +2869,33 @@ $navigation = array(
         'url'     => 'package_keys.php',
         'level'   => '1'
     ),
-	'reports_admin.php:' => array(
+	'reports.php:' => array(
 		'title'   => __('Reporting'),
 		'mapping' => '',
-		'url'     => 'reports_admin.php',
+		'url'     => 'reports.php',
 		'level'   => '0'
 	),
-	'reports_admin.php:actions' => array(
+	'reports.php:actions' => array(
 		'title'   => __('Report Add'),
-		'mapping' => 'reports_admin.php:',
-		'url'     => 'reports_admin.php',
+		'mapping' => 'reports.php:',
+		'url'     => 'reports.php',
 		'level'   => '1'
 	),
-	'reports_admin.php:delete' => array(
+	'reports.php:delete' => array(
 		'title'   => __('Report Delete'),
-		'mapping' => 'reports_admin.php:',
-		'url'     => 'reports_admin.php',
+		'mapping' => 'reports.php:',
+		'url'     => 'reports.php',
 		'level'   => '1'
 	),
-	'reports_admin.php:edit' => array(
+	'reports.php:edit' => array(
 		'title'   => __('Report Edit'),
-		'mapping' => 'reports_admin.php:',
-		'url'     => 'reports_admin.php?action=edit',
+		'mapping' => 'reports.php:',
+		'url'     => 'reports.php?action=edit',
 		'level'   => '1'
 	),
-	'reports_admin.php:item_edit' => array(
+	'reports.php:item_edit' => array(
 		'title'   => __('Report Edit Item'),
-		'mapping' => 'reports_admin.php:,reports_admin.php:edit',
-		'url'     => '',
-		'level'   => '2'
-	),
-	'reports_user.php:' => array(
-		'title'   => __('Reporting'),
-		'mapping' => '',
-		'url'     => 'reports_user.php',
-		'level'   => '0'
-	),
-	'reports_user.php:actions' => array(
-		'title'   => __('Report Add'),
-		'mapping' => 'reports_user.php:',
-		'url'     => 'reports_user.php',
-		'level'   => '1'
-	),
-	'reports_user.php:delete' => array(
-		'title'   => __('Report Delete'),
-		'mapping' => 'reports_user.php:',
-		'url'     => 'reports_user.php',
-		'level'   => '1'
-	),
-	'reports_user.php:edit' => array(
-		'title'   => __('Report Edit'),
-		'mapping' => 'reports_user.php:',
-		'url'     => 'reports_user.php?action=edit',
-		'level'   => '1'
-	),
-	'reports_user.php:item_edit' => array(
-		'title'   => __('Report Edit Item'),
-		'mapping' => 'reports_user.php:,reports_user.php:edit',
+		'mapping' => 'reports.php:,reports.php:edit',
 		'url'     => '',
 		'level'   => '2'
 	),

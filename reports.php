@@ -52,13 +52,13 @@ switch (get_request_var('action')) {
 
 		reports_send(get_request_var('id'));
 
-		header('Location: reports_admin.php?action=edit&tab=' . get_request_var('tab') . '&id=' . get_request_var('id'));
+		header('Location: reports.php?action=edit&tab=' . get_request_var('tab') . '&id=' . get_request_var('id'));
 
 		break;
 	case 'ajax_dnd':
 		reports_item_dnd();
 
-		header('Location: reports_admin.php?action=edit&tab=items&id=' . get_request_var('id'));
+		header('Location: reports.php?action=edit&tab=items&id=' . get_request_var('id'));
 
 		break;
 	case 'setvar':
@@ -140,7 +140,7 @@ switch (get_request_var('action')) {
 
 		reports_item_movedown();
 
-		header('Location: reports_admin.php?action=edit&tab=items&id=' . get_request_var('id'));
+		header('Location: reports.php?action=edit&tab=items&id=' . get_request_var('id'));
 
 		break;
 	case 'item_moveup':
@@ -148,7 +148,7 @@ switch (get_request_var('action')) {
 
 		reports_item_moveup();
 
-		header('Location: reports_admin.php?action=edit&tab=items&id=' . get_request_var('id'));
+		header('Location: reports.php?action=edit&tab=items&id=' . get_request_var('id'));
 
 		break;
 	case 'item_remove':
@@ -156,7 +156,7 @@ switch (get_request_var('action')) {
 
 		reports_item_remove();
 
-		header('Location: reports_admin.php?action=edit&tab=items&id=' . get_request_var('id'));
+		header('Location: reports.php?action=edit&tab=items&id=' . get_request_var('id'));
 
 		break;
 	case 'item_edit':
@@ -179,3 +179,4 @@ switch (get_request_var('action')) {
 
 		break;
 }
+

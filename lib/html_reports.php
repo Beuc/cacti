@@ -1878,7 +1878,7 @@ function display_reports_items($report_id) {
  * @return string The path to the appropriate reports page.
  */
 function get_reports_page() {
-	return (is_realm_allowed(21) ? 'reports_admin.php' : 'reports_user.php');
+	return 'reports.php';
 }
 
 /**
@@ -2173,7 +2173,7 @@ function reports() {
  * Checks if an account exists for the given user ID.
  *
  * @param int $user_id The ID of the user to check.
- * 
+ *
  * @return mixed The ID of the user if the account exists, or false if it does not.
  */
 function reports_html_account_exists($user_id) {
@@ -2184,7 +2184,7 @@ function reports_html_account_exists($user_id) {
  * Disables an HTML report by setting its 'enabled' field to an empty string.
  *
  * @param int $report_id The ID of the report to disable.
- * 
+ *
  * @return void
  */
 function reports_html_report_disable($report_id) {
@@ -2196,7 +2196,7 @@ function reports_html_report_disable($report_id) {
  *
  * @param array $reports_item The reports item array to be modified.
  * @param string $var_id The ID of the request variable to check and set.
- * 
+ *
  * @return array The modified reports item array.
  */
 function set_reports_item_var($reports_item, $var_id) {
@@ -2217,7 +2217,7 @@ function set_reports_item_var($reports_item, $var_id) {
  * Generates a HTML select element for branches based on the provided tree ID.
  *
  * @param int $tree_id The ID of the tree to filter branches by. If 0 or not provided, all branches are shown.
- * 
+ *
  * @return string The HTML select element as a string.
  */
 function reports_get_branch_select($tree_id) {

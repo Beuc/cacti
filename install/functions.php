@@ -24,6 +24,8 @@
 
 function prune_deprecated_files() {
 	$files = array(
+		'reports_admin.php',
+		'reports_user.php',
 		'rrd.php',
 		'graph_templates_inputs.php',
 		'graph_templates_items.php',
