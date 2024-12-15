@@ -56,15 +56,16 @@ function initialize_realtime_step_and_window() {
  * @return void
  */
 function set_default_graph_action() {
+	/* go through the settings and create a default */
+	$modes = array(
+		'tree'    => array('permission' => 'show_tree',    'id' => '1'),
+		'preview' => array('permission' => 'show_preview', 'id' => '3'),
+		'list'    => array('permission' => 'show_list',    'id' => '2'),
+	);
+
 	if (!isset_request_var('action') && get_nfilter_request_var('action') == '') {
 		/* setup the default action */
 		if (!isset($_SESSION['sess_graph_view_action'])) {
-			/* go through the settings and create a default */
-			$modes = array(
-				'tree'    => array('permission' => 'show_tree',    'id' => '1'),
-				'preview' => array('permission' => 'show_preview', 'id' => '3'),
-				'list'    => array('permission' => 'show_list',    'id' => '2'),
-			);
 
 			$user_setting = read_user_setting('default_view_mode');
 			$good_mode    = '';
@@ -93,12 +94,16 @@ function set_default_graph_action() {
 			if ($good_mode == '') {
 				raise_message('no_mode', __('Your User account does not have access to any Graph data'), MESSAGE_LEVEL_ERROR);
 			}
-		} else {
-			if (in_array($_SESSION['sess_graph_view_action'], array('tree', 'list', 'preview'), true)) {
-				if (is_view_allowed('show_' . $_SESSION['sess_graph_view_action'])) {
-					set_request_var('action', $_SESSION['sess_graph_view_action']);
-				}
+		} elseif (in_array($_SESSION['sess_graph_view_action'], array_keys($modes), true)) {
+			if (is_view_allowed('show_' . $_SESSION['sess_graph_view_action'])) {
+				set_request_var('action', $_SESSION['sess_graph_view_action']);
 			}
+		}
+	} elseif (in_array(get_request_var('action'), array('get_node', 'tree_content'), true)) {
+		$_SESSION['sess_graph_view_action'] = 'tree';
+	} elseif (in_array(get_request_var('action'), array_keys($modes), true)) {
+		if (is_view_allowed('show_' . $_SESSION['sess_graph_view_action'])) {
+			$_SESSION['sess_graph_view_action'] = get_request_var('action');
 		}
 	}
 }
@@ -796,6 +801,8 @@ function html_save_graph_settings() {
 }
 
 function html_graph_preview_view() {
+	global $is_request_ajax;
+
 	if (!is_view_allowed('show_preview')) {
 		header('Location: permission_denied.php');
 
