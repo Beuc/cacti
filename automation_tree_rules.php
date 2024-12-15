@@ -203,6 +203,7 @@ function automation_import() {
 		</td>
 		<script type='text/javascript'>
 		$(function() {
+			Pace.stop();
 			clearAllTimeouts();
 		});
 		</script>

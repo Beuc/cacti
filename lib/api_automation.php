@@ -5157,6 +5157,54 @@ function automation_device_rule_export($template_ids) {
 
 			$device['tree_rules'] = $tree_rules;
 
+			if (db_table_exists('plugin_thold_host_template')) {
+				$host_template_id = db_fetch_cell_prepared('SELECT host_template
+					FROM automation_templates
+					WHERE id = ?',
+					array($id));
+
+				$rules = db_fetch_assoc_prepared('SELECT *
+					FROM plugin_thold_host_template
+					WHERE host_template_id = ?',
+					array($host_template_id));
+
+				$thold_rules = array();
+
+				if (cacti_sizeof($rules)) {
+					foreach($rules as $r) {
+						$ht_hash = db_fetch_cell_prepared('SELECT hash
+							FROM host_template
+							WHERE id = ?',
+							array($r['host_template_id']));
+
+						$tt_details = db_fetch_row_prepared('SELECT *
+							FROM thold_template
+							WHERE id = ?',
+							array($r['thold_template_id']));
+
+						$data_source_hash = db_fetch_cell_prepared('SELECT hash
+							FROM data_template_rrd
+							WHERE id = ?',
+							array($tt_details['data_source_id']));
+
+						$tt_details['data_source_hash'] = $data_source_hash;
+
+						/* unset id's that will be recalculated on import */
+						unset($tt_details['id']);
+						unset($rr_details['data_source_id']);
+						unset($tt_details['data_template_id']);
+
+						$thold_rules[] = array(
+							'host_template_id'  => $ht_hash,
+							'thold_template_id' => $tt_details['hash'],
+							'thold_template'    => $tt_details
+						);
+					}
+				}
+
+				$device['thold_rules'] = $thold_rules;
+			}
+
 			/* collapse the data object into the json object */
 			$devices[] = $device;
 		}
@@ -6047,6 +6095,7 @@ function automation_template_import($json_data, $tree_branches = false) {
 				unset($save['device_rules']);
 				unset($save['graph_rules']);
 				unset($save['tree_rules']);
+				unset($save['thold_rules']);
 
 				$device_rule_id = sql_save($save, 'automation_templates');
 
@@ -6338,7 +6387,66 @@ function automation_template_import($json_data, $tree_branches = false) {
 						}
 					}
 				}
+			}
 
+			if (cacti_sizeof($data['graph_rules'])) {
+				if (!db_table_exists('plugin_thold_host_template')) {
+					$debug_data['failure'][] = __('The Thold Plugin is not Installed on this system.  So, Thresholds will not be imported.');
+				} else {
+					foreach($data['thold_rules'] AS $rule) {
+						$thold_name = $rule['thold_template']['name'];
+
+						$thold_template_id = db_fetch_cell('SELECT id
+							FROM thold_template
+							WHERE hash = ?',
+							array($rule['thold_template_id']));
+
+						$host_template_id = db_fetch_cell_prepared('SELECT id
+							FROM host_template
+							WHERE hash = ?',
+							array($rule['host_template_id']));
+
+						if (empty($thold_template_id)) {
+							$save       = array();
+							$save['id'] = 0;
+
+							$save['data_template_id'] = db_fetch_cell_prepared('SELECT id
+								FROM data_template
+								WHERE hash = ?',
+								array($rule['thold_template']['data_template_hash']));
+
+							$save['data_source_id'] = db_fetch_cell_prepared('SELECT id
+								FROM data_template_rrd
+								WHERE hash = ?',
+								array($rule['thold_template']['data_source_hash']));
+
+							unset($save['data_source_hash']);
+
+							$thold_template_id = sql_save($save, 'thold_template');
+
+							if ($thold_template_id) {
+								if ($config['is_web']) {
+									$debug_data['success'][] = __esc('Automation Threshold Template \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+								} else {
+									$debug_data['success'][] = __('Automation Threshold Template \'%s\' %s!', $name, ($save['id'] > 0 ? __('Updated'):__('Imported')));
+								}
+							} else {
+								if ($config['is_web']) {
+									$debug_data['failure'][] = __esc('Automation Threshold Template Device \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+								} else {
+									$debug_data['failure'][] = __('Automation Threshold Template Device \'%s\' %s Failed!', $name, ($save['id'] > 0 ? __('Update'):__('Import')));
+								}
+							}
+						}
+
+						if ($thold_template_id > 0) {
+							db_execute_prepared('REPLACE INTO plugin_thold_host_template
+								(host_template_id, thold_template_id)
+								VALUES (?, ?)',
+								array($host_template_id, $thold_template_id));
+						}
+					}
+				}
 			}
 		}
 	} else {

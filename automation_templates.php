@@ -97,6 +97,10 @@ switch (get_request_var('action')) {
 		automation_remove_agr_confirm();
 
 		break;
+	case 'item_remove_ttr_confirm':
+		automation_remove_ttr_confirm();
+
+		break;
 	case 'item_remove_agr':
 		automation_remove_agr();
 
@@ -109,6 +113,12 @@ switch (get_request_var('action')) {
 		header('Location: automation_templates.php?action=edit&id=' . get_filter_request_var('template_id'));
 
 		break;
+	case 'item_add_ttr':
+		automation_add_threshold_template();
+
+		header('Location: automation_templates.php?action=edit&id=' . get_filter_request_var('template_id'));
+
+		break;
 	case 'item_remove_atr_confirm':
 		automation_remove_atr_confirm();
 
@@ -117,6 +127,12 @@ switch (get_request_var('action')) {
 		automation_remove_atr();
 
 		header('Location: automation_templates.php?action=edit&id=' . get_filter_request_var('template_id'));
+
+		break;
+	case 'item_remove_ttr':
+		automation_remove_ttr();
+
+		header('Location: automation_templates.php?action=edit&id=' . get_filter_request_var('id'));
 
 		break;
 	case 'movedown':
@@ -143,7 +159,6 @@ switch (get_request_var('action')) {
 		bottom_footer();
 
 		break;
-
 	default:
 		top_header();
 		template();
@@ -243,6 +258,7 @@ function automation_import() {
 		</td>
 		<script type='text/javascript'>
 		$(function() {
+			Pace.stop();
 			clearAllTimeouts();
 		});
 		</script>
@@ -502,6 +518,28 @@ function automation_add_graph_rule() {
 	raise_message('rule_save', __('The Graph Rule has been added to the Device Rule'), MESSAGE_LEVEL_INFO);
 }
 
+function automation_add_threshold_template() {
+	/* ================= input validation ================= */
+	get_filter_request_var('template_id');
+	get_filter_request_var('thold_template_id');
+	/* ==================================================== */
+
+	$host_template_id = db_fetch_cell_prepared('SELECT host_template
+		FROM automation_templates
+		WHERE id = ?',
+		array(get_request_var('template_id')));
+
+	$save = array();
+
+	$save['id']          = 0;
+	$save['host_template_id']  = $host_template_id;
+	$save['thold_template_id'] = get_request_var('thold_template_id');
+
+	sql_save($save, 'plugin_thold_host_template');
+
+	raise_message('rule_save', __('The Threshold Template has been added to the Device Rule'), MESSAGE_LEVEL_INFO);
+}
+
 function automation_add_tree_rule() {
 	/* ================= input validation ================= */
 	get_filter_request_var('template_id');
@@ -648,6 +686,75 @@ function form_save() {
 	}
 }
 
+function automation_remove_ttr_confirm() {
+	/* ================= input validation ================= */
+	get_filter_request_var('id');
+	get_filter_request_var('rule_id');
+	get_filter_request_var('template_id');
+	/* ==================================================== */
+
+	form_start('automation_templates.php?action=edit&id=' . get_request_var('id'));
+
+	html_start_box('', '100%', '', '3', 'center', '');
+
+	$rule = db_fetch_row_prepared('SELECT *
+		FROM plugin_thold_host_template
+		WHERE id = ?',
+		array(get_request_var('rule_id')));
+
+	if (cacti_sizeof($rule)) {
+		$name = db_fetch_cell_prepared('SELECT tt.name
+			FROM thold_template AS tt
+			INNER JOIN plugin_thold_host_template AS tht
+			ON tt.id = tht.thold_template_id
+			WHERE tht.id = ?',
+			array(get_request_var('rule_id')));
+	} else {
+		$name = __('Unknown');
+	}
+
+	?>
+	<tr>
+		<td class='topBoxAlt'>
+			<p><?php print __('Click \'Continue\' to Delete the following Threshold Template will be disassociated from the Device Rule.');?></p>
+			<p><?php print __("Threshold Template Name: '%s'", html_escape($name));?>
+			<br>
+		</td>
+	</tr>
+	<tr>
+		<td class='right'>
+			<input type='button' class='ui-button ui-corner-all ui-widget' id='cancel' value='<?php print __esc('Cancel');?>' onClick='$("#cdialog").dialog("close")' name='cancel'>
+			<input type='button' class='ui-button ui-corner-all ui-widget' id='continue' value='<?php print __esc('Continue');?>' name='continue' title='<?php print __esc('Remove Threshold Template');?>'>
+		</td>
+	</tr>
+	<?php
+
+	html_end_box();
+
+	form_end();
+
+	?>
+	<script type='text/javascript'>
+	$('#continue').click(function(data) {
+		var options = {
+			url: 'automation_templates.php?action=item_remove_ttr'
+		}
+
+		var data = {
+			__csrf_magic: csrfMagicToken,
+			id: <?php print get_request_var('id');?>,
+			template_id: <?php print get_request_var('template_id');?>,
+			rule_id: <?php print get_request_var('rule_id');?>
+		}
+
+		$('#cdialog').dialog('close');
+
+		postUrl(options, data);
+	});
+	</script>
+	<?php
+}
+
 function automation_remove_agr_confirm() {
 	/* ================= input validation ================= */
 	get_filter_request_var('rule_id');
@@ -704,6 +811,8 @@ function automation_remove_agr_confirm() {
 			template_id: <?php print get_request_var('template_id');?>,
 			rule_id: <?php print get_request_var('rule_id');?>
 		}
+
+		$('#cdialog').dialog('close');
 
 		postUrl(options, data);
 	});
@@ -827,6 +936,8 @@ function automation_remove_atr_confirm() {
 			rule_id: <?php print get_request_var('rule_id');?>
 		}
 
+		$('#cdialog').dialog('close');
+
 		postUrl(options, data);
 	});
 	</script>
@@ -850,6 +961,20 @@ function automation_remove_atr() {
 	raise_message('rule_remove', __('The Tree Rule has been removed from the Device Automation Rule'), MESSAGE_LEVEL_INFO);
 }
 
+function automation_remove_ttr() {
+	/* ================= input validation ================= */
+	get_filter_request_var('rule_id');
+	get_filter_request_var('template_id');
+	/* ==================================================== */
+
+	db_execute_prepared('DELETE FROM plugin_thold_host_template
+		WHERE id = ?
+		AND host_template_id = ?',
+		array(get_request_var('rule_id'), get_request_var('template_id')));
+
+	raise_message('rule_remove', __('The Threshold Template has been removed from the Device Automation Rule'), MESSAGE_LEVEL_INFO);
+}
+
 function automation_get_child_branches($tree_id, $id, $spaces, $headers) {
 	$items = db_fetch_assoc_prepared('SELECT id, title
 		FROM graph_tree_items
@@ -864,7 +989,8 @@ function automation_get_child_branches($tree_id, $id, $spaces, $headers) {
 	if (cacti_sizeof($items)) {
 		foreach ($items as $i) {
 			$headers['tr_' . $tree_id . '_bi_' . $i['id']] = $spaces . ' ' . $i['title'];
-			$headers                                       = automation_get_child_branches($tree_id, $i['id'], $spaces, $headers);
+
+			$headers = automation_get_child_branches($tree_id, $i['id'], $spaces, $headers);
 		}
 	}
 
@@ -888,6 +1014,10 @@ function automation_get_tree_headers() {
 
 function template_edit() {
 	global $availability_options, $config;
+
+	/* ================= input validation ================= */
+	get_filter_request_var('id');
+	/* ==================================================== */
 
 	$host_template_names = db_fetch_assoc('SELECT id, name FROM host_template');
 
@@ -970,10 +1100,6 @@ function template_edit() {
 		)
 	);
 
-	/* ================= input validation ================= */
-	get_filter_request_var('id');
-	/* ==================================================== */
-
 	if (!isempty_request_var('id')) {
 		$template = db_fetch_row_prepared('SELECT *
 			FROM automation_templates
@@ -1004,6 +1130,9 @@ function template_edit() {
 	html_end_box();
 
 	if (!isempty_request_var('id')) {
+		/**
+		 * Start Graph Rules here.
+		 */
 		html_start_box(__('Associated Graph Rules'), '100%', '', '3', 'center', '');
 
 		$graph_rules = db_fetch_assoc_prepared('SELECT atr.*, gr.name
@@ -1014,8 +1143,6 @@ function template_edit() {
 			WHERE template_id = ?
 			ORDER BY sequence',
 			array(get_request_var('id')));
-
-		$i = 1;
 
 		$display_text = array(
 			array(
@@ -1076,35 +1203,33 @@ function template_edit() {
 
 		html_start_box('', '100%', '', '3', 'center', '');
 
-		?>
-		<tr class='odd'>
-			<td colspan='2'>
-				<table>
-					<tr style='line-height:10px'>
-						<td class='nowrap templateAdd'>
-							<?php print __('Add Graph Rule');?>
-						</td>
-						<td class='noHide'>
-							<?php form_dropdown('graph_rule', db_fetch_assoc_prepared('SELECT DISTINCT ar.id, ar.name
-								FROM automation_graph_rules AS ar
-								LEFT JOIN automation_templates_rules AS art
-								ON ar.id = art.rule_id
-								AND art.rule_type = 1
-								WHERE ar.id NOT IN (SELECT rule_id FROM automation_templates_rules WHERE rule_type = 1 AND template_id = ?)
-								ORDER BY ar.name',
-								array(get_request_var('id'))), 'name', 'id', '', '', '');?>
-						</td>
-						<td class='noHide'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' value='<?php print __esc('Add');?>' id='add_agr' title='<?php print __esc('Add Graph Rule to Device Rule');?>'>
-						</td>
-					</tr>
-				</table>
-			</td>
-		</tr>
+		$field_label  = __('Add Graph Rule');
+		$field_name   = 'graph_rule';
+		$field_array  = db_fetch_assoc_prepared('SELECT DISTINCT ar.id, ar.name
+			FROM automation_graph_rules AS ar
+			LEFT JOIN automation_templates_rules AS art
+			ON ar.id = art.rule_id
+			AND art.rule_type = 1
+			WHERE ar.id NOT IN (
+				SELECT rule_id
+				FROM automation_templates_rules
+				WHERE rule_type = 1
+				AND template_id = ?
+			)
+			ORDER BY ar.name',
+			array(get_request_var('id')));
 
-		<?php
+		$button_id     = 'add_agr';
+		$button_label  = __esc('Add');
+		$button_title  = __esc('Add Graph Rule to Device Rule');
+
+		create_add_form_dropdown($field_label, $field_name, $field_array, $button_id, $button_label, $button_title);
+
 		html_end_box();
 
+		/**
+		 * Start Tree Rules here.
+		 */
 		html_start_box(__('Associated Tree Rules'), '100%', '', '3', 'center', '');
 
 		$tree_rules = db_fetch_assoc_prepared('SELECT atr.*, tr.name
@@ -1115,8 +1240,6 @@ function template_edit() {
 			WHERE template_id = ?
 			ORDER BY sequence',
 			array(get_request_var('id')));
-
-		$i = 1;
 
 		$display_text = array(
 			array(
@@ -1186,34 +1309,104 @@ function template_edit() {
 			print '<tr><td><em>' . __('No Associated Tree Rules') . '</em></td></tr>';
 		}
 
-		?>
-		<tr class='odd'>
-			<td colspan='2'>
-				<table>
-					<tr style='line-height:10px'>
-						<td class='nowrap templateAdd'>
-							<?php print __('Add Tree Rule');?>
-						</td>
-						<td class='noHide'>
-							<?php form_dropdown('tree_rule', db_fetch_assoc_prepared('SELECT DISTINCT ar.id, ar.name
-								FROM automation_tree_rules AS ar
-								LEFT JOIN automation_templates_rules AS art
-								ON ar.id = art.rule_id
-								AND art.rule_type = 2
-								WHERE ar.id NOT IN (SELECT rule_id FROM automation_templates_rules WHERE rule_type = 2 AND template_id = ?)
-								ORDER BY ar.name',
-								array(get_request_var('id'))), 'name', 'id', '', '', '');?>
-						</td>
-						<td class='noHide'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' value='<?php print __esc('Add');?>' id='add_atr' title='<?php print __esc('Add Tree Rule to Device Rule');?>'>
-						</td>
-					</tr>
-				</table>
-			</td>
-		</tr>
+		$field_label  = __('Add Tree Rule');
+		$field_name   = 'tree_rule';
+		$field_array  = db_fetch_assoc_prepared('SELECT DISTINCT ar.id, ar.name
+			FROM automation_tree_rules AS ar
+			LEFT JOIN automation_templates_rules AS art
+			ON ar.id = art.rule_id
+			AND art.rule_type = 2
+			WHERE ar.id NOT IN (
+				SELECT rule_id
+				FROM automation_templates_rules
+				WHERE rule_type = 2
+				AND template_id = ?
+			)
+			ORDER BY ar.name',
+			array(get_request_var('id')));
 
-		<?php
+		$button_id     = 'add_atr';
+		$button_label  = __esc('Add');
+		$button_title  = __esc('Add Tree Rule to Device Rule');
+
+		create_add_form_dropdown($field_label, $field_name, $field_array, $button_id, $button_label, $button_title);
+
 		html_end_box();
+
+		if (db_table_exists('plugin_thold_host_template')) {
+			/**
+			 * Start Threshold Template here.
+			 */
+			html_start_box(__('Associated Threshold Templates'), '100%', '', '3', 'center', '');
+
+			$thold_rules = db_fetch_assoc_prepared('SELECT tht.id AS rule_id, tt.id, tt.name
+				FROM thold_template AS tt
+				INNER JOIN plugin_thold_host_template AS tht
+				ON tht.thold_template_id = tt.id
+				WHERE tht.host_template_id = ?
+				ORDER BY name',
+				array($template['host_template']));
+
+			$display_text = array(
+				array(
+					'display' => __('Threshold Template Name'),
+					'align'   => 'left',
+				),
+				array(
+					'display' => __('Actions'),
+					'align'   => 'right',
+				)
+			);
+
+			html_header($display_text, false);
+
+			if (cacti_sizeof($graph_rules)) {
+				foreach($thold_rules as $rule) {
+					$id = "tt{$rule['rule_id']}";
+
+					form_alternate_row($id, true);
+
+					form_selectable_cell($rule['name'], $id);
+
+					form_selectable_cell("$action<a class='delete deleteMarker fa fa-times' title='" . __esc('Delete') . "' href='" . html_escape('automation_templates.php?action=item_remove_ttr_confirm&id=' . get_request_var('id') . '&template_id=' . $template['host_template'] . '&rule_id=' . $rule['rule_id']) . "'></a>", $id, '40', 'right');
+
+					form_end_row();
+				}
+			} else {
+				print '<tr><td><em>' . __('No Associated Threshold Template Rules') . '</em></td></tr>';
+			}
+
+			$host_template_id = db_fetch_cell_prepared('SELECT host_template
+				FROM automation_templates
+				WHERE id = ?',
+				array(get_request_var('id')));
+
+			html_end_box();
+
+			html_start_box('', '100%', '', '3', 'center', '');
+
+			$field_label  = __('Add Threshold Rule');
+			$field_name   = 'thold_rule';
+			$field_array  = db_fetch_assoc_prepared('SELECT DISTINCT tt.id, tt.name
+				FROM thold_template AS tt
+				LEFT JOIN plugin_thold_host_template AS tht
+				ON tt.id = tht.thold_template_id
+				WHERE tt.id NOT IN (
+					SELECT thold_template_id
+					FROM plugin_thold_host_template
+					WHERE host_template_id = ?
+				)
+				ORDER BY tt.name',
+				array($host_template_id));
+
+			$button_id     = 'add_ttr';
+			$button_label  = __esc('Add');
+			$button_title  = __esc('Add Threshold Rule to Device Rule');
+
+			create_add_form_dropdown($field_label, $field_name, $field_array, $button_id, $button_label, $button_title);
+
+			html_end_box();
+		}
 	}
 
 	form_save_button('automation_templates.php');
@@ -1254,6 +1447,10 @@ function template_edit() {
 				url: 'automation_templates.php?action=item_add_agr'
 			}
 
+			if ($('#graph_rule').val() == null) {
+				return false;
+			}
+
 			var data = {
 				template_id: $('#id').val(),
 				rule_id: $('#graph_rule').val(),
@@ -1268,9 +1465,31 @@ function template_edit() {
 				url: 'automation_templates.php?action=item_add_atr'
 			}
 
+			if ($('#tree_rule').val() == null) {
+				return false;
+			}
+
 			var data = {
 				template_id: $('#id').val(),
 				rule_id: $('#tree_rule').val(),
+				__csrf_magic: csrfMagicToken
+			}
+
+			postUrl(options, data);
+		});
+
+		$('#add_ttr').click(function() {
+			var options = {
+				url: 'automation_templates.php?action=item_add_ttr'
+			}
+
+			if ($('#thold_rule').val() == null) {
+				return false;
+			}
+
+			var data = {
+				template_id: $('#id').val(),
+				thold_template_id: $('#thold_rule').val(),
 				__csrf_magic: csrfMagicToken
 			}
 
@@ -1298,6 +1517,28 @@ function template_edit() {
 		}
 	});
 	</script>
+	<?php
+}
+
+function create_add_form_dropdown($field_label, $field_name, $field_array, $button_id, $button_label, $button_title) {
+	?>
+	<tr class='odd'>
+		<td colspan='2'>
+			<table>
+				<tr style='line-height:10px'>
+					<td class='nowrap templateAdd'>
+						<?php print $field_label;?>
+					</td>
+					<td class='noHide'>
+						<?php form_dropdown($field_name, $field_array, 'name', 'id', '', '', '');?>
+					</td>
+					<td class='noHide'>
+						<input type='button' class='ui-button ui-corner-all ui-widget' value='<?php print $button_label;?>' id='<?php print $button_id;?>' title='<?php print $button_title;?>'>
+					</td>
+				</tr>
+			</table>
+		</td>
+	</tr>
 	<?php
 }
 
@@ -1354,7 +1595,7 @@ function template() {
 						<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Templates');?>'>
 							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
 							<?php
-							if (cacti_sizeof($item_rows) > 0) {
+							if (cacti_sizeof($item_rows)) {
 								foreach ($item_rows as $key => $value) {
 									print "<option value='" . $key . "'";
 
@@ -1481,11 +1722,11 @@ function template() {
 
 	html_header_checkbox($display_text, false);
 
-	$i = 1;
-
 	$total_items = cacti_sizeof($dts);
 
 	if (cacti_sizeof($dts)) {
+		$i = 0;
+
 		foreach ($dts as $dt) {
 			if ($dt['name'] == '') {
 				$name = __('Unknown Template');
@@ -1564,3 +1805,4 @@ function template() {
 	</script>
 	<?php
 }
+
