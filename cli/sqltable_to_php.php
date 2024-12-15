@@ -131,6 +131,12 @@ function sqltable_to_php($table, $create, $plugin = '') {
 				$text .= ", 'NULL' => " . (strtolower($r['Null']) == 'no' ? 'false' : 'true');
 
 				if ($r['Default'] != '' && trim($r['Default']) != '') {
+					if ($r['Default'] == "''") {
+						$r['Default'] = '';
+					} elseif (strpos($r['Default'], 'current_timestamp()') !== false) {
+						$r['Default'] = str_replace('current_timestamp()', 'CURRENT_TIMESTAMP', $r['Default']);
+					}
+
 					$text .= ", 'default' => '" . $r['Default'] . "'";
 				} elseif (stripos($r['Type'], 'char') !== false) {
 					$text .= ", 'default' => ''";
