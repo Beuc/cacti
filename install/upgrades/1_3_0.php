@@ -481,7 +481,7 @@ function upgrade_to_1_3_0() {
 	$data['columns'][] = array('name' => 'report_txt_output', 'type' => 'longblob', 'NULL' => true);
 	$data['columns'][] = array('name' => 'report_html_output', 'type' => 'longblob', 'NULL' => true);
 	$data['columns'][] = array('name' => 'report_attachments', 'type' => 'longblob', 'NULL' => true);
-	$data['columns'][] = array('name' => 'notification', 'type' => 'blob', 'NULL' => false, 'default' => '''');
+	$data['columns'][] = array('name' => 'notification', 'type' => 'blob', 'NULL' => false, 'default' => '');
 	$data['columns'][] = array('name' => 'send_type', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'default' => '0');
 	$data['columns'][] = array('name' => 'send_time', 'type' => 'timestamp', 'NULL' => false, 'default' => 'current_timestamp()');
 	$data['columns'][] = array('name' => 'run_time', 'type' => 'double', 'NULL' => false, 'default' => '0');
@@ -505,7 +505,7 @@ function upgrade_to_1_3_0() {
 	$data['columns'][] = array('name' => 'start_time', 'type' => 'timestamp', 'NULL' => false, 'default' => '0000-00-00 00:00:00');
 	$data['columns'][] = array('name' => 'run_command', 'type' => 'varchar(512)', 'NULL' => false, 'default' => '');
 	$data['columns'][] = array('name' => 'run_timeout', 'type' => 'int(11)', 'NULL' => false, 'default' => '60');
-	$data['columns'][] = array('name' => 'notification', 'type' => 'blob', 'NULL' => false, 'default' => '''');
+	$data['columns'][] = array('name' => 'notification', 'type' => 'blob', 'NULL' => false, 'default' => '');
 	$data['columns'][] = array('name' => 'request_type', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'default' => '0');
 	$data['columns'][] = array('name' => 'requested_by', 'type' => 'varchar(20)', 'NULL' => false, 'default' => '');
 	$data['columns'][] = array('name' => 'requested_id', 'type' => 'int(11)', 'NULL' => false, 'default' => '-1');
