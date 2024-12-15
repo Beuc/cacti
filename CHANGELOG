@@ -136,6 +136,8 @@ Cacti CHANGELOG
 -feature#5838: Reduce the number of default log from automation
 -feature#5849: Separate Logging related settings to a new settings tab
 -feature#5855: Replace Plugin Images with FontAwesome Glyphs
+-feature#5857: Create a Reporting Queue for Cacti and Plugins to schedule reports
+-feature#5858: Create a Reporting log table to hold various data from Cacti Reports for base Cacti and from Plugins
 -feature#5860: When Cacti is running on MariaDB move the Data Source statistics partitions to the ARIA table format
 -feature#5861: In Cacti Utilities, be able to view the MariaDB/MySQL processeslist and active background tasks
 -feature#5862: Change logging message around remote agent timeout

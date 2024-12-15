@@ -2681,6 +2681,55 @@ CREATE TABLE `reports_items` (
   COMMENT='Cacti Reporting Items';
 
 --
+-- Table structure for table `reports_log`
+--
+
+CREATE TABLE `reports_log` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) NOT NULL DEFAULT '',
+  `source` varchar(20) NOT NULL DEFAULT '',
+  `source_id` int(10) unsigned NOT NULL DEFAULT 0,
+  `report_output_type` varchar(5) NOT NULL DEFAULT '',
+  `report_raw_data` longblob DEFAULT NULL,
+  `report_raw_output` longblob DEFAULT NULL,
+  `report_txt_output` longblob DEFAULT NULL,
+  `report_html_output` longblob DEFAULT NULL,
+  `report_attachments` longblob DEFAULT NULL,
+  `notification` blob NOT NULL DEFAULT '',
+  `send_type` int(10) unsigned NOT NULL DEFAULT 0,
+  `send_time` timestamp NOT NULL DEFAULT current_timestamp(),
+  `run_time` double NOT NULL DEFAULT 0,
+  `sent_by` varchar(20) NOT NULL DEFAULT '',
+  `sent_id` int(11) NOT NULL DEFAULT -1,
+  PRIMARY KEY (`id`),
+  KEY `source` (`source`),
+  KEY `source_id` (`source_id`)
+) ENGINE=InnoDB COMMENT='Holds All Cacti Report Output';
+
+--
+-- Table structure for table `reports_queued`
+--
+
+CREATE TABLE `reports_queued` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `source` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `source_id` int(10) unsigned NOT NULL DEFAULT 0,
+  `status` varchar(10) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
+  `scheduled_time` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `start_time` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `run_command` varchar(512) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `run_timeout` int(11) NOT NULL DEFAULT 60,
+  `notification` blob NOT NULL DEFAULT '',
+  `request_type` int(10) unsigned NOT NULL DEFAULT 0,
+  `requested_by` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+  `requested_id` int(11) NOT NULL DEFAULT -1,
+  PRIMARY KEY (`id`),
+  KEY `source` (`source`),
+  KEY `source_id` (`source_id`)
+) ENGINE=InnoDB COMMENT='Holds Scheduled Reports';
+
+--
 -- Table structure for table `settings`
 --
 

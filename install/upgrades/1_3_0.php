@@ -470,6 +470,53 @@ function upgrade_to_1_3_0() {
 	$data['row_format'] = 'Dynamic';
 	db_update_table('user_auth_reset_hashes', $data);
 
+	$data = array();
+	$data['columns'][] = array('name' => 'id', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'auto_increment' => true);
+	$data['columns'][] = array('name' => 'name', 'type' => 'varchar(64)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'source', 'type' => 'varchar(20)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'source_id', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'report_output_type', 'type' => 'varchar(5)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'report_raw_data', 'type' => 'longblob', 'NULL' => true);
+	$data['columns'][] = array('name' => 'report_raw_output', 'type' => 'longblob', 'NULL' => true);
+	$data['columns'][] = array('name' => 'report_txt_output', 'type' => 'longblob', 'NULL' => true);
+	$data['columns'][] = array('name' => 'report_html_output', 'type' => 'longblob', 'NULL' => true);
+	$data['columns'][] = array('name' => 'report_attachments', 'type' => 'longblob', 'NULL' => true);
+	$data['columns'][] = array('name' => 'notification', 'type' => 'blob', 'NULL' => false, 'default' => '''');
+	$data['columns'][] = array('name' => 'send_type', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'send_time', 'type' => 'timestamp', 'NULL' => false, 'default' => 'current_timestamp()');
+	$data['columns'][] = array('name' => 'run_time', 'type' => 'double', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'sent_by', 'type' => 'varchar(20)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'sent_id', 'type' => 'int(11)', 'NULL' => false, 'default' => '-1');
+	$data['primary'] = 'id';
+	$data['keys'][] = array('name' => 'source', 'columns' => array('source'));
+	$data['keys'][] = array('name' => 'source_id', 'columns' => array('source_id'));
+	$data['type'] = 'InnoDB';
+	$data['comment'] = 'Holds All Cacti Report Output';
+	$data['row_format'] = 'Dynamic';
+	db_update_table('reports_log', $data);
+
+	$data = array();
+	$data['columns'][] = array('name' => 'id', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'auto_increment' => true);
+	$data['columns'][] = array('name' => 'name', 'type' => 'varchar(64)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'source', 'type' => 'varchar(20)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'source_id', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'status', 'type' => 'varchar(10)', 'NULL' => false, 'default' => 'pending');
+	$data['columns'][] = array('name' => 'scheduled_time', 'type' => 'timestamp', 'NULL' => false, 'default' => '0000-00-00 00:00:00');
+	$data['columns'][] = array('name' => 'start_time', 'type' => 'timestamp', 'NULL' => false, 'default' => '0000-00-00 00:00:00');
+	$data['columns'][] = array('name' => 'run_command', 'type' => 'varchar(512)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'run_timeout', 'type' => 'int(11)', 'NULL' => false, 'default' => '60');
+	$data['columns'][] = array('name' => 'notification', 'type' => 'blob', 'NULL' => false, 'default' => '''');
+	$data['columns'][] = array('name' => 'request_type', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'requested_by', 'type' => 'varchar(20)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'requested_id', 'type' => 'int(11)', 'NULL' => false, 'default' => '-1');
+	$data['primary'] = 'id';
+	$data['keys'][] = array('name' => 'source', 'columns' => array('source'));
+	$data['keys'][] = array('name' => 'source_id', 'columns' => array('source_id'));
+	$data['type'] = 'InnoDB';
+	$data['comment'] = 'Holds Scheduled Reports';
+	$data['row_format'] = 'Dynamic';
+	db_update_table('reports_queued', $data);
+
 	/* clear up setting change */
 	$exists = db_fetch_cell_prepared('SELECT name FROM settings WHERE name = "business_hours_hideWeekends"');
 	if ($exists != '') {
