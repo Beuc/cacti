@@ -323,12 +323,12 @@ function form_selectable_cell($contents, $id, $width = '', $style_or_class = '',
 }
 
 function form_get_table_id() {
-	if (isset_request_var('action')) {
-		return basename(get_current_page(), '.php') . ':' . get_request_var('action');
-	} elseif (isset_request_var('tab')) {
-		return basename(get_current_page(), '.php') . ':' . get_request_var('tab');
+	if (isset_request_var('action') && get_request_var('action') != '') {
+		return basename(get_current_page(), '.php') . ':action-' . get_request_var('action') . ':';
+	} elseif (isset_request_var('tab') && get_request_var('tab') != '') {
+		return basename(get_current_page(), '.php') . ':tab-' . get_request_var('tab') . ':';
 	} else {
-		return basename(get_current_page(), '.php');
+		return basename(get_current_page(), '.php') . ':';
 	}
 }
 
@@ -457,21 +457,30 @@ function form_process_visible_display_text($table_id, $display_text) {
 	if (cacti_sizeof($display_text)) {
 		foreach($display_text as $id => $column) {
 			// Convert the array to a standard array
-			if (!isset($column['display'])) {
+			if (is_numeric($id)) {
 				$id = "autocol$id";
 
 				if (is_array($column)) {
 					$return_array[$id]['display'] = $column[0];
-					$return_array[$id]['align']   = $column[1];
+
+					if (isset($column[1])) {
+						$return_array[$id]['align']   = $column[1];
+					}
 				} else {
 					$return_array[$id]['display'] = $column;
 				}
-			} else {
-				if (is_numeric($id)) {
-					$id = "autocol$id";
-				}
-
+			} elseif (isset($column['display'])) {
 				$return_array[$id] = $column;
+			} else {
+				if (is_array($column)) {
+					$return_array[$id]['display'] = $column[0];
+
+					if (isset($column[1])) {
+						$return_array[$id]['align']   = $column[1];
+					}
+				} else {
+					$return_array[$id]['display'] = $column;
+				}
 			}
 
 			if (isset($tableColumns[$table_id][$id]) && $tableColumns[$table_id][$id] == true) {
@@ -503,6 +512,8 @@ function form_process_visible_display_text($table_id, $display_text) {
 	if ($initialize) {
 		set_user_setting("visible_columns_{$table_id}{$tableCount[$table_id]}", json_encode($coldata));
 	}
+
+	//cacti_log(json_encode($return_array));
 
 	return $return_array;
 }
