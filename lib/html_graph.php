@@ -63,7 +63,7 @@ function set_default_graph_action() {
 		'list'    => array('permission' => 'show_list',    'id' => '2'),
 	);
 
-	if (!isset_request_var('action') && get_nfilter_request_var('action') == '') {
+	if (!isset_request_var('action') || get_nfilter_request_var('action') == '') {
 		/* setup the default action */
 		if (!isset($_SESSION['sess_graph_view_action'])) {
 
