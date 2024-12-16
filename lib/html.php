@@ -56,10 +56,11 @@
  *   your page has a ready function that has it's own javascript.
  * @param bool|string $add_label - used with legacy behavior to add specific text to the link.
  *   This parameter is only used in the legacy behavior.
+ * @param bool $showcols - Show the column selector icon
  *
  * @return void
  */
-function html_start_box($title, $width, $div, $cell_padding, $align, $add_text, $add_label = false) {
+function html_start_box($title, $width, $div, $cell_padding, $align, $add_text, $add_label = false, $showcols = true) {
 	global $config;
 
 	static $table_suffix = 1;
@@ -131,6 +132,14 @@ function html_start_box($title, $width, $div, $cell_padding, $align, $add_text, 
 		if ($help_file !== false && $help_count == 0 && is_realm_allowed(28)) {
 			print "<span class='cactiHelp' title='" . __esc('Get Page Help') . "'><a class='linkOverDark helpPage' data-page='" . html_escape(basename($help_file)) . "' href='#'><i class='far fa-question-circle'></i></a></span>";
 			$help_count++;
+
+			if ($showcols) {
+				print "<span class='cactiFilterColumns' title='" . __esc('Select Columns for Display') . "'><a id='showColumns' href='#'><i class='fa fa-bars'></i></a></span>";
+			}
+		} elseif ($help_count) {
+			if ($showcols) {
+				print "<span class='cactiFilterColumns' title='" . __esc('Select Columns for Display') . "'><a id='showColumns' href='#'><i class='fa fa-bars'></i></a></span>";
+			}
 		}
 
 		if ($add_text != '' && !is_array($add_text)) {

@@ -576,7 +576,7 @@ function cdef_edit() {
 		draw_cdef_preview(get_request_var('id'));
 		html_end_box();
 
-		html_start_box(__('CDEF Items'), '100%', '', '3', 'center', 'cdef.php?action=item_edit&cdef_id=' . $cdef['id']);
+		html_start_box(__('CDEF Items'), '100%', '', '3', 'center', 'cdef.php?action=item_edit&cdef_id=' . $cdef['id'], false, false);
 
 		$display_text = array(
 			array('display' => __('Item'), 'align' => 'left'),
