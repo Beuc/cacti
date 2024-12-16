@@ -102,6 +102,7 @@ function html_start_box($title, $width, $div, $cell_padding, $align, $add_text, 
 	} elseif (!isempty_request_var('tab')) {
 		$table_prefix .= '_' . clean_up_name(get_nfilter_request_var('tab'));
 	}
+
 	$table_id = $table_prefix . $table_suffix;
 
 	if ($title != '') {
@@ -757,7 +758,7 @@ function html_nav_bar($base_url, $max_pages, $current_page, $rows_per_page, $tot
 function html_header_sort($header_items, $sort_column, $sort_direction, $last_item_colspan = 1, $url = '', $return_to = '') {
 	static $page_count = 0;
 
-	$table_id = basename(get_current_page(), 'php');
+	$table_id = form_get_table_id();
 
 	$header_items = form_process_visible_display_text($table_id, $header_items);
 
@@ -947,7 +948,7 @@ function html_header_sort($header_items, $sort_column, $sort_direction, $last_it
 function html_header_sort_checkbox($header_items, $sort_column, $sort_direction, $include_form = true, $form_action = '', $return_to = '', $prefix = 'chk') {
 	static $page_count = 0;
 
-	$table_id = basename(get_current_page(), 'php');
+	$table_id = form_get_table_id();
 
 	$header_items = form_process_visible_display_text($table_id, $header_items);
 
@@ -1128,7 +1129,7 @@ function html_header_sort_checkbox($header_items, $sort_column, $sort_direction,
  * @return void
  */
 function html_header($header_items, $last_item_colspan = 1) {
-	$table_id = basename(get_current_page(), 'php');
+	$table_id = form_get_table_id();
 
 	$header_items = form_process_visible_display_text($table_id, $header_items);
 
@@ -1213,7 +1214,7 @@ function html_section_header($header_item, $last_item_colspan = 1) {
  * @return void
  */
 function html_header_checkbox($header_items, $include_form = true, $form_action = '', $resizable = true, $prefix = 'chk') {
-	$table_id = basename(get_current_page(), 'php');
+	$table_id = form_get_table_id();
 
 	$header_items = form_process_visible_display_text($table_id, $header_items);
 
