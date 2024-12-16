@@ -757,6 +757,10 @@ function html_nav_bar($base_url, $max_pages, $current_page, $rows_per_page, $tot
 function html_header_sort($header_items, $sort_column, $sort_direction, $last_item_colspan = 1, $url = '', $return_to = '') {
 	static $page_count = 0;
 
+	$table_id = basename(get_current_page(), 'php');
+
+	$header_items = form_process_visible_display_text($table_id, $header_items);
+
 	/* reverse the sort direction */
 	if ($sort_direction == 'ASC') {
 		$new_sort_direction = 'DESC';
@@ -786,11 +790,21 @@ function html_header_sort($header_items, $sort_column, $sort_direction, $last_it
 		break;
 	}
 
-	print "<thead><tr class='tableHeader'>";
+	$table_visibility = array(
+		'table_id' => $table_id,
+		'columns'  => $header_items
+	);
+
+	print "<thead><tr class='tableHeader' data-columns='" . base64_encode(json_encode($table_visibility)) . "'>";
 
 	$i = 1;
 
 	foreach ($header_items as $db_column => $display_array) {
+		/* if the column is not visible, don't display it */
+		if (isset($display_array['visible']) && $display_array['visible'] === false) {
+			continue;
+		}
+
 		$isSort = '';
 
 		if (isset($display_array['nohide'])) {
@@ -933,6 +947,10 @@ function html_header_sort($header_items, $sort_column, $sort_direction, $last_it
 function html_header_sort_checkbox($header_items, $sort_column, $sort_direction, $include_form = true, $form_action = '', $return_to = '', $prefix = 'chk') {
 	static $page_count = 0;
 
+	$table_id = basename(get_current_page(), 'php');
+
+	$header_items = form_process_visible_display_text($table_id, $header_items);
+
 	/* reverse the sort direction */
 	if ($sort_direction == 'ASC') {
 		$new_sort_direction = 'DESC';
@@ -967,9 +985,19 @@ function html_header_sort_checkbox($header_items, $sort_column, $sort_direction,
 		$form_action = get_current_page();
 	}
 
-	print "<thead><tr class='tableHeader'>";
+	$table_visibility = array(
+		'table_id' => $table_id,
+		'columns'  => $header_items
+	);
+
+	print "<thead><tr class='tableHeader' data-columns='" . base64_encode(json_encode($table_visibility)) . "'>";
 
 	foreach ($header_items as $db_column => $display_array) {
+		/* if the column is not visible, don't display it */
+		if (isset($display_array['visible']) && $display_array['visible'] === false) {
+			continue;
+		}
+
 		$isSort = '';
 
 		if (isset($display_array['nohide'])) {
@@ -1100,12 +1128,26 @@ function html_header_sort_checkbox($header_items, $sort_column, $sort_direction,
  * @return void
  */
 function html_header($header_items, $last_item_colspan = 1) {
-	print "<thead><tr class='tableHeader " . (!$last_item_colspan > 1 ? 'tableFixed':'') . "'>";
+	$table_id = basename(get_current_page(), 'php');
+
+	$header_items = form_process_visible_display_text($table_id, $header_items);
+
+	$table_visibility = array(
+		'table_id' => $table_id,
+		'columns'  => $header_items
+	);
+
+	print "<thead><tr class='tableHeader " . (!$last_item_colspan > 1 ? 'tableFixed':'') . "' data-columns='" . base64_encode(json_encode($table_visibility)) . "'>";
 
 	$i = 0;
 
 	foreach ($header_items as $item) {
 		if (is_array($item)) {
+			/* if the column is not visible, don't display it */
+			if (isset($display_array['visible']) && $display_array['visible'] === false) {
+				continue;
+			}
+
 			if (isset($item['nohide'])) {
 				$nohide = 'nohide';
 			} else {
@@ -1171,15 +1213,29 @@ function html_section_header($header_item, $last_item_colspan = 1) {
  * @return void
  */
 function html_header_checkbox($header_items, $include_form = true, $form_action = '', $resizable = true, $prefix = 'chk') {
+	$table_id = basename(get_current_page(), 'php');
+
+	$header_items = form_process_visible_display_text($table_id, $header_items);
+
 	/* default to the 'current' file */
 	if ($form_action == '') {
 		$form_action = get_current_page();
 	}
 
-	print "<thead><tr class='tableHeader " . (!$resizable ? 'tableFixed':'') . "'>";
+	$table_visibility = array(
+		'table_id' => $table_id,
+		'columns'  => $header_items
+	);
+
+	print "<thead><tr class='tableHeader " . (!$resizable ? 'tableFixed':'') . "' data-columns='" . base64_encode(json_encode($table_visibility)) . "'>";
 
 	foreach ($header_items as $item) {
 		if (is_array($item)) {
+			/* if the column is not visible, don't display it */
+			if (isset($display_array['visible']) && $display_array['visible'] === false) {
+				continue;
+			}
+
 			if (isset($item['nohide'])) {
 				$nohide = 'nohide';
 			} else {

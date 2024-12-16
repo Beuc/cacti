@@ -181,7 +181,7 @@ function form_alternate_row_color($row_color1, $row_color2, $row_value, $row_id 
 
 	return $current_color;
 }
-   
+
 /**
  * Generates an HTML table row with alternating classes for styling.
  *
@@ -226,7 +226,7 @@ function form_alternate_row($row_id = '', $light = false, $disabled = false) {
  * @param string $width Optional. The width of the cell. Default is an empty string.
  * @param string $style_or_class Optional. The style or class attribute for the cell. Default is an empty string.
  * @param string $title Optional. The title attribute for the cell. Default is an empty string.
- * 
+ *
  * @return void
  */
 function form_selectable_ecell($contents, $id, $width = '', $style_or_class = '', $title = '') {
@@ -239,13 +239,55 @@ function form_selectable_ecell($contents, $id, $width = '', $style_or_class = ''
  * @param string $contents The content to be placed inside the table cell.
  * @param string $id The ID attribute for the table cell (not used in the function).
  * @param string $width Optional. The width of the table cell. Default is an empty string.
- * @param string $style_or_class Optional. The style or class attribute for the table cell. Default is an empty string.
- *                               If it contains a colon (:), it is treated as a style attribute; otherwise, as a class attribute.
+ * @param string $style_or_class Optional. The style or class attribute for the table cell.
+ *        Default is an empty string. If it contains a colon (:), it is treated as a style
+ *        attribute; otherwise, as a class attribute.
  * @param string $title Optional. The tooltip text for the table cell. Default is an empty string.
  *
  * @return void
  */
 function form_selectable_cell($contents, $id, $width = '', $style_or_class = '', $title = '') {
+	global $tableCount;
+
+	static $tableColumns = null;
+
+	$table_id = form_get_table_id();
+	if (!isset($tableColumns[$table_id])) {
+		$tableColumns[$table_id] = json_decode(read_user_setting("visible_columns_{$table_id}{$tableCount[$table_id]}"), true);
+	}
+
+	static $col_num = null;
+	static $col_id  = null;
+	static $logged  = null;
+
+	if ($col_num === null) {
+		$col_num = 0;
+		$col_id  = $id;
+	} elseif ($col_id != $id) {
+		$col_num = 0;
+		$col_id  = $id;
+	} else {
+		$col_num++;
+	}
+
+	if (isset($tableColumns[$table_id]) && cacti_sizeof($tableColumns[$table_id])) {
+		$columns = array_keys($tableColumns[$table_id]);
+
+		// Check if the column is visible
+		if (isset($columns[$col_num])) {
+			if ($tableColumns[$table_id][$columns[$col_num]] !== true) {
+				return false;
+			}
+		} elseif (isset($columns["autocol$col_num"])) {
+			if ($tableColumns[$table_id][$columns["autocol$col_num"]] !== true) {
+				return false;
+			}
+		} elseif (!isset($logged[$table_id])) {
+			cacti_log("The table with the Table ID $table_id is not using form_selectable_cell() correctly");
+			$logged[$table_id] = true;
+		}
+	}
+
 	$output = '';
 
 	if ($style_or_class != '') {
@@ -280,6 +322,192 @@ function form_selectable_cell($contents, $id, $width = '', $style_or_class = '',
 	print "\t<td " . $output . '>' . $wrapper . "</td>\n";
 }
 
+function form_get_table_id() {
+	if (isset_request_var('action')) {
+		return basename(get_current_page(), '.php') . ':' . get_request_var('action');
+	} elseif (isset_request_var('tab')) {
+		return basename(get_current_page(), '.php') . ':' . get_request_var('tab');
+	} else {
+		return basename(get_current_page(), '.php');
+	}
+}
+
+/**
+ * Format's a table row such that it can be highlighted using cacti's js actions
+ *
+ * @param string $contents       The content to be placed inside the table cell.
+ * @param string $tableid        The ID attribute for the table cell (not used in the function).
+ * @param string $columnid       Optional. The width of the table cell. Default is an empty string.
+ * @param string $style_or_class Optional. The style or class attribute for the table cell.
+ *        Default is an empty string. If it contains a colon (:), it is treated as a style
+ *        attribute; otherwise, as a class attribute.
+ * @param string $title          Optional. The tooltip text for the table cell. Default is an empty string.
+ *
+ * @return void
+ */
+function form_selectable_vcell($contents, $table_id = '', $columnid = '', $style_or_class = '', $title = '') {
+	global $tableCount;
+
+	static $tableColumns = null;
+
+	if ($table_id == '') {
+		$table_id = form_get_table_id();
+	}
+
+	if (!isset($tableColumns[$table_id])) {
+		$tableColumns[$table_id] = json_decode(read_user_setting("visible_columns_{$table_id}{$tableCount[$table_id]}"), true);
+	}
+
+	if (isset($tableColumns[$table_id]) && cacti_sizeof($tableColumns[$table_id])) {
+		if (!$tableColumns[$table_id][$columnid]) {
+			return false;
+		}
+	}
+
+	$output = '';
+
+	if ($style_or_class != '') {
+		if (strpos($style_or_class, ':') === false) {
+			$output = "class='nowrap " . $style_or_class . "'";
+
+			if ($width != '') {
+				$output .= " style='width:$width;'";
+			}
+		} else {
+			$output = "class='nowrap' style='" . $style_or_class;
+
+			if ($width != '') {
+				$output .= ";width:$width;";
+			}
+			$output .= "'";
+		}
+	} else {
+		$output = 'class="nowrap"';
+
+		if ($width != '') {
+			$output .= " style='width:$width;'";
+		}
+	}
+
+	if ($title != '') {
+		$wrapper = "<span class='cactiTooltipHint' style='padding:0px;margin:0px;' title='" . str_replace(array('"', "'"), '', $title) . "'>" . $contents . '</span>';
+	} else {
+		$wrapper = $contents;
+	}
+
+	print "\t<td " . $output . '>' . $wrapper . "</td>\n";
+}
+
+function form_process_visible_display_text($table_id, $display_text) {
+	global $tableCount;
+
+	static $tableColumns = null;
+
+	/* we have to support more than one table per page
+	 * so maintain a column count per page and store settings
+	 * accordingly.
+	 */
+	$table_id = form_get_table_id();
+
+	if (!isset($tableColumns[$table_id])) {
+		$tableCount[$table_id]   = 0;
+		$tableColumns[$table_id] = json_decode(read_user_setting("visible_columns_{$table_id}{$tableCount[$table_id]}"), true);
+	} else {
+		$tableCount[$table_id]++;
+		$tableColumns[$table_id] = json_decode(read_user_setting("visible_columns_{$table_id}{$tableCount[$table_id]}"), true);
+	}
+
+	if (isset_request_var('columns_add')) {
+		$columns = get_nfilter_request_var('columns_add');
+
+		if (is_array($columns)) {
+			foreach($columns as $column) {
+				if (isset($tableCount[$table_id][$column])) {
+					$tableColumns[$table_id][$column] = true;
+				}
+			}
+		} else {
+			$tableColumns[$table_id][$columns] = true;
+		}
+	}
+
+	if (isset_request_var('columns_remove')) {
+		$columns = get_nfilter_request_var('columns_remove');
+
+		if (is_array($columns)) {
+			foreach($columns as $column) {
+				if (isset($tableCount[$table_id][$column])) {
+					$tableColumns[$table_id][$column] = false;
+				}
+			}
+		} else {
+			$tableColumns[$table_id][$columns] = false;
+		}
+	}
+
+	if (!cacti_sizeof($tableColumns[$table_id])) {
+		$initialize = true;
+	} else {
+		$initialize = false;
+	}
+
+	$return_array = array();
+	$coldata      = array();
+
+	if (cacti_sizeof($display_text)) {
+		foreach($display_text as $id => $column) {
+			// Convert the array to a standard array
+			if (!isset($column['display'])) {
+				$id = "autocol$id";
+
+				if (is_array($column)) {
+					$return_array[$id]['display'] = $column[0];
+					$return_array[$id]['align']   = $column[1];
+				} else {
+					$return_array[$id]['display'] = $column;
+				}
+			} else {
+				if (is_numeric($id)) {
+					$id = "autocol$id";
+				}
+
+				$return_array[$id] = $column;
+			}
+
+			if (isset($tableColumns[$table_id][$id]) && $tableColumns[$table_id][$id] == true) {
+				$return_array[$id]['visible'] = true;
+				$coldata[$id] = true;
+			} elseif (isset($column['nohide']) && $column['nohide'] === true) {
+				$return_array[$id]['visible'] = true;
+				$coldata[$id] = true;
+			} elseif ($initialize) {
+				if (isset($column['default'])) {
+					if ($column['default'] === true) {
+						$return_array[$id]['visible'] = true;
+						$coldata[$id] = true;
+					} else {
+						$return_array[$id]['visible'] = false;
+						$coldata[$id] = false;
+					}
+				} else {
+					$return_array[$id]['visible'] = true;
+					$coldata[$id] = true;
+				}
+			} else {
+				$return_array[$id]['visible'] = false;
+				$coldata[$id] = false;
+			}
+		}
+	}
+
+	if ($initialize) {
+		set_user_setting("visible_columns_{$table_id}{$tableCount[$table_id]}", json_encode($coldata));
+	}
+
+	return $return_array;
+}
+
+
 /**
  * Format's a tables checkbox form element so that the cacti js actions work on it
  *
@@ -287,7 +515,7 @@ function form_selectable_cell($contents, $id, $width = '', $style_or_class = '',
  * @param string $id The unique identifier for the checkbox input element.
  * @param bool $disabled Optional. Whether the checkbox should be disabled. Default is false.
  * @param bool $checked Optional. Whether the checkbox should be checked. Default is false.
- * 
+ *
  * @return void
  */
 function form_checkbox_cell($title, $id, $disabled = false, $checked = false) {
@@ -312,7 +540,7 @@ function form_end_row() {
  * otherwise it returns false.
  *
  * @param string $html_boolean The string representation of a boolean value.
- * 
+ *
  * @return bool Returns true if the input string is 'on', otherwise false.
  */
 function html_boolean($html_boolean) {
@@ -864,7 +1092,7 @@ function validate_store_request_vars(array $filters, string $sess_prefix = ''):v
  * special handling for IP addresses.
  *
  * @param bool $inplace If true, updates the order string in place using the current session data.
- * 
+ *
  * @return void
  */
 function update_order_string($inplace = false) {
@@ -975,7 +1203,7 @@ function get_order_string() {
  * removes the column from the sort data and updates the order string.
  *
  * @param string $column The name of the column to be removed from the order string.
- * 
+ *
  * @return void
  */
 function remove_column_from_order_string($column) {
@@ -1023,7 +1251,7 @@ function get_order_string_page() {
  * and disallowing the use of the semicolon character.
  *
  * @param string $regex The regular expression to validate.
- * 
+ *
  * @return mixed Returns true if the regular expression is valid, otherwise returns an error message.
  */
 function validate_is_regex($regex) {
@@ -1092,7 +1320,7 @@ function validate_is_regex($regex) {
  * @param string $request_var_name The name of the request variable to check.
  * @param string $session_var_name The name of the session variable to store the value.
  * @param mixed $default_value The default value to set if neither the request nor session variable is set.
- * 
+ *
  * @return void
  */
 function load_current_session_value($request_var_name, $session_var_name, $default_value) {
@@ -1207,8 +1435,8 @@ function get_current_graph_end() {
  * text is included within a span element that is initially hidden.
  *
  * @param string $text The text to be displayed inside the tooltip.
- * 
- * @return string The HTML string for the tooltip element if text is provided, 
+ *
+ * @return string The HTML string for the tooltip element if text is provided,
  *                otherwise an empty string.
  */
 function display_tooltip($text) {
@@ -1229,7 +1457,7 @@ function display_tooltip($text) {
  * @param string $url The base URL for the pagination links.
  * @param string $page_var The query parameter name for the page number (default is 'page').
  * @param string $return_to The ID of the HTML element to update with the new page content (default is '').
- * 
+ *
  * @return string The HTML for the pagination control.
  */
 function get_page_list($current_page, $pages_per_screen, $rows_per_page, $total_rows, $url, $page_var = 'page', $return_to = '') {

@@ -399,6 +399,7 @@ function display_discovery_page() {
 			form_selectable_cell($status[$host['up']], $host['id'], '', 'text-align:right');
 			form_selectable_cell(substr($host['mytime'],0,16), $host['id'], '', 'text-align:right');
 			form_checkbox_cell($host['ip'], $host['id']);
+
 			form_end_row();
 		}
 	} else {
