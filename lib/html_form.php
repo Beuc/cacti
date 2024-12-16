@@ -1809,13 +1809,17 @@ function form_save_button($cancel_url, $force_type = '', $key_field = 'id', $aja
  * data   - A JSON encoded structure of post or get data
  *
  * @param array $buttons - an array of 'id', 'value', 'method', 'type'
+ * @param string $cancel_url - A url to return to when the user hit's cancel
+ * @param string $force_type - For the type of the button to this
+ * @param string $key_field  - The id of the key field.
  * @param bool $ajax     - handle the return with ajax or a page load
- * @param string $url    - provide a custom cancel url
  *
  * @return void
  */
-function form_save_buttons($buttons, $ajax = true, $url = '') {
-	if ($url == '') {
+function form_save_buttons($buttons, $cancel_url = '', $force_type = '', $key_field = 'id', $ajax = true) {
+	$calt = __('Cancel');
+
+	if ($cancel_url == '') {
 		if (isset($_SERVER['HTTP_REFERER'])) {
 			$url_components = parse_url($_SERVER['HTTP_REFERER']);
 			$cancel_url = $url_components['path'];
@@ -1827,6 +1831,34 @@ function form_save_buttons($buttons, $ajax = true, $url = '') {
 		$cancel_url = $url_components['path'];
 	}
 
+	if (empty($force_type) || $force_type == 'return') {
+		if (isempty_request_var($key_field)) {
+			$alt = __esc('Create');
+		} else {
+			$alt = __esc('Save');
+			if ($force_type != '') {
+				$calt   = __esc('Return');
+			} else {
+				$calt   = __esc('Cancel');
+			}
+		}
+	} elseif ($force_type == 'save') {
+		$alt = __esc('Save');
+	} elseif ($force_type == 'create') {
+		$alt = __esc('Create');
+	} elseif ($force_type == 'close') {
+		$alt = __esc('Close');
+	} elseif ($force_type == 'import') {
+		$alt = __esc('Import');
+	} elseif ($force_type == 'export') {
+		$alt = __esc('Export');
+	}
+	if ($force_type != 'import' && $force_type != 'export' && $force_type != 'save' && $force_type != 'close' && $cancel_url != '') {
+		$cancel_action = "<input type='button' class='ui-button ui-corner-all ui-widget' onClick='cactiReturnTo(\"" . html_escape($cancel_url, ENT_QUOTES) . "\")' value='" . $calt . "'>";
+	} else {
+		$cancel_action = '';
+	}
+
 	?>
 	<table class='cactiTable saveRowParent'>
 		<tr>
@@ -1834,6 +1866,7 @@ function form_save_buttons($buttons, $ajax = true, $url = '') {
 				<input type='hidden' name='action' value='save'>
 				<?php foreach ($buttons as $b) {
 					$type = 'button';
+
 					if (isset($b['type']) && $b['type'] == 'submit') {
 						$type = 'submit';
 					}
