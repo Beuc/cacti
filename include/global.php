@@ -357,7 +357,7 @@ if ($config['poller_id'] > 1 || isset($rdatabase_hostname)) {
 		$database_ssl_cert   = $rdatabase_ssl_cert;
 		$database_ssl_ca     = $rdatabase_ssl_ca;
 		$database_ssl_capath = $rdatabase_ssl_capath;
-		$database_ssl_verify_server_cert = $rdatabase_verify_server_cert;
+		$database_ssl_verify_server_cert = $rdatabase_ssl_verify_server_cert;
 	} elseif (is_object($remote_db_cnn_id)) {
 		if ($config['connection'] != 'recovery') {
 			$config['connection'] = 'online';
