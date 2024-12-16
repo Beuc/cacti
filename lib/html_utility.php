@@ -460,14 +460,18 @@ function form_process_visible_display_text($table_id, $display_text) {
 			if (is_numeric($id)) {
 				$id = "autocol$id";
 
-				if (is_array($column)) {
-					$return_array[$id]['display'] = $column[0];
-
-					if (isset($column[1])) {
-						$return_array[$id]['sort']   = $column[1];
-					}
+				if (isset($column['display'])) {
+					$return_array[$id] = $column;
 				} else {
-					$return_array[$id]['display'] = $column;
+					if (is_array($column)) {
+						$return_array[$id]['display'] = $column[0];
+
+						if (isset($column[1])) {
+							$return_array[$id]['sort']   = $column[1];
+						}
+					} else {
+						$return_array[$id]['display'] = $column;
+					}
 				}
 			} elseif (isset($column['display'])) {
 				$return_array[$id] = $column;
