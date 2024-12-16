@@ -708,7 +708,7 @@ function form_actions() {
 					function DownloadStart(url) {
 						document.getElementById("download_iframe").src = url;
 						setTimeout(function() {
-							document.location = "data_source_profiles.php";
+							loadUrl({ url: "data_source_profiles.php" });
 							Pace.stop();
 						}, 500);
 					}

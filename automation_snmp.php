@@ -360,7 +360,7 @@ function form_actions() {
 					function DownloadStart(url) {
 						document.getElementById("download_iframe").src = url;
 						setTimeout(function() {
-							document.location = "automation_snmp.php";
+							loadUrl({ url: "automation_snmp.php" });
 							Pace.stop();
 						}, 500);
 					}

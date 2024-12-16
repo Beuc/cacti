@@ -394,7 +394,7 @@ function automation_tree_rules_form_actions() {
 					function DownloadStart(url) {
 						document.getElementById("download_iframe").src = url;
 						setTimeout(function() {
-							document.location = "automation_tree_rules.php";
+							loadUrl({ url: "automation_tree_rules.php" });
 							Pace.stop();
 						}, 500);
 					}

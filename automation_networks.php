@@ -538,7 +538,7 @@ function form_actions() {
 					function DownloadStart(url) {
 						document.getElementById("download_iframe").src = url;
 						setTimeout(function() {
-							document.location = "automation_networks.php";
+							loadUrl({ url: "automation_networks.php" });
 							Pace.stop();
 						}, 500);
 					}
