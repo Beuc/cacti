@@ -3002,18 +3002,6 @@ class Installer implements JsonSerializable {
 
 		$output .= Installer::sectionNormal('<b>' . __('Default Poller Interval') . '</b>: ' . html_escape($profile));
 
-		if (cacti_sizeof($topts)) {
-			$output .= Installer::sectionNormal('<b>' . __('Device Packages') . '</b>: ' . __('%d Device Packages to be Installed', cacti_sizeof($topts)));
-		} else {
-			$output .= Installer::sectionNormal('<b>' . __('Device Packages') . '</b>: ' . __('No Device Packages to be Installed') . '</b>');
-		}
-
-		if ($opt['install_has_tables'] == 1) {
-			$output .= Installer::sectionNormal('<b>' . __('Table Upgrades') . '</b>: ' . __('%d Tables to be Upgraded', cacti_sizeof($taopts)));
-		} else {
-			$output .= Installer::sectionNormal('<b>' . __('Table Upgrades') . '</b>: ' . __('No Tables to be Upgraded') . '</b>');
-		}
-
 		$output .= '<hr>';
 
 		if ($opt['install_mode'] == Installer::MODE_INSTALL) {
@@ -3037,10 +3025,12 @@ class Installer implements JsonSerializable {
 			}
 		}
 
-		if (cacti_sizeof($topts)) {
-			$output .= '<hr>';
+		$output .= '<hr>';
+		$output .= Installer::sectionTitle(__('Device Packages'));
 
-			$output .= Installer::sectionTitle(__('Device Packages'));
+		if (cacti_sizeof($topts)) {
+			$output .= Installer::sectionNormal('<b>' . __('Device Packages') . '</b>: ' . __('%d Device Packages to be Installed', cacti_sizeof($topts)));
+
 			$output .= Installer::sectionNormal(__('The following Device Packages will be Installed or Upgraded'));
 
 			$output .= '<hr>';
@@ -3048,12 +3038,15 @@ class Installer implements JsonSerializable {
 			foreach($topts as $o) {
 				$output .= Installer::sectionNormal('<b>' . __('Package:') . '</b>: ' . str_replace(array('.xml.gz', '_'), '', $o['value']) . '</b>');
 			}
+		} else {
+			$output .= Installer::sectionNormal('<b>' . __('Device Packages') . '</b>: ' . __('No Device Packages to be Installed') . '</b>');
 		}
 
-		if (cacti_sizeof($taopts)) {
-			$output .= '<hr>';
+		$output .= '<hr>';
+		$output .= Installer::sectionTitle(__('Table Upgrades'));
 
-			$output .= Installer::sectionTitle(__('Table Upgrades'));
+		if (cacti_sizeof($taopts)) {
+			$output .= Installer::sectionNormal('<b>' . __('Table Upgrades') . '</b>: ' . __('%d Tables to be Upgraded', cacti_sizeof($taopts)));
 			$output .= Installer::sectionNormal(__('The following Tables will be Upgraded to InnoDB and Converted to utf8mb4 for performance and internationalization.'));
 
 			$output .= '<hr>';
@@ -3061,6 +3054,8 @@ class Installer implements JsonSerializable {
 			foreach($taopts as $o) {
 				$output .= Installer::sectionNormal('<b>' . __('Table:') . '</b>: ' . html_escape($o['value']) . '</b>');
 			}
+		} else {
+			$output .= Installer::sectionNormal('<b>' . __('Table Upgrades') . '</b>: ' . __('No Tables to be Upgraded') . '</b>');
 		}
 
 		$output .= '<hr>';
