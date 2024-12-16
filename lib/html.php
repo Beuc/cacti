@@ -132,17 +132,13 @@ function html_start_box($title, $width, $div, $cell_padding, $align, $add_text, 
 		if ($help_file !== false && $help_count == 0 && is_realm_allowed(28)) {
 			print "<span class='cactiHelp' title='" . __esc('Get Page Help') . "'><a class='linkOverDark helpPage' data-page='" . html_escape(basename($help_file)) . "' href='#'><i class='far fa-question-circle'></i></a></span>";
 			$help_count++;
-
-			if ($showcols) {
-				print "<span class='cactiFilterColumns' title='" . __esc('Select Columns for Display') . "'><a id='showColumns' href='#'><i class='fa fa-bars'></i></a></span>";
-			}
-		} elseif ($help_count) {
-			if ($showcols) {
-				print "<span class='cactiFilterColumns' title='" . __esc('Select Columns for Display') . "'><a id='showColumns' href='#'><i class='fa fa-bars'></i></a></span>";
-			}
 		}
 
 		if ($add_text != '' && !is_array($add_text)) {
+			if ($showcols) {
+				print "<span class='cactiFilterColumns' title='" . __esc('Select Columns for Display') . "'><a id='showColumns' href='#'><i class='fa fa-bars'></i></a></span>";
+			}
+
 			print "<span class='cactiFilterAdd' title='$add_label'><a class='linkOverDark' href='" . html_escape($add_text) . "'><i class='fa fa-plus'></i></a></span>";
 		} else {
 			if (is_array($add_text)) {
