@@ -2198,7 +2198,7 @@ tr th:last-child .formCheckboxLabel {
 	margin-right: 10px;
 }
 
-.fa-plus, .fa-question-circle {
+.cactiTableButton .fa-plus, .cactiTableButton .fa-question-circle, .cactiTableButton .fa-bars, .cactiTableButton .fa-sort-alpha-down, .cactiTableButton .fa-sort-alpha-up {
 	margin-right: 10px;
 }
 
