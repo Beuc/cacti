@@ -464,7 +464,7 @@ function form_process_visible_display_text($table_id, $display_text) {
 					$return_array[$id]['display'] = $column[0];
 
 					if (isset($column[1])) {
-						$return_array[$id]['align']   = $column[1];
+						$return_array[$id]['sort']   = $column[1];
 					}
 				} else {
 					$return_array[$id]['display'] = $column;
@@ -476,7 +476,7 @@ function form_process_visible_display_text($table_id, $display_text) {
 					$return_array[$id]['display'] = $column[0];
 
 					if (isset($column[1])) {
-						$return_array[$id]['align']   = $column[1];
+						$return_array[$id]['sort']   = $column[1];
 					}
 				} else {
 					$return_array[$id]['display'] = $column;
