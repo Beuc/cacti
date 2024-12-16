@@ -689,55 +689,55 @@ function vdef_edit() {
 function vdef_filter() {
 	global $item_rows;
 
-	html_start_box(__('VDEFs'), '100%', '', '3', 'center', 'vdef.php?action=edit');
+	html_filter_start_box(__('VDEFs'), 'vdef.php?action=edit');
+
 	?>
 	<tr class='even'>
 		<td>
 			<form id='form_vdef' action='vdef.php'>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('VDEFs');?>
-					</td>
-					<td>
-						<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('VDEFs');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-							if (cacti_sizeof($item_rows)) {
-								foreach ($item_rows as $key => $value) {
-									print "<option value='" . $key . "'";
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Search');?>
+						</td>
+						<td>
+							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
+						</td>
+						<td>
+							<?php print __('VDEFs');?>
+						</td>
+						<td>
+							<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('VDEFs');?>'>
+								<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
+								<?php
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print "<option value='" . $key . "'";
 
-									if (get_request_var('rows') == $key) {
-										print ' selected';
-									} print '>' . $value . "</option>";
+										if (get_request_var('rows') == $key) {
+											print ' selected';
+										} print '>' . $value . "</option>";
+									}
 								}
-							}
-	?>
-						</select>
-					</td>
-                    <td>
-						<span>
-							<input type='checkbox' id='has_graphs' <?php print(get_request_var('has_graphs') == 'true' ? 'checked':'');?>>
-                        	<label for='has_graphs'><?php print __('Has Graphs');?></label>
-						</span>
-                    </td>
-					<td>
-						<span>
-							<input type='button' class='ui-button ui-corner-all ui-widget' value='<?php print __esc_x('Button: use filter settings', 'Go');?>' id='refresh'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' value='<?php print __esc_x('Button: reset filter settings', 'Clear');?>' id='clear'>
-						</span>
-					</td>
-				</tr>
-			</table>
+								?>
+							</select>
+						</td>
+						<td>
+							<span>
+								<input type='checkbox' id='has_graphs' <?php print(get_request_var('has_graphs') == 'true' ? 'checked':'');?>>
+								<label for='has_graphs'><?php print __('Has Graphs');?></label>
+							</span>
+						</td>
+						<td>
+							<span>
+								<input type='button' class='ui-button ui-corner-all ui-widget' value='<?php print __esc_x('Button: use filter settings', 'Go');?>' id='refresh'>
+								<input type='button' class='ui-button ui-corner-all ui-widget' value='<?php print __esc_x('Button: reset filter settings', 'Clear');?>' id='clear'>
+							</span>
+						</td>
+					</tr>
+				</table>
 			</form>
 			<script type='text/javascript'>
-
 			function applyFilter() {
 				strURL  = 'vdef.php';
 				strURL += '?filter='+$('#filter').val();
@@ -769,7 +769,6 @@ function vdef_filter() {
 					applyFilter();
 				});
 			});
-
 			</script>
 		</td>
 	</tr>

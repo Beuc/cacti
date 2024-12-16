@@ -528,50 +528,49 @@ function sites() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('Sites'), '100%', '', '3', 'center', 'sites.php?action=edit');
+	html_filter_start_box(__('Sites'), 'sites.php?action=edit');
 
 	?>
 	<tr class='even'>
 		<td>
 			<form id='form_site' action='sites.php'>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('Sites');?>
-					</td>
-					<td>
-						<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Sites');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-							if (cacti_sizeof($item_rows)) {
-								foreach ($item_rows as $key => $value) {
-									print "<option value='" . $key . "'";
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Search');?>
+						</td>
+						<td>
+							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
+						</td>
+						<td>
+							<?php print __('Sites');?>
+						</td>
+						<td>
+							<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Sites');?>'>
+								<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
+								<?php
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print "<option value='" . $key . "'";
 
-									if (get_request_var('rows') == $key) {
+										if (get_request_var('rows') == $key) {
 										print ' selected';
 									} print '>' . html_escape($value) . "</option>\n";
+									}
 								}
-							}
-	?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc('Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
+								?>
+							</select>
+						</td>
+						<td>
+							<span>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc('Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Clear Filters');?>'>
+							</span>
+						</td>
+					</tr>
+				</table>
 			</form>
 			<script type='text/javascript'>
-
 			function applyFilter() {
 				strURL  = 'sites.php';
 				strURL += '?filter='+$('#filter').val();
@@ -598,7 +597,6 @@ function sites() {
 					applyFilter();
 				});
 			});
-
 			</script>
 		</td>
 	</tr>

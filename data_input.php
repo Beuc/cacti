@@ -746,7 +746,7 @@ function data() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('Data Input Methods'), '100%', '', '3', 'center', 'data_input.php?action=edit');
+	html_filter_start_box(__('Data Input Methods'), 'data_input.php?action=edit');
 
 	?>
 	<tr class='even noprint'>
@@ -767,16 +767,18 @@ function data() {
 						<select id='rows' name='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Input Methods');?>'>
 							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
 							<?php
-							if (cacti_sizeof($item_rows) > 0) {
+							if (cacti_sizeof($item_rows)) {
 								foreach ($item_rows as $key => $value) {
 									print "<option value='" . $key . "'";
 
 									if (get_request_var('rows') == $key) {
 										print ' selected';
-									} print '>' . html_escape($value) . "</option>\n";
+									}
+
+									print '>' . html_escape($value) . "</option>";
 								}
 							}
-	?>
+							?>
 						</select>
 					</td>
 					<td>

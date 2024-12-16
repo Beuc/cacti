@@ -926,7 +926,7 @@ function pollers() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('Data Collectors'), '100%', '', '3', 'center', '');
+	html_filter_start_box(__('Data Collectors'));
 
 	?>
 	<tr class='even'>
@@ -967,20 +967,20 @@ function pollers() {
 							<select id='refresh' onChange='applyFilter()'  data-defaultLabel='<?php print __('Refresh');?>'>
 								<?php
 								$frequency = array(
-	5   => __('%d Seconds', 5),
-	10  => __('%d Seconds', 10),
-	20  => __('%d Seconds', 20),
-	30  => __('%d Seconds', 30),
-	45  => __('%d Seconds', 45),
-	60  => __('%d Minute', 1),
-	120 => __('%d Minutes', 2),
-	300 => __('%d Minutes', 5)
+									5   => __('%d Seconds', 5),
+									10  => __('%d Seconds', 10),
+									20  => __('%d Seconds', 20),
+									30  => __('%d Seconds', 30),
+									45  => __('%d Seconds', 45),
+									60  => __('%d Minute', 1),
+									120 => __('%d Minutes', 2),
+									300 => __('%d Minutes', 5)
 								);
 
-	foreach ($frequency as $r => $row) {
-		print "<option value='" . $r . "'" . (isset_request_var('refresh') && $r == get_request_var('refresh') ? ' selected' : '') . '>' . $row . '</option>';
-	}
-	?>
+								foreach ($frequency as $r => $row) {
+									print "<option value='" . $r . "'" . (isset_request_var('refresh') && $r == get_request_var('refresh') ? ' selected' : '') . '>' . $row . '</option>';
+								}
+								?>
 							</select>
 						</td>
 						<td>
@@ -1023,7 +1023,7 @@ function pollers() {
 			</script>
 		</td>
 	</tr>
-<?php
+	<?php
 
 	html_end_box();
 

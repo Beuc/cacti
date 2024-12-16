@@ -851,6 +851,7 @@ function tree_edit($partial = false) {
 		print "</td><td class='treeItemsArea treeItemsAreaSite'>\n";
 
 		html_start_box(__('Available Sites'), '100%', '', '3', 'center', '');
+
 		?>
 		<tr class='even noprint'>
 			<td>
@@ -886,6 +887,7 @@ function tree_edit($partial = false) {
 		print "</td><td class='treeItemsArea treeItemsAreaDevice'>\n";
 
 		html_start_box(__('Available Devices'), '100%', '', '3', 'center', '');
+
 		?>
 		<tr class='even noprint'>
 			<td>
@@ -921,6 +923,7 @@ function tree_edit($partial = false) {
 		print "</td><td class='treeItemsArea treeItemsAreaGraph'>\n";
 
 		html_start_box(__('Available Graphs'), '100%', '', '3', 'center', '');
+
 		?>
 		<tr class='even noprint'>
 			<td>
@@ -2116,7 +2119,7 @@ function tree() {
 		)
 	);
 
-	html_start_box(__('Trees'), '100%', '', '3', 'center', $buttons);
+	html_filter_start_box(__('Trees'), $buttons);
 
 	?>
 	<tr class='even noprint'>

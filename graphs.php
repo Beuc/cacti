@@ -796,7 +796,7 @@ function item_edit() {
 		$header = __esc('Data Sources [%s]', $host['hostname']);
 	}
 
-	html_start_box($header, '100%', '', '3', 'center', '');
+	html_filter_start_box($header);
 
 	?>
 	<tr class='even noprint'>
@@ -2688,13 +2688,13 @@ function graphs() {
 		$header      = __esc('Graph Management [ %s ]', $description);
 	}
 
-	html_start_box($header, '100%', '', '3', 'center', $add_url);
-
 	if (get_request_var('site_id') > 0) {
 		$host_where = 'site_id = ' . get_request_var('site_id');
 	} else {
 		$host_where = '';
 	}
+
+	html_filter_start_box($header, $add_url);
 
 	?>
 	<tr class='even noprint'>

@@ -1287,7 +1287,7 @@ function data_query() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('Data Queries'), '100%', '', '3', 'center', 'data_queries.php?action=edit');
+	html_filter_start_box(__('Data Queries'), 'data_queries.php?action=edit');
 
 	?>
 	<tr class='even noprint'>

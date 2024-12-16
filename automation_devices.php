@@ -570,7 +570,7 @@ function get_discovery_results(&$total_rows = 0, $rows = 0, $export = false) {
 function draw_filter() {
 	global $item_rows, $os_arr, $status_arr, $networks, $actions;
 
-	html_start_box(__('Discovery Filters'), '100%', '', '3', 'center', '');
+	html_filter_start_box(__('Discovery Filters'));
 
 	?>
 	<tr class='even'>

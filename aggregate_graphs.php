@@ -1675,7 +1675,7 @@ function aggregate_items() {
 	</script>
 	<?php
 
-	html_start_box(__('Matching Graphs'), '100%', '', '3', 'center', '');
+	html_filter_start_box(__('Matching Graphs'));
 
 	?>
 	<tr class='even'>

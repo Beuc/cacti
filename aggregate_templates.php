@@ -583,7 +583,7 @@ function aggregate_template() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('Aggregate Templates'), '100%', '', '3', 'center', 'aggregate_templates.php?action=edit');
+	html_filter_start_box(__('Aggregate Templates'), 'aggregate_templates.php?action=edit');
 
 	$filter_html = '<tr class="even">
 		<td>

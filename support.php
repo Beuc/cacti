@@ -220,7 +220,85 @@ function show_database_processes() {
 	?>
 	<tr class='odd'>
 		<td>
-		<form name='form_db_stats'>
+			<form name='form_db_stats'>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Refresh');?>
+						</td>
+						<td>
+							<select id='refresh'>
+								<?php
+								$refresh_intervals = array(
+									1  => __esc('%d Seconds', 1),
+									3  => __esc('%d Seconds', 3),
+									5  => __esc('%d Seconds', 5),
+									10 => __esc('%d Seconds', 10),
+									15 => __esc('%d Seconds', 15),
+									20 => __esc('%d Seconds', 20)
+								);
+
+								foreach ($refresh_intervals as $key => $interval) {
+									print '<option value="' . $key . '"' . (get_filter_request_var('refresh') == $key ? ' selected':'') . '>' . $interval . '</option>';
+								}
+								?>
+							</select>
+						</td>
+						<td>
+							<?php print __('Include Poller');?>
+						</td>
+						<td>
+							<select id='poller'>
+								<?php
+								print '<option value="0"' . (get_filter_request_var('poller') == '0' ? ' selected':'') . '>' . __('No') . '</option>';
+								print '<option value="1"' . (get_filter_request_var('poller') == '1' ? ' selected':'') . '>' . __('Yes') . '</option>';
+								?>
+							</select>
+						</td>
+						<td>
+							<?php print __('Info Length');?>
+						</td>
+						<td>
+							<select id='length'>
+								<?php
+								$chars = array(
+									150  => __esc('%d Chars', 150),
+									180  => __esc('%d Chars', 180),
+									300  => __esc('%d Chars', 300),
+									500  => __esc('%d Chars', 500),
+									1000 => __esc('%d Chars', 1000),
+								);
+
+								foreach ($chars as $key => $interval) {
+									print '<option value="' . $key . '"' . (get_filter_request_var('length') == $key ? ' selected':'') . '>' . $interval . '</option>';
+								}
+								?>
+							</select>
+						</td>
+						<td>
+							<?php print __('Queries');?>
+						</td>
+						<td>
+							<select id='rows' name='rows'>
+								<option value='-1'<?php print (get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
+								<?php
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print '<option value="' . $key . '"' . (get_request_var('rows') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
+									}
+								}
+								?>
+							</select>
+						</td>
+						<td>
+							<span>
+								<input class='ui-button ui-corner-all ui-widget' type='button' id='refreshbtn' value='<?php print __esc('Refresh');?>' title='<?php print __esc('Refresh Values');?>'>
+								<input class='ui-button ui-corner-all ui-widget' type='button' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Reset Refresh');?>'>
+							</span>
+						</td>
+					</tr>
+				</table>
+			</form>
 			<script type='text/javascript'>
 			$(function() {
 				refreshMSeconds=$('#refresh').val()*1000;
@@ -261,84 +339,6 @@ function show_database_processes() {
 				loadUrl({url: strURL});
 			}
 			</script>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Refresh');?>
-					</td>
-					<td>
-						<select id='refresh'>
-							<?php
-							$refresh_intervals = array(
-								1  => __esc('%d Seconds', 1),
-								3  => __esc('%d Seconds', 3),
-								5  => __esc('%d Seconds', 5),
-								10 => __esc('%d Seconds', 10),
-								15 => __esc('%d Seconds', 15),
-								20 => __esc('%d Seconds', 20)
-							);
-
-							foreach ($refresh_intervals as $key => $interval) {
-								print '<option value="' . $key . '"' . (get_filter_request_var('refresh') == $key ? ' selected':'') . '>' . $interval . '</option>';
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<?php print __('Include Poller');?>
-					</td>
-					<td>
-						<select id='poller'>
-							<?php
-							print '<option value="0"' . (get_filter_request_var('poller') == '0' ? ' selected':'') . '>' . __('No') . '</option>';
-							print '<option value="1"' . (get_filter_request_var('poller') == '1' ? ' selected':'') . '>' . __('Yes') . '</option>';
-							?>
-						</select>
-					</td>
-					<td>
-						<?php print __('Info Length');?>
-					</td>
-					<td>
-						<select id='length'>
-							<?php
-							$chars = array(
-								150  => __esc('%d Chars', 150),
-								180  => __esc('%d Chars', 180),
-								300  => __esc('%d Chars', 300),
-								500  => __esc('%d Chars', 500),
-								1000 => __esc('%d Chars', 1000),
-							);
-
-							foreach ($chars as $key => $interval) {
-								print '<option value="' . $key . '"' . (get_filter_request_var('length') == $key ? ' selected':'') . '>' . $interval . '</option>';
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<?php print __('Queries');?>
-					</td>
-					<td>
-						<select id='rows' name='rows'>
-							<option value='-1'<?php print (get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-							if (cacti_sizeof($item_rows)) {
-								foreach ($item_rows as $key => $value) {
-									print '<option value="' . $key . '"' . (get_request_var('rows') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
-								}
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input class='ui-button ui-corner-all ui-widget' type='button' id='refreshbtn' value='<?php print __esc('Refresh');?>' title='<?php print __esc('Refresh Values');?>'>
-							<input class='ui-button ui-corner-all ui-widget' type='button' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Reset Refresh');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-		</form>
 		</td>
 	</tr>
 	<?php
@@ -521,7 +521,68 @@ function show_cacti_processes() {
 	?>
 	<tr class='odd'>
 		<td>
-		<form name='form_processes'>
+			<form name='form_processes'>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Task Type');?>
+						</td>
+						<td>
+							<select id='tasks'>
+								<option value='-1'<?php print (get_request_var('tasks') == '-1' ? ' selected>':'>') . __('All');?></option>
+								<?php
+
+								foreach ($tables as $table => $name) {
+									print '<option value="' . $table . '"' . (get_request_var('tasks') == $table ? ' selected':'') . '>' . $name . '</option>';
+								}
+								?>
+							</select>
+						</td>
+						<td>
+							<?php print __('Refresh');?>
+						</td>
+						<td>
+							<select id='refresh'>
+								<?php
+								$refresh_intervals = array(
+									1  => __esc('%d Seconds', 1),
+									3  => __esc('%d Seconds', 3),
+									5  => __esc('%d Seconds', 5),
+									10 => __esc('%d Seconds', 10),
+									15 => __esc('%d Seconds', 15),
+									20 => __esc('%d Seconds', 20)
+								);
+
+								foreach ($refresh_intervals as $key => $interval) {
+									print '<option value="' . $key . '"' . (get_filter_request_var('refresh') == $key ? ' selected':'') . '>' . $interval . '</option>';
+								}
+								?>
+							</select>
+						</td>
+						<td>
+							<?php print __('Processes');?>
+						</td>
+						<td>
+							<select id='rows' name='rows'>
+								<option value='-1'<?php print (get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
+								<?php
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print '<option value="' . $key . '"' . (get_request_var('rows') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
+									}
+								}
+								?>
+							</select>
+						</td>
+						<td>
+							<span>
+								<input class='ui-button ui-corner-all ui-widget' type='button' id='refreshbtn' value='<?php print __esc('Refresh');?>' title='<?php print __esc('Refresh Values');?>'>
+								<input class='ui-button ui-corner-all ui-widget' type='button' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Reset Refresh');?>'>
+							</span>
+						</td>
+					</tr>
+				</table>
+			</form>
 			<script type='text/javascript'>
 			$(function() {
 				refreshMSeconds=$('#refresh').val()*1000;
@@ -559,67 +620,6 @@ function show_cacti_processes() {
 				loadUrl({url: strURL});
 			}
 			</script>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Task Type');?>
-					</td>
-					<td>
-						<select id='tasks'>
-							<option value='-1'<?php print (get_request_var('tasks') == '-1' ? ' selected>':'>') . __('All');?></option>
-							<?php
-
-							foreach ($tables as $table => $name) {
-								print '<option value="' . $table . '"' . (get_request_var('tasks') == $table ? ' selected':'') . '>' . $name . '</option>';
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<?php print __('Refresh');?>
-					</td>
-					<td>
-						<select id='refresh'>
-							<?php
-							$refresh_intervals = array(
-								1  => __esc('%d Seconds', 1),
-								3  => __esc('%d Seconds', 3),
-								5  => __esc('%d Seconds', 5),
-								10 => __esc('%d Seconds', 10),
-								15 => __esc('%d Seconds', 15),
-								20 => __esc('%d Seconds', 20)
-							);
-
-							foreach ($refresh_intervals as $key => $interval) {
-								print '<option value="' . $key . '"' . (get_filter_request_var('refresh') == $key ? ' selected':'') . '>' . $interval . '</option>';
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<?php print __('Processes');?>
-					</td>
-					<td>
-						<select id='rows' name='rows'>
-							<option value='-1'<?php print (get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-							if (cacti_sizeof($item_rows)) {
-								foreach ($item_rows as $key => $value) {
-									print '<option value="' . $key . '"' . (get_request_var('rows') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
-								}
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input class='ui-button ui-corner-all ui-widget' type='button' id='refreshbtn' value='<?php print __esc('Refresh');?>' title='<?php print __esc('Refresh Values');?>'>
-							<input class='ui-button ui-corner-all ui-widget' type='button' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Reset Refresh');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-		</form>
 		</td>
 	</tr>
 	<?php
@@ -951,7 +951,7 @@ function show_cacti_poller() {
 
 function show_database_tables() {
 	global $local_db_cnn_id;
-	
+
 	/* Get table status */
 	if (POLLER_ID == 1) {
 		$tables = db_fetch_assoc('SELECT *

@@ -236,168 +236,164 @@ function utilities_view_logfile() {
 
 	top_header();
 
-	?>
-	<script type='text/javascript'>
-
-	function purgeLog() {
-		strURL = urlPath+'utilities.php?action=purge_logfile&filename='+$('#filename').val();
-		loadUrl({url:strURL})
-	}
-
-	$(function() {
-		$('#refreshme').click(function() {
-			applyFilter();
-		});
-
-		$('#clear').click(function() {
-			clearFilter();
-		});
-
-		$('#purge').click(function() {
-			purgeLog();
-		});
-
-		$('#form_logfile').submit(function(event) {
-			event.preventDefault();
-			applyFilter();
-		});
-	});
-
-	function applyFilter() {
-		strURL  = urlPath+'utilities.php' +
-			'?tail_lines=' + $('#tail_lines').val() +
-			'&message_type=' + $('#message_type').val() +
-			'&refresh=' + $('#refresh').val() +
-			'&reverse=' + $('#reverse').val() +
-			'&rfilter=' + base64_encode($('#rfilter').val()) +
-			'&filename=' + $('#filename').val() +
-			'&action=view_logfile';
-		refreshMSeconds=$('#refresh').val()*1000;
-		loadUrl({url:strURL})
-	}
-
-	function clearFilter() {
-		strURL  = urlPath+'utilities.php?clear=1';
-		strURL += '&action=view_logfile';
-		loadUrl({url:strURL})
-	}
-	</script>
-	<?php
-
-	html_start_box(__('Log Filters'), '100%', '', '3', 'center', '');
+	html_filter_start_box(__('Log Filters'));
 
 	?>
 	<tr class='even noprint'>
 		<td>
-		<form id='form_logfile' action='utilities.php'>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('File');?>
-					</td>
-					<td>
-						<select id='filename' onChange='applyFilter()' data-defaultLabel='<?php print __('File');?>'>
-							<?php
-							$logFileArray = clog_get_logfiles();
+			<form id='form_logfile' action='utilities.php'>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('File');?>
+						</td>
+						<td>
+							<select id='filename' onChange='applyFilter()' data-defaultLabel='<?php print __('File');?>'>
+								<?php
+								$logFileArray = clog_get_logfiles();
 
-							if (cacti_sizeof($logFileArray)) {
-								foreach ($logFileArray as $logFile) {
-									print "<option value='" . html_escape($logFile) . "'";
+								if (cacti_sizeof($logFileArray)) {
+									foreach ($logFileArray as $logFile) {
+										print "<option value='" . html_escape($logFile) . "'";
 
-									if (get_nfilter_request_var('filename') == $logFile) {
-										print ' selected';
+										if (get_nfilter_request_var('filename') == $logFile) {
+											print ' selected';
+										}
+
+										$logParts = explode('-', $logFile);
+
+										$logDate = cacti_count($logParts) < 2 ? '' : $logParts[1] . (isset($logParts[2]) ? '-' . $logParts[2]:'');
+										$logName = $logParts[0];
+
+										print '>' . html_escape($logName . ($logDate != '' ? ' [' . substr($logDate,4) . ']':'')) . '</option>';
 									}
-
-									$logParts = explode('-', $logFile);
-
-									$logDate = cacti_count($logParts) < 2 ? '' : $logParts[1] . (isset($logParts[2]) ? '-' . $logParts[2]:'');
-									$logName = $logParts[0];
-
-									print '>' . html_escape($logName . ($logDate != '' ? ' [' . substr($logDate,4) . ']':'')) . '</option>';
 								}
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<?php print __('Tail Lines');?>
-					</td>
-					<td>
-						<select id='tail_lines' onChange='applyFilter()' data-defaultLabel='<?php print __('Tail Lines');?>'>
-							<?php
-							foreach ($log_tail_lines as $tail_lines => $display_text) {
-								print "<option value='" . $tail_lines . "'";
+								?>
+							</select>
+						</td>
+						<td>
+							<?php print __('Tail Lines');?>
+						</td>
+						<td>
+							<select id='tail_lines' onChange='applyFilter()' data-defaultLabel='<?php print __('Tail Lines');?>'>
+								<?php
+								foreach ($log_tail_lines as $tail_lines => $display_text) {
+									print "<option value='" . $tail_lines . "'";
 
-								if (get_request_var('tail_lines') == $tail_lines) {
-									print ' selected';
-								} print '>' . $display_text . '</option>';
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='refreshme' value='<?php print __esc_x('Button: use filter settings', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc_x('Button: reset filter settings', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='purge' value='<?php print __esc_x('Button: delete all table entries', 'Purge');?>' title='<?php print __esc('Purge Log');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Type');?>
-					</td>
-					<td>
-						<select id='message_type' onChange='applyFilter()' data-defaultLabel='<?php print __('Type');?>'>
-							<option value='-1'<?php if (get_request_var('message_type') == '-1') {?> selected<?php }?>><?php print __('All');?></option>
-							<option value='1'<?php if (get_request_var('message_type') == '1') {?> selected<?php }?>><?php print __('Stats');?></option>
-							<option value='2'<?php if (get_request_var('message_type') == '2') {?> selected<?php }?>><?php print __('Warnings');?></option>
-							<option value='3'<?php if (get_request_var('message_type') == '3') {?> selected<?php }?>><?php print __('Errors');?></option>
-							<option value='4'<?php if (get_request_var('message_type') == '4') {?> selected<?php }?>><?php print __('Debug');?></option>
-							<option value='5'<?php if (get_request_var('message_type') == '5') {?> selected<?php }?>><?php print __('SQL Calls');?></option>
-						</select>
-					</td>
-					<td>
-						<?php print __('Display Order');?>
-					</td>
-					<td>
-						<select id='reverse' onChange='applyFilter()' data-defaultLabel='<?php print __('Display Order');?>'>
-							<option value='1'<?php if (get_request_var('reverse') == '1') {?> selected<?php }?>><?php print __('Newest First');?></option>
-							<option value='2'<?php if (get_request_var('reverse') == '2') {?> selected<?php }?>><?php print __('Oldest First');?></option>
-						</select>
-					</td>
-					<td>
-						<?php print __('Refresh');?>
-					</td>
-					<td>
-						<select id='refresh' onChange='applyFilter()' data-defaultLabel='<?php print __('Refresh');?>'>
-							<?php
-							foreach ($page_refresh_interval as $seconds => $display_text) {
-								print "<option value='" . $seconds . "'";
+									if (get_request_var('tail_lines') == $tail_lines) {
+										print ' selected';
+									} print '>' . $display_text . '</option>';
+								}
+								?>
+							</select>
+						</td>
+						<td>
+							<span>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='refreshme' value='<?php print __esc_x('Button: use filter settings', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc_x('Button: reset filter settings', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='purge' value='<?php print __esc_x('Button: delete all table entries', 'Purge');?>' title='<?php print __esc('Purge Log');?>'>
+							</span>
+						</td>
+					</tr>
+				</table>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Type');?>
+						</td>
+						<td>
+							<select id='message_type' onChange='applyFilter()' data-defaultLabel='<?php print __('Type');?>'>
+								<option value='-1'<?php if (get_request_var('message_type') == '-1') {?> selected<?php }?>><?php print __('All');?></option>
+								<option value='1'<?php if (get_request_var('message_type') == '1') {?> selected<?php }?>><?php print __('Stats');?></option>
+								<option value='2'<?php if (get_request_var('message_type') == '2') {?> selected<?php }?>><?php print __('Warnings');?></option>
+								<option value='3'<?php if (get_request_var('message_type') == '3') {?> selected<?php }?>><?php print __('Errors');?></option>
+								<option value='4'<?php if (get_request_var('message_type') == '4') {?> selected<?php }?>><?php print __('Debug');?></option>
+								<option value='5'<?php if (get_request_var('message_type') == '5') {?> selected<?php }?>><?php print __('SQL Calls');?></option>
+							</select>
+						</td>
+						<td>
+							<?php print __('Display Order');?>
+						</td>
+						<td>
+							<select id='reverse' onChange='applyFilter()' data-defaultLabel='<?php print __('Display Order');?>'>
+								<option value='1'<?php if (get_request_var('reverse') == '1') {?> selected<?php }?>><?php print __('Newest First');?></option>
+								<option value='2'<?php if (get_request_var('reverse') == '2') {?> selected<?php }?>><?php print __('Oldest First');?></option>
+							</select>
+						</td>
+						<td>
+							<?php print __('Refresh');?>
+						</td>
+						<td>
+							<select id='refresh' onChange='applyFilter()' data-defaultLabel='<?php print __('Refresh');?>'>
+								<?php
+								foreach ($page_refresh_interval as $seconds => $display_text) {
+									print "<option value='" . $seconds . "'";
 
-								if (get_request_var('refresh') == $seconds) {
-									print ' selected';
-								} print '>' . $display_text . '</option>';
-							}
-							?>
-						</select>
-					</td>
-				</tr>
-			</table>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='rfilter' size='75' value='<?php print html_escape_request_var('rfilter');?>'>
-					</td>
-				</tr>
-			</table>
-			<input type='hidden' name='action' value='view_logfile'>
-		</form>
+									if (get_request_var('refresh') == $seconds) {
+										print ' selected';
+									} print '>' . $display_text . '</option>';
+								}
+								?>
+							</select>
+						</td>
+					</tr>
+				</table>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Search');?>
+						</td>
+						<td>
+							<input type='text' class='ui-state-default ui-corner-all' id='rfilter' size='75' value='<?php print html_escape_request_var('rfilter');?>'>
+						</td>
+					</tr>
+				</table>
+				<input type='hidden' name='action' value='view_logfile'>
+			</form>
+			<script type='text/javascript'>
+			function purgeLog() {
+				strURL = urlPath+'utilities.php?action=purge_logfile&filename='+$('#filename').val();
+				loadUrl({url:strURL})
+			}
+
+			$(function() {
+				$('#refreshme').click(function() {
+					applyFilter();
+				});
+
+				$('#clear').click(function() {
+					clearFilter();
+				});
+
+				$('#purge').click(function() {
+					purgeLog();
+				});
+
+				$('#form_logfile').submit(function(event) {
+					event.preventDefault();
+					applyFilter();
+				});
+			});
+
+			function applyFilter() {
+				strURL  = urlPath+'utilities.php' +
+					'?tail_lines=' + $('#tail_lines').val() +
+					'&message_type=' + $('#message_type').val() +
+					'&refresh=' + $('#refresh').val() +
+					'&reverse=' + $('#reverse').val() +
+					'&rfilter=' + base64_encode($('#rfilter').val()) +
+					'&filename=' + $('#filename').val() +
+					'&action=view_logfile';
+				refreshMSeconds=$('#refresh').val()*1000;
+				loadUrl({url:strURL})
+			}
+
+			function clearFilter() {
+				strURL  = urlPath+'utilities.php?clear=1';
+				strURL += '&action=view_logfile';
+				loadUrl({url:strURL})
+			}
+			</script>
 		</td>
 	</tr>
 	<?php
@@ -593,138 +589,138 @@ function utilities_view_snmp_cache() {
 
 	set_page_refresh($refresh);
 
-	?>
-	<script type="text/javascript">
-
-	function applyFilter() {
-		strURL  = urlPath+'utilities.php?host_id=' + $('#host_id').val();
-		strURL += '&snmp_query_id=' + $('#snmp_query_id').val();
-		if ($('#with_index').is(':checked')) {
-			strURL += '&with_index=1';
-		} else {
-			strURL += '&with_index=0';
-		}
-		strURL += '&filter=' + $('#filter').val();
-		strURL += '&rows=' + $('#rows').val();
-		strURL += '&action=view_snmp_cache';
-		loadUrl({url:strURL})
-	}
-
-	function clearFilter() {
-		strURL = urlPath+'utilities.php?action=view_snmp_cache&clear=1';
-		loadUrl({url:strURL})
-	}
-
-	$(function() {
-		$('#refresh').click(function() {
-			applyFilter();
-		});
-
-		$('#clear').click(function() {
-			clearFilter();
-		});
-
-		$('#form_snmpcache').submit(function(event) {
-			event.preventDefault();
-			applyFilter();
-		});
-	});
-	</script>
-	<?php
-
-	html_start_box(__('Data Query Cache Items'), '100%', '', '3', 'center', '');
+	html_filter_start_box(__('Data Query Cache Items'));
 
 	?>
 	<tr class='even noprint'>
 		<td>
-		<form id='form_snmpcache' action='utilities.php'>
-			<table class='filterTable'>
-				<tr>
-					<?php print html_host_filter(get_request_var('host_id'));?>
-					<td>
-						<?php print __('Query Name');?>
-					</td>
-					<td>
-						<select id='snmp_query_id' onChange='applyFilter()'  data-defaultLabel='<?php print __('Query Name');?>'>
-							<option value='-1'<?php if (get_request_var('host_id') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
-							<?php
-							if (get_request_var('host_id') == -1) {
-								$snmp_queries = db_fetch_assoc('SELECT DISTINCT sq.id, sq.name
-									FROM host_snmp_cache AS hsc
-									INNER JOIN snmp_query AS sq
-									ON hsc.snmp_query_id = sq.id
-									INNER JOIN host AS h
-									ON hsc.host_id = h.id
-									ORDER by sq.name');
-							} else {
-								$snmp_queries = db_fetch_assoc_prepared('SELECT DISTINCT sq.id, sq.name
-									FROM host_snmp_cache AS hsc
-									INNER JOIN snmp_query AS sq
-									ON hsc.snmp_query_id = sq.id
-									INNER JOIN host AS h
-									ON hsc.host_id = h.id
-									WHERE h.id = ?
-									ORDER by sq.name',
-									array(get_request_var('host_id')));
-							}
-
-							if (cacti_sizeof($snmp_queries)) {
-								foreach ($snmp_queries as $snmp_query) {
-									print "<option value='" . $snmp_query['id'] . "'";
-
-									if (get_request_var('snmp_query_id') == $snmp_query['id']) {
-										print ' selected';
-									} print '>' . html_escape($snmp_query['name']) . '</option>';
+			<form id='form_snmpcache' action='utilities.php'>
+				<table class='filterTable'>
+					<tr>
+						<?php print html_host_filter(get_request_var('host_id'));?>
+						<td>
+							<?php print __('Query Name');?>
+						</td>
+						<td>
+							<select id='snmp_query_id' onChange='applyFilter()'  data-defaultLabel='<?php print __('Query Name');?>'>
+								<option value='-1'<?php if (get_request_var('host_id') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
+								<?php
+								if (get_request_var('host_id') == -1) {
+									$snmp_queries = db_fetch_assoc('SELECT DISTINCT sq.id, sq.name
+										FROM host_snmp_cache AS hsc
+										INNER JOIN snmp_query AS sq
+										ON hsc.snmp_query_id = sq.id
+										INNER JOIN host AS h
+										ON hsc.host_id = h.id
+										ORDER by sq.name');
+								} else {
+									$snmp_queries = db_fetch_assoc_prepared('SELECT DISTINCT sq.id, sq.name
+										FROM host_snmp_cache AS hsc
+										INNER JOIN snmp_query AS sq
+										ON hsc.snmp_query_id = sq.id
+										INNER JOIN host AS h
+										ON hsc.host_id = h.id
+										WHERE h.id = ?
+										ORDER by sq.name',
+										array(get_request_var('host_id')));
 								}
-							}
-	?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='submit' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc_x('Button: use filter settings', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc_x('Button: reset filter settings', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('Rows');?>
-					</td>
-					<td>
-						<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Rows');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-	if (cacti_sizeof($item_rows)) {
-		foreach ($item_rows as $key => $value) {
-			print "<option value='" . $key . "'";
 
-			if (get_request_var('rows') == $key) {
-				print ' selected';
-			} print '>' . html_escape($value) . '</option>';
-		}
-	}
-	?>
-						</select>
-					</td>
-					<td>
-						<input type='checkbox' id='with_index' onChange='applyFilter()' title='<?php print __esc('Allow the search term to include the index column');?>' <?php if (get_request_var('with_index') == 1) {
-							print ' checked ';
-						}?>>
-						<label for='with_index'><?php print __('Include Index') ?></label>
-					</td>
-				</tr>
-			</table>
-			<input type='hidden' name='action' value='view_snmp_cache'>
-		</form>
+								if (cacti_sizeof($snmp_queries)) {
+									foreach ($snmp_queries as $snmp_query) {
+										print "<option value='" . $snmp_query['id'] . "'";
+
+										if (get_request_var('snmp_query_id') == $snmp_query['id']) {
+											print ' selected';
+										} print '>' . html_escape($snmp_query['name']) . '</option>';
+									}
+								}
+		?>
+							</select>
+						</td>
+						<td>
+							<span>
+								<input type='submit' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc_x('Button: use filter settings', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc_x('Button: reset filter settings', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
+							</span>
+						</td>
+					</tr>
+				</table>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Search');?>
+						</td>
+						<td>
+							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
+						</td>
+						<td>
+							<?php print __('Rows');?>
+						</td>
+						<td>
+							<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Rows');?>'>
+								<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
+								<?php
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print "<option value='" . $key . "'";
+
+										if (get_request_var('rows') == $key) {
+											print ' selected';
+										}
+
+										print '>' . html_escape($value) . '</option>';
+									}
+								}
+								?>
+							</select>
+						</td>
+						<td>
+							<input type='checkbox' id='with_index' onChange='applyFilter()' title='<?php print __esc('Allow the search term to include the index column');?>' <?php if (get_request_var('with_index') == 1) {
+								print ' checked ';
+							}?>>
+							<label for='with_index'><?php print __('Include Index') ?></label>
+						</td>
+					</tr>
+				</table>
+				<input type='hidden' name='action' value='view_snmp_cache'>
+			</form>
+			<script type="text/javascript">
+			function applyFilter() {
+				strURL  = urlPath+'utilities.php?host_id=' + $('#host_id').val();
+				strURL += '&snmp_query_id=' + $('#snmp_query_id').val();
+
+				if ($('#with_index').is(':checked')) {
+					strURL += '&with_index=1';
+				} else {
+					strURL += '&with_index=0';
+				}
+
+				strURL += '&filter=' + $('#filter').val();
+				strURL += '&rows=' + $('#rows').val();
+				strURL += '&action=view_snmp_cache';
+				loadUrl({url:strURL})
+			}
+
+			function clearFilter() {
+				strURL = urlPath+'utilities.php?action=view_snmp_cache&clear=1';
+				loadUrl({url:strURL})
+			}
+
+			$(function() {
+				$('#refresh').click(function() {
+					applyFilter();
+				});
+
+				$('#clear').click(function() {
+					clearFilter();
+				});
+
+				$('#form_snmpcache').submit(function(event) {
+					event.preventDefault();
+					applyFilter();
+				});
+			});
+			</script>
 		</td>
 	</tr>
 	<?php
@@ -899,42 +895,6 @@ function utilities_view_poller_cache() {
 
 	set_page_refresh($refresh);
 
-	?>
-	<script type='text/javascript'>
-
-	function applyFilter() {
-		strURL  = urlPath+'utilities.php?poller_action=' + $('#poller_action').val();
-		strURL += '&action=view_poller_cache';
-		strURL += '&host_id=' + $('#host_id').val();
-		strURL += '&template_id=' + $('#template_id').val();
-		strURL += '&filter=' + $('#filter').val();
-		strURL += '&rows=' + $('#rows').val();
-		strURL += '&status=' + $('#status').val();
-		loadUrl({url:strURL})
-	}
-
-	function clearFilter() {
-		strURL = urlPath+'utilities.php?action=view_poller_cache&clear=1';
-		loadUrl({url:strURL})
-	}
-
-	$(function() {
-		$('#refresh').click(function() {
-			applyFilter();
-		});
-
-		$('#clear').click(function() {
-			clearFilter();
-		});
-
-		$('#form_pollercache').submit(function(event) {
-			event.preventDefault();
-			applyFilter();
-		});
-	});
-	</script>
-	<?php
-
 	$running = is_process_running('pushout', 'rmaster', 0);
 
 	switch($running) {
@@ -960,107 +920,142 @@ function utilities_view_poller_cache() {
 			break;
 	}
 
-
 	?>
 	<tr class='even noprint'>
 		<td>
-		<form id='form_pollercache' action='utilities.php'>
-			<table class='filterTable'>
-				<tr>
-					<?php print html_host_filter(get_request_var('host_id'));?>
-					<td>
-						<?php print __('Template');?>
-					</td>
-					<td>
-						<select id='template_id' onChange='applyFilter()' data-defaultLabel='<?php print __('Template');?>'>
-							<option value='-1'<?php if (get_request_var('template_id') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
-							<option value='0'<?php if (get_request_var('template_id') == '0') {?> selected<?php }?>><?php print __('None');?></option>
-							<?php
-							if (get_request_var('host_id') > 0) {
-								$sql_where = 'WHERE dl.host_id = ' . get_request_var('host_id');
-							} else {
-								$sql_where = '';
-							}
+			<form id='form_pollercache' action='utilities.php'>
+				<table class='filterTable'>
+					<tr>
+						<?php print html_host_filter(get_request_var('host_id'));?>
+						<td>
+							<?php print __('Template');?>
+						</td>
+						<td>
+							<select id='template_id' onChange='applyFilter()' data-defaultLabel='<?php print __('Template');?>'>
+								<option value='-1'<?php if (get_request_var('template_id') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
+								<option value='0'<?php if (get_request_var('template_id') == '0') {?> selected<?php }?>><?php print __('None');?></option>
+								<?php
+								if (get_request_var('host_id') > 0) {
+									$sql_where = 'WHERE dl.host_id = ' . get_request_var('host_id');
+								} else {
+									$sql_where = '';
+								}
 
-							$templates = db_fetch_assoc("SELECT DISTINCT dt.id, dt.name
-								FROM data_template AS dt
-								INNER JOIN data_local AS dl
-								ON dt.id=dl.data_template_id
-								$sql_where
-								ORDER BY name");
+								$templates = db_fetch_assoc("SELECT DISTINCT dt.id, dt.name
+									FROM data_template AS dt
+									INNER JOIN data_local AS dl
+									ON dt.id=dl.data_template_id
+									$sql_where
+									ORDER BY name");
 
-	if (cacti_sizeof($templates)) {
-		foreach ($templates as $template) {
-			print "<option value='" . $template['id'] . "'";
+								if (cacti_sizeof($templates)) {
+									foreach ($templates as $template) {
+										print "<option value='" . $template['id'] . "'";
 
-			if (get_request_var('template_id') == $template['id']) {
-				print ' selected';
-			} print '>' . html_escape($template['name']) . '</option>';
-		}
-	}
-	?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='submit' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc_x('Button: use filter settings', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc_x('Button: reset filter settings', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('Status');?>
-					</td>
-					<td>
-						<select id='status' onChange='applyFilter()' data-defaultLabel='<?php print __('Status');?>'>
-							<option value='-1'<?php if (get_request_var('status') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
-							<option value='1'<?php if (get_request_var('status') == '1') {?> selected<?php }?>><?php print __('Enabled');?></option>
-							<option value='0'<?php if (get_request_var('status') == '0') {?> selected<?php }?>><?php print __('Disabled');?></option>
-						</select>
-					</td>
-					<td>
-						<?php print __('Action');?>
-					</td>
-					<td>
-						<select id='poller_action' onChange='applyFilter()' data-defaultLabel='<?php print __('Action');?>'>
-							<option value='-1'<?php if (get_request_var('poller_action') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
-							<option value='0'<?php if (get_request_var('poller_action') == '0') {?> selected<?php }?>><?php print __('SNMP');?></option>
-							<option value='1'<?php if (get_request_var('poller_action') == '1') {?> selected<?php }?>><?php print __('Script');?></option>
-							<option value='2'<?php if (get_request_var('poller_action') == '2') {?> selected<?php }?>><?php print __('Script Server');?></option>
-						</select>
-					</td>
-					<td>
-						<?php print __('Entries');?>
-					</td>
-					<td>
-						<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Entries');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-	if (cacti_sizeof($item_rows)) {
-		foreach ($item_rows as $key => $value) {
-			print "<option value='" . $key . "'";
+										if (get_request_var('template_id') == $template['id']) {
+											print ' selected';
+										}
 
-			if (get_request_var('rows') == $key) {
-				print ' selected';
-			} print '>' . html_escape($value) . '</option>';
-		}
-	}
-	?>
-						</select>
-					</td>
-				</tr>
-			</table>
-			<input type='hidden' name='action' value='view_poller_cache'>
-		</form>
+										print '>' . html_escape($template['name']) . '</option>';
+									}
+								}
+								?>
+							</select>
+						</td>
+						<td>
+							<span>
+								<input type='submit' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc_x('Button: use filter settings', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc_x('Button: reset filter settings', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
+							</span>
+						</td>
+					</tr>
+				</table>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Search');?>
+						</td>
+						<td>
+							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
+						</td>
+						<td>
+							<?php print __('Status');?>
+						</td>
+						<td>
+							<select id='status' onChange='applyFilter()' data-defaultLabel='<?php print __('Status');?>'>
+								<option value='-1'<?php if (get_request_var('status') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
+								<option value='1'<?php if (get_request_var('status') == '1') {?> selected<?php }?>><?php print __('Enabled');?></option>
+								<option value='0'<?php if (get_request_var('status') == '0') {?> selected<?php }?>><?php print __('Disabled');?></option>
+							</select>
+						</td>
+						<td>
+							<?php print __('Action');?>
+						</td>
+						<td>
+							<select id='poller_action' onChange='applyFilter()' data-defaultLabel='<?php print __('Action');?>'>
+								<option value='-1'<?php if (get_request_var('poller_action') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
+								<option value='0'<?php if (get_request_var('poller_action') == '0') {?> selected<?php }?>><?php print __('SNMP');?></option>
+								<option value='1'<?php if (get_request_var('poller_action') == '1') {?> selected<?php }?>><?php print __('Script');?></option>
+								<option value='2'<?php if (get_request_var('poller_action') == '2') {?> selected<?php }?>><?php print __('Script Server');?></option>
+							</select>
+						</td>
+						<td>
+							<?php print __('Entries');?>
+						</td>
+						<td>
+							<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Entries');?>'>
+								<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
+								<?php
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print "<option value='" . $key . "'";
+
+										if (get_request_var('rows') == $key) {
+											print ' selected';
+										}
+
+										print '>' . html_escape($value) . '</option>';
+									}
+								}
+								?>
+							</select>
+						</td>
+					</tr>
+				</table>
+				<input type='hidden' name='action' value='view_poller_cache'>
+			</form>
+			<script type='text/javascript'>
+			function applyFilter() {
+				strURL  = urlPath+'utilities.php?poller_action=' + $('#poller_action').val();
+				strURL += '&action=view_poller_cache';
+				strURL += '&host_id=' + $('#host_id').val();
+				strURL += '&template_id=' + $('#template_id').val();
+				strURL += '&filter=' + $('#filter').val();
+				strURL += '&rows=' + $('#rows').val();
+				strURL += '&status=' + $('#status').val();
+				loadUrl({url:strURL})
+			}
+
+			function clearFilter() {
+				strURL = urlPath+'utilities.php?action=view_poller_cache&clear=1';
+				loadUrl({url:strURL})
+			}
+
+			$(function() {
+				$('#refresh').click(function() {
+					applyFilter();
+				});
+
+				$('#clear').click(function() {
+					clearFilter();
+				});
+
+				$('#form_pollercache').submit(function(event) {
+					event.preventDefault();
+					applyFilter();
+				});
+			});
+			</script>
 		</td>
 	</tr>
 	<?php
@@ -1880,39 +1875,7 @@ function snmpagent_utilities_run_cache() {
 		$rows = get_request_var('rows');
 	}
 
-	?>
-	<script type='text/javascript'>
-	function applyFilter() {
-		strURL  = 'utilities.php?action=view_snmpagent_cache';
-		strURL += '&mib=' + $('#mib').val();
-		strURL += '&rows=' + $('#rows').val();
-		strURL += '&filter=' + $('#filter').val();
-		loadUrl({url:strURL})
-	}
-
-	function clearFilter() {
-		strURL = 'utilities.php?action=view_snmpagent_cache&clear=1';
-		loadUrl({url:strURL})
-	}
-
-	$(function() {
-		$('#refresh').click(function() {
-			applyFilter();
-		});
-
-		$('#clear').click(function() {
-			clearFilter();
-		});
-
-		$('#form_snmpagent_cache').submit(function(event) {
-			event.preventDefault();
-			applyFilter();
-		});
-	});
-	</script>
-	<?php
-
-	html_start_box(__('SNMP Agent Cache'), '100%', '', '3', 'center', '');
+	html_filter_start_box(__('SNMP Agent Cache'));
 
 	?>
 	<tr class='even noprint'>
@@ -1933,7 +1896,7 @@ function snmpagent_utilities_run_cache() {
 							<select id='mib' onChange='applyFilter()' data-defaultLabel='<?php print __('MIB');?>'>
 								<option value='-1'<?php if (get_request_var('mib') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
 								<?php
-								if (cacti_sizeof($mibs) > 0) {
+								if (cacti_sizeof($mibs)) {
 									foreach ($mibs as $mib) {
 										print "<option value='" . html_escape($mib['mib']) . "'";
 
@@ -1942,7 +1905,7 @@ function snmpagent_utilities_run_cache() {
 										} print '>' . html_escape($mib['mib']) . '</option>';
 									}
 								}
-	?>
+								?>
 							</select>
 						</td>
 						<td>
@@ -1952,16 +1915,18 @@ function snmpagent_utilities_run_cache() {
 							<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('OIDs');?>'>
 								<option value='-1'<?php if (get_request_var('rows') == '-1') {?> selected<?php }?>><?php print __('Default');?></option>
 								<?php
-	if (cacti_sizeof($item_rows)) {
-		foreach ($item_rows as $key => $value) {
-			print "<option value='" . $key . "'";
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print "<option value='" . $key . "'";
 
-			if (get_request_var('rows') == $key) {
-				print ' selected';
-			} print '>' . html_escape($value) . '</option>';
-		}
-	}
-	?>
+										if (get_request_var('rows') == $key) {
+											print ' selected';
+										}
+
+										print '>' . html_escape($value) . '</option>';
+									}
+								}
+								?>
 							</select>
 						</td>
 						<td>
@@ -1973,6 +1938,35 @@ function snmpagent_utilities_run_cache() {
 					</tr>
 				</table>
 			</form>
+			<script type='text/javascript'>
+			function applyFilter() {
+				strURL  = 'utilities.php?action=view_snmpagent_cache';
+				strURL += '&mib=' + $('#mib').val();
+				strURL += '&rows=' + $('#rows').val();
+				strURL += '&filter=' + $('#filter').val();
+				loadUrl({url:strURL})
+			}
+
+			function clearFilter() {
+				strURL = 'utilities.php?action=view_snmpagent_cache&clear=1';
+				loadUrl({url:strURL})
+			}
+
+			$(function() {
+				$('#refresh').click(function() {
+					applyFilter();
+				});
+
+				$('#clear').click(function() {
+					clearFilter();
+				});
+
+				$('#form_snmpagent_cache').submit(function(event) {
+					event.preventDefault();
+					applyFilter();
+				});
+			});
+			</script>
 		</td>
 	</tr>
 	<?php
@@ -2100,26 +2094,26 @@ function snmpagent_utilities_run_eventlog() {
 			'filter'  => FILTER_VALIDATE_INT,
 			'pageset' => true,
 			'default' => '-1'
-			),
+		),
 		'page' => array(
 			'filter'  => FILTER_VALIDATE_INT,
 			'default' => '1'
-			),
+		),
 		'filter' => array(
 			'filter'  => FILTER_DEFAULT,
 			'pageset' => true,
 			'default' => ''
-			),
+		),
 		'severity' => array(
 			'filter'  => FILTER_VALIDATE_INT,
 			'pageset' => true,
 			'default' => '-1'
-			),
+		),
 		'receiver' => array(
 			'filter'  => FILTER_VALIDATE_INT,
 			'pageset' => true,
 			'default' => '-1'
-			)
+		)
 	);
 
 	validate_store_request_vars($filters, 'sess_snmpl');
@@ -2131,49 +2125,7 @@ function snmpagent_utilities_run_eventlog() {
 		$rows = get_request_var('rows');
 	}
 
-	?>
-	<script type='text/javascript'>
-	function applyFilter() {
-		strURL  = 'utilities.php?action=view_snmpagent_events';
-		strURL += '&severity=' + $('#severity').val();
-		strURL += '&receiver=' + $('#receiver').val();
-		strURL += '&rows=' + $('#rows').val();
-		strURL += '&filter=' + $('#filter').val();
-		loadUrl({url:strURL})
-	}
-
-	function clearFilter() {
-		strURL = 'utilities.php?action=view_snmpagent_events&clear=1';
-		loadUrl({url:strURL})
-	}
-
-	function purgeFilter() {
-		strURL = 'utilities.php?action=view_snmpagent_events&purge=1';
-		loadUrl({url:strURL})
-	}
-
-	$(function() {
-		$('#refresh').click(function() {
-			applyFilter();
-		});
-
-		$('#clear').click(function() {
-			clearFilter();
-		});
-
-		$('#purge').click(function() {
-			purgeFilter();
-		});
-
-		$('#form_snmpagent_notifications').submit(function(event) {
-			event.preventDefault();
-			applyFilter();
-		});
-	});
-	</script>
-
-	<?php
-	html_start_box(__('SNMP Agent Notification Log'), '100%', '', '3', 'center', '');
+	html_filter_start_box(__('SNMP Agent Notification Log'));
 
 	?>
 	<tr class='even noprint'>
@@ -2201,7 +2153,7 @@ function snmpagent_utilities_run_eventlog() {
 										print ' selected';
 									} print '>' . html_escape($name) . '</option>';
 								}
-	?>
+								?>
 							</select>
 						</td>
 						<td>
@@ -2211,14 +2163,16 @@ function snmpagent_utilities_run_eventlog() {
 							<select id='receiver' onChange='applyFilter()' data-defaultLabel='<?php print __('Receiver');?>'>
 								<option value='-1'<?php if (get_request_var('receiver') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
 								<?php
-	foreach ($receivers as $receiver) {
-		print "<option value='" . $receiver['manager_id'] . "'";
+								foreach ($receivers as $receiver) {
+									print "<option value='" . $receiver['manager_id'] . "'";
 
-		if (get_request_var('receiver') == $receiver['manager_id']) {
-			print ' selected';
-		} print '>' . html_escape($receiver['hostname']) . '</option>';
-	}
-	?>
+									if (get_request_var('receiver') == $receiver['manager_id']) {
+										print ' selected';
+									}
+
+									print '>' . html_escape($receiver['hostname']) . '</option>';
+								}
+								?>
 							</select>
 						</td>
 						<td>
@@ -2228,16 +2182,18 @@ function snmpagent_utilities_run_eventlog() {
 							<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Entries');?>'>
 								<option value='-1'<?php if (get_request_var('rows') == '-1') {?> selected<?php }?>><?php print __('Default');?></option>
 								<?php
-	if (cacti_sizeof($item_rows)) {
-		foreach ($item_rows as $key => $value) {
-			print "<option value='" . $key . "'";
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print "<option value='" . $key . "'";
 
-			if (get_request_var('rows') == $key) {
-				print ' selected';
-			} print '>' . html_escape($value) . '</option>';
-		}
-	}
-	?>
+										if (get_request_var('rows') == $key) {
+											print ' selected';
+										}
+
+										print '>' . html_escape($value) . '</option>';
+									}
+								}
+								?>
 							</select>
 						</td>
 						<td>
@@ -2250,6 +2206,45 @@ function snmpagent_utilities_run_eventlog() {
 					</tr>
 				</table>
 			</form>
+			<script type='text/javascript'>
+			function applyFilter() {
+				strURL  = 'utilities.php?action=view_snmpagent_events';
+				strURL += '&severity=' + $('#severity').val();
+				strURL += '&receiver=' + $('#receiver').val();
+				strURL += '&rows=' + $('#rows').val();
+				strURL += '&filter=' + $('#filter').val();
+				loadUrl({url:strURL})
+			}
+
+			function clearFilter() {
+				strURL = 'utilities.php?action=view_snmpagent_events&clear=1';
+				loadUrl({url:strURL})
+			}
+
+			function purgeFilter() {
+				strURL = 'utilities.php?action=view_snmpagent_events&purge=1';
+				loadUrl({url:strURL})
+			}
+
+			$(function() {
+				$('#refresh').click(function() {
+					applyFilter();
+				});
+
+				$('#clear').click(function() {
+					clearFilter();
+				});
+
+				$('#purge').click(function() {
+					purgeFilter();
+				});
+
+				$('#form_snmpagent_notifications').submit(function(event) {
+					event.preventDefault();
+					applyFilter();
+				});
+			});
+			</script>
 		</td>
 	</tr>
 	<?php

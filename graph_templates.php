@@ -1568,153 +1568,153 @@ function template() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('Graph Templates'), '100%', '', '3', 'center', 'graph_templates.php?action=template_edit');
+	html_filter_start_box(__('Graph Templates'), 'graph_templates.php?action=template_edit');
 
 	?>
 	<tr class='even noprint'>
 		<td>
-		<form id='form_graph_template' action='graph_templates.php'>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Class');?>
-					</td>
-					<td>
-						<select id='class' data-defaultLabel='<?php print __('Class');?>'>
-							<option value='-1'<?php print (get_request_var('class') == '-1' ? ' selected>':'>') . __('All');?></option>
-							<?php
-							if (cacti_sizeof($graph_template_classes)) {
-								foreach ($graph_template_classes as $key => $value) {
-									print "<option value='" . $key . "'" . (get_request_var('class') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
+			<form id='form_graph_template' action='graph_templates.php'>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Class');?>
+						</td>
+						<td>
+							<select id='class' data-defaultLabel='<?php print __('Class');?>'>
+								<option value='-1'<?php print (get_request_var('class') == '-1' ? ' selected>':'>') . __('All');?></option>
+								<?php
+								if (cacti_sizeof($graph_template_classes)) {
+									foreach ($graph_template_classes as $key => $value) {
+										print "<option value='" . $key . "'" . (get_request_var('class') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
+									}
 								}
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<?php print __('CDEFs');?>
-					</td>
-					<td>
-						<select id='cdef_id' data-defaultLabel='<?php print __('CDEFs');?>'>
-							<option value='-1'<?php if (get_request_var('cdef_id') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
-							<?php
-							$cdefs = db_fetch_assoc('SELECT c.id, c.name
-								FROM cdef AS c
-								INNER JOIN (SELECT DISTINCT cdef_id FROM graph_templates_item WHERE cdef_id > 0) AS gti
-								ON c.id = gti.cdef_id
-								ORDER BY name');
+								?>
+							</select>
+						</td>
+						<td>
+							<?php print __('CDEFs');?>
+						</td>
+						<td>
+							<select id='cdef_id' data-defaultLabel='<?php print __('CDEFs');?>'>
+								<option value='-1'<?php if (get_request_var('cdef_id') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
+								<?php
+								$cdefs = db_fetch_assoc('SELECT c.id, c.name
+									FROM cdef AS c
+									INNER JOIN (SELECT DISTINCT cdef_id FROM graph_templates_item WHERE cdef_id > 0) AS gti
+									ON c.id = gti.cdef_id
+									ORDER BY name');
 
-							if (cacti_sizeof($cdefs)) {
-								foreach ($cdefs as $cdef) {
-									print "<option value='" . $cdef['id'] . "'" . (get_request_var('cdef_id') == $cdef['id'] ? ' selected':'') . '>' . html_escape($cdef['name']) . '</option>';
+								if (cacti_sizeof($cdefs)) {
+									foreach ($cdefs as $cdef) {
+										print "<option value='" . $cdef['id'] . "'" . (get_request_var('cdef_id') == $cdef['id'] ? ' selected':'') . '>' . html_escape($cdef['name']) . '</option>';
+									}
 								}
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<?php print __('VDEFs');?>
-					</td>
-					<td>
-						<select id='vdef_id' data-defaultLabel='<?php print __('VDEFs');?>'>
-							<option value='-1'<?php if (get_request_var('vdef_id') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
-							<?php
-							$vdefs = db_fetch_assoc('SELECT v.id, v.name
-								FROM vdef AS v
-								INNER JOIN (SELECT DISTINCT vdef_id FROM graph_templates_item WHERE vdef_id > 0) AS gti
-								ON v.id = gti.vdef_id
-								ORDER BY name');
+								?>
+							</select>
+						</td>
+						<td>
+							<?php print __('VDEFs');?>
+						</td>
+						<td>
+							<select id='vdef_id' data-defaultLabel='<?php print __('VDEFs');?>'>
+								<option value='-1'<?php if (get_request_var('vdef_id') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
+								<?php
+								$vdefs = db_fetch_assoc('SELECT v.id, v.name
+									FROM vdef AS v
+									INNER JOIN (SELECT DISTINCT vdef_id FROM graph_templates_item WHERE vdef_id > 0) AS gti
+									ON v.id = gti.vdef_id
+									ORDER BY name');
 
-							if (cacti_sizeof($vdefs)) {
-								foreach ($vdefs as $vdef) {
-									print "<option value='" . $vdef['id'] . "'" . (get_request_var('vdef_id') == $vdef['id'] ? ' selected':'') . '>' . html_escape($vdef['name']) . '</option>';
+								if (cacti_sizeof($vdefs)) {
+									foreach ($vdefs as $vdef) {
+										print "<option value='" . $vdef['id'] . "'" . (get_request_var('vdef_id') == $vdef['id'] ? ' selected':'') . '>' . html_escape($vdef['name']) . '</option>';
+									}
 								}
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='checkbox' id='has_graphs' <?php print(get_request_var('has_graphs') == 'true' ? 'checked':'');?>>
-							<label for='has_graphs'><?php print __('Has Graphs');?></label>
-						</span>
-					</td>
-					<td>
-						<span>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc('Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default' id='filter' name='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('Graph Templates');?>
-					</td>
-					<td>
-						<select id='rows' name='rows' data-defaultLabel='<?php print __('Graph Templates');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-							if (cacti_sizeof($item_rows)) {
-								foreach ($item_rows as $key => $value) {
-									print "<option value='" . $key . "'" . (get_request_var('rows') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
+								?>
+							</select>
+						</td>
+						<td>
+							<span>
+								<input type='checkbox' id='has_graphs' <?php print(get_request_var('has_graphs') == 'true' ? 'checked':'');?>>
+								<label for='has_graphs'><?php print __('Has Graphs');?></label>
+							</span>
+						</td>
+						<td>
+							<span>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc('Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Clear Filters');?>'>
+							</span>
+						</td>
+					</tr>
+				</table>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Search');?>
+						</td>
+						<td>
+							<input type='text' class='ui-state-default' id='filter' name='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
+						</td>
+						<td>
+							<?php print __('Graph Templates');?>
+						</td>
+						<td>
+							<select id='rows' name='rows' data-defaultLabel='<?php print __('Graph Templates');?>'>
+								<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
+								<?php
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print "<option value='" . $key . "'" . (get_request_var('rows') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
+									}
 								}
-							}
-							?>
-						</select>
-					</td>
-				</tr>
-			</table>
-		</form>
-		<script type='text/javascript'>
-		var disabled = true;
+								?>
+							</select>
+						</td>
+					</tr>
+				</table>
+			</form>
+			<script type='text/javascript'>
+			var disabled = true;
 
-		function applyFilter() {
-			strURL  = 'graph_templates.php';
-			strURL += '?filter='+$('#filter').val();
-			strURL += '&rows='+$('#rows').val();
-			strURL += '&class='+$('#class').val();
-			strURL += '&cdef_id='+$('#cdef_id').val();
-			strURL += '&vdef_id='+$('#vdef_id').val();
-			strURL += '&has_graphs='+$('#has_graphs').is(':checked');
-			loadUrl({url:strURL})
-		}
+			function applyFilter() {
+				strURL  = 'graph_templates.php';
+				strURL += '?filter='+$('#filter').val();
+				strURL += '&rows='+$('#rows').val();
+				strURL += '&class='+$('#class').val();
+				strURL += '&cdef_id='+$('#cdef_id').val();
+				strURL += '&vdef_id='+$('#vdef_id').val();
+				strURL += '&has_graphs='+$('#has_graphs').is(':checked');
+				loadUrl({url:strURL})
+			}
 
-		function clearFilter() {
-			strURL = 'graph_templates.php?clear=1';
-			loadUrl({url:strURL})
-		}
+			function clearFilter() {
+				strURL = 'graph_templates.php?clear=1';
+				loadUrl({url:strURL})
+			}
 
-		$(function() {
-			$('#refresh').click(function() {
-				applyFilter();
+			$(function() {
+				$('#refresh').click(function() {
+					applyFilter();
+				});
+
+				$('#has_graphs').click(function() {
+					applyFilter();
+				});
+
+				$('#clear').click(function() {
+					clearFilter();
+				});
+
+				$('#rows, #class, #vdef_id, #cdef_id').change(function() {
+					applyFilter();
+				});
+
+				$('#form_graph_template').submit(function(event) {
+					event.preventDefault();
+					applyFilter();
+				});
 			});
-
-			$('#has_graphs').click(function() {
-				applyFilter();
-			});
-
-			$('#clear').click(function() {
-				clearFilter();
-			});
-
-			$('#rows, #class, #vdef_id, #cdef_id').change(function() {
-				applyFilter();
-			});
-
-			$('#form_graph_template').submit(function(event) {
-				event.preventDefault();
-				applyFilter();
-			});
-		});
-		</script>
+			</script>
 		</td>
 	</tr>
 	<?php

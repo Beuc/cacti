@@ -816,7 +816,7 @@ function automation_graph_rules() {
 		}
 	}
 
-	html_start_box(__('Graph Rules'), '100%', '', '3', 'center', 'automation_graph_rules.php?action=edit');
+	html_filter_start_box(__('Graph Rules'), 'automation_graph_rules.php?action=edit');
 
 	?>
 	<tr class='even'>

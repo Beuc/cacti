@@ -103,9 +103,7 @@ function rrdcheck_display_problems() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('RRDfile Checker'), '100%', '', '3', 'center', '');
 	filter();
-	html_end_box();
 
 	$sql_where = 'WHERE ';
 	/* form the 'where' clause for our main sql query */
@@ -216,60 +214,62 @@ function rrdcheck_display_problems() {
 function filter() {
 	global $item_rows;
 
+	html_filter_start_box(__('RRDfile Checker'));
+
 	?>
 	<tr class='even'>
 		<td>
 			<form id='form_rrdcheck' method='get' action='rrdcheck.php'>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('Age');?>
-					</td>
-					<td>
-						<select id='age' onChange='refreshForm()' data-defaultLabel='<?php print __('Age');?>'>
-							<option value='0'   <?php print(get_request_var('age') == '0'   ? ' selected':'');?>>&lt; <?php print __('%d hours', 2);?></option>
-							<option value='14400'   <?php print(get_request_var('age') == '14400'   ? ' selected':'');?>>&gt; <?php print __('%d hours', 4);?></option>
-							<option value='43200'  <?php print(get_request_var('age') == '43200'  ? ' selected':'');?>>&gt;  <?php print __('%d hours',12);?></option>
-							<option value='86400'  <?php print(get_request_var('age') == '86400'  ? ' selected':'');?>>&gt;  <?php print __('%d day', 1);?></option>
-							<option value='259200'  <?php print(get_request_var('age') == '259200'  ? ' selected':'');?>>&gt; <?php print __('%d days', 3);?></option>
-							<option value='604800'  <?php print(get_request_var('age') == '604800'  ? ' selected':'');?>>&gt; <?php print __('%d days', 5);?></option>
-						</select>
-					</td>
-					<td>
-						<?php print __('Messages');?>
-					</td>
-					<td>
-						<select id='rows' data-defaultLabel='<?php print __('Messages');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-							if (cacti_sizeof($item_rows)) {
-								foreach ($item_rows as $key => $value) {
-									print '<option value="' . $key . '"';
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Search');?>
+						</td>
+						<td>
+							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
+						</td>
+						<td>
+							<?php print __('Age');?>
+						</td>
+						<td>
+							<select id='age' onChange='refreshForm()' data-defaultLabel='<?php print __('Age');?>'>
+								<option value='0'   <?php print(get_request_var('age') == '0'   ? ' selected':'');?>>&lt; <?php print __('%d hours', 2);?></option>
+								<option value='14400'   <?php print(get_request_var('age') == '14400'   ? ' selected':'');?>>&gt; <?php print __('%d hours', 4);?></option>
+								<option value='43200'  <?php print(get_request_var('age') == '43200'  ? ' selected':'');?>>&gt;  <?php print __('%d hours',12);?></option>
+								<option value='86400'  <?php print(get_request_var('age') == '86400'  ? ' selected':'');?>>&gt;  <?php print __('%d day', 1);?></option>
+								<option value='259200'  <?php print(get_request_var('age') == '259200'  ? ' selected':'');?>>&gt; <?php print __('%d days', 3);?></option>
+								<option value='604800'  <?php print(get_request_var('age') == '604800'  ? ' selected':'');?>>&gt; <?php print __('%d days', 5);?></option>
+							</select>
+						</td>
+						<td>
+							<?php print __('Messages');?>
+						</td>
+						<td>
+							<select id='rows' data-defaultLabel='<?php print __('Messages');?>'>
+								<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
+								<?php
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print '<option value="' . $key . '"';
 
-									if (get_request_var('rows') == $key) {
-										print ' selected';
-									} print '>' . $value . "</option>\n";
+										if (get_request_var('rows') == $key) {
+											print ' selected';
+										} print '>' . $value . "</option>\n";
+									}
 								}
-							}
-	?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __x('filter: use', 'Go');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __x('filter: reset', 'Clear');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='purge' value='<?php print __x('filter: purge', 'Purge');?>'>
-						</span>
-					</td>
-					<td id='text'></td>
-				</tr>
-			</table>
+								?>
+							</select>
+						</td>
+						<td>
+							<span>
+								<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __x('filter: use', 'Go');?>'>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __x('filter: reset', 'Clear');?>'>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='purge' value='<?php print __x('filter: purge', 'Purge');?>'>
+							</span>
+						</td>
+						<td id='text'></td>
+					</tr>
+				</table>
 			</form>
 			<script type="text/javascript">
 			function refreshForm() {
@@ -304,4 +304,6 @@ function filter() {
 		</td>
 	</tr>
 	<?php
+
+	html_end_box();
 }

@@ -498,7 +498,7 @@ function color() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('Colors'), '100%', '', '3', 'center', 'color.php?action=edit');
+	html_filter_start_box(__('Colors'), 'color.php?action=edit');
 
 	?>
 	<tr class='even'>

@@ -1470,7 +1470,7 @@ function get_device_records(&$total_rows, $rows) {
 
 				if ($sch['mtype'] == 2) {
 					if ($sch['etime'] < $t) {
-						/* convert start and end to local so that hour stays same for 
+						/* convert start and end to local so that hour stays same for
 						add days across daylight saving time change */
 						$starttimelocal = (new DateTime('@' . strval($sch['stime'])))->setTimezone( new DateTimeZone( date_default_timezone_get()));
 						$endtimelocal   = (new DateTime('@' . strval($sch['etime'])))->setTimezone( new DateTimeZone( date_default_timezone_get()));
@@ -1504,7 +1504,7 @@ function get_device_records(&$total_rows, $rows) {
 
 				if ($host_where_status == '-5') {
 					if (cacti_sizeof($maint_device_ids)) {
-						
+
 						$sql_where .= ($sql_where == '' ? ' WHERE ':' AND ') . 'host.id in (' . $maint_devices . ')';
 					} else {
 						$sql_where .= ($sql_where == '' ? ' WHERE ':' AND ') . 'host.id = -1 ';
@@ -1609,7 +1609,7 @@ function host() {
 		$url = 'host.php?action=edit';
 	}
 
-	html_start_box(__('Devices'), '100%', '', '3', 'center', $url);
+	html_filter_start_box(__('Devices'), $url);
 
 	?>
 	<tr class='even noprint'>

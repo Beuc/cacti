@@ -737,7 +737,7 @@ function cdef() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('CDEFs'), '100%', '', '3', 'center', 'cdef.php?action=edit');
+	html_filter_start_box(__('CDEFs'), 'cdef.php?action=edit');
 
 	?>
 	<tr class='even'>

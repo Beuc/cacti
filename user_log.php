@@ -99,129 +99,130 @@ function view_user_log() {
 		$rows = get_request_var('rows');
 	}
 
-	?>
-	<script type='text/javascript'>
-	function clearFilter() {
-		strURL = urlPath+'user_log.php?clear=1';
-		loadUrl({url:strURL})
-	}
-
-	function purgeLog() {
-		strURL = urlPath+'user_log.php?action=purge';
-		loadUrl({url:strURL})
-	}
-
-	$(function() {
-		$('#refresh').click(function() {
-			applyFilter();
-		});
-
-		$('#clear').click(function() {
-			clearFilter();
-		});
-
-		$('#purge').click(function() {
-			purgeLog();
-		});
-
-		$('#form_userlog').submit(function(event) {
-			event.preventDefault();
-			applyFilter();
-		});
-	});
-
-	function applyFilter() {
-		strURL  = urlPath+'user_log.php?username=' + $('#username').val();
-		strURL += '&result=' + $('#result').val();
-		strURL += '&rows=' + $('#rows').val();
-		strURL += '&filter=' + $('#filter').val();
-		loadUrl({url:strURL})
-	}
-	</script>
-	<?php
-
-	html_start_box(__('User Login History'), '100%', '', '3', 'center', '');
+	html_filter_start_box(__('User Login History'));
 
 	?>
 	<tr class='even noprint'>
 		<td>
-		<form id='form_userlog' action='user_log.php'>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('User');?>
-					</td>
-					<td>
-						<select id='username' onChange='applyFilter()'>
-							<option value='-1'<?php if (get_request_var('username') == '-1') {?> selected<?php }?>><?php print __('All');?></option>
-							<option value='-2'<?php if (get_request_var('username') == '-2') {?> selected<?php }?>><?php print __('Deleted/Invalid');?></option>
-							<?php
-							$users = db_fetch_assoc('SELECT DISTINCT username FROM user_auth ORDER BY username');
+			<form id='form_userlog' action='user_log.php'>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('User');?>
+						</td>
+						<td>
+							<select id='username' onChange='applyFilter()'>
+								<option value='-1'<?php if (get_request_var('username') == '-1') {?> selected<?php }?>><?php print __('All');?></option>
+								<option value='-2'<?php if (get_request_var('username') == '-2') {?> selected<?php }?>><?php print __('Deleted/Invalid');?></option>
+								<?php
+								$users = db_fetch_assoc('SELECT DISTINCT username FROM user_auth ORDER BY username');
 
-	if (cacti_sizeof($users)) {
-		foreach ($users as $user) {
-			print "<option value='" . html_escape($user['username']) . "'";
+								if (cacti_sizeof($users)) {
+									foreach ($users as $user) {
+										print "<option value='" . html_escape($user['username']) . "'";
 
-			if (get_request_var('username') == $user['username']) {
-				print ' selected';
-			} print '>' . html_escape($user['username']) . '</option>';
-		}
-	}
-	?>
-						</select>
-					</td>
-					<td>
-						<?php print __('Result');?>
-					</td>
-					<td>
-						<select id='result' onChange='applyFilter()'>
-							<option value='-1'<?php if (get_request_var('result') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
-							<option value='1'<?php if (get_request_var('result') == '1') {?> selected<?php }?>><?php print __('Success - Password');?></option>
-							<option value='2'<?php if (get_request_var('result') == '2') {?> selected<?php }?>><?php print __('Success - Token');?></option>
-							<option value='3'<?php if (get_request_var('result') == '3') {?> selected<?php }?>><?php print __('Success - Password Change');?></option>
-							<option value='0'<?php if (get_request_var('result') == '0') {?> selected<?php }?>><?php print __('Failed');?></option>
-						</select>
-					</td>
-					<td>
-						<?php print __('Attempts');?>
-					</td>
-					<td>
-						<select id='rows' onChange='applyFilter()'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-	if (cacti_sizeof($item_rows)) {
-		foreach ($item_rows as $key => $value) {
-			print "<option value='" . $key . "'";
+										if (get_request_var('username') == $user['username']) {
+											print ' selected';
+										}
 
-			if (get_request_var('rows') == $key) {
-				print ' selected';
-			} print '>' . html_escape($value) . '</option>';
-		}
-	}
-	?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc_x('Button: use filter settings', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc_x('Button: reset filter settings', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='purge' value='<?php print __esc_x('Button: delete all table entries', 'Purge');?>' title='<?php print __esc('Purge User Log');?>'>
+										print '>' . html_escape($user['username']) . '</option>';
+									}
+								}
+								?>
+							</select>
+						</td>
+						<td>
+							<?php print __('Result');?>
+						</td>
+						<td>
+							<select id='result' onChange='applyFilter()'>
+								<option value='-1'<?php if (get_request_var('result') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
+								<option value='1'<?php if (get_request_var('result') == '1') {?> selected<?php }?>><?php print __('Success - Password');?></option>
+								<option value='2'<?php if (get_request_var('result') == '2') {?> selected<?php }?>><?php print __('Success - Token');?></option>
+								<option value='3'<?php if (get_request_var('result') == '3') {?> selected<?php }?>><?php print __('Success - Password Change');?></option>
+								<option value='0'<?php if (get_request_var('result') == '0') {?> selected<?php }?>><?php print __('Failed');?></option>
+							</select>
+						</td>
+						<td>
+							<?php print __('Attempts');?>
+						</td>
+						<td>
+							<select id='rows' onChange='applyFilter()'>
+								<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
+								<?php
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print "<option value='" . $key . "'";
+
+										if (get_request_var('rows') == $key) {
+											print ' selected';
+										}
+
+										print '>' . html_escape($value) . '</option>';
+									}
+								}
+								?>
+							</select>
+						</td>
+						<td>
+							<span>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc_x('Button: use filter settings', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc_x('Button: reset filter settings', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='purge' value='<?php print __esc_x('Button: delete all table entries', 'Purge');?>' title='<?php print __esc('Purge User Log');?>'>
 						</span>
-					</td>
-				</tr>
-			</table>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-				</tr>
-			</table>
-			<input type='hidden' name='action' value='view'>
-		</form>
+						</td>
+					</tr>
+				</table>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Search');?>
+						</td>
+						<td>
+							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
+						</td>
+					</tr>
+				</table>
+				<input type='hidden' name='action' value='view'>
+			</form>
+			<script type='text/javascript'>
+			function clearFilter() {
+				strURL = urlPath+'user_log.php?clear=1';
+				loadUrl({url:strURL})
+			}
+
+			function purgeLog() {
+				strURL = urlPath+'user_log.php?action=purge';
+				loadUrl({url:strURL})
+			}
+
+			$(function() {
+				$('#refresh').click(function() {
+					applyFilter();
+				});
+
+				$('#clear').click(function() {
+					clearFilter();
+				});
+
+				$('#purge').click(function() {
+					purgeLog();
+				});
+
+				$('#form_userlog').submit(function(event) {
+					event.preventDefault();
+					applyFilter();
+				});
+			});
+
+			function applyFilter() {
+				strURL  = urlPath+'user_log.php?username=' + $('#username').val();
+				strURL += '&result=' + $('#result').val();
+				strURL += '&rows=' + $('#rows').val();
+				strURL += '&filter=' + $('#filter').val();
+				loadUrl({url:strURL})
+			}
+			</script>
 		</td>
 	</tr>
 	<?php

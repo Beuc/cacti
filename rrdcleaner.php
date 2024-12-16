@@ -325,9 +325,7 @@ function list_rrd() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('RRD Cleaner'), '100%', '', '3', 'center', '');
 	filter();
-	html_end_box();
 
 	$sql_where = 'WHERE in_cacti=0';
 	/* form the 'where' clause for our main sql query */
@@ -500,6 +498,8 @@ function do_rrd() {
 function filter() {
 	global $item_rows;
 
+	html_filter_start_box(__('RRD Cleaner'));
+
 	?>
 	<tr class='even'>
 		<td>
@@ -629,4 +629,6 @@ function filter() {
 		</td>
 	</tr>
 	<?php
+
+	html_end_box();
 }

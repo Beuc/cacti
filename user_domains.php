@@ -586,7 +586,7 @@ function domains() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('User Domains'), '100%', '', '3', 'center', 'user_domains.php?action=edit');
+	html_filter_start_box(__('User Domains'), 'user_domains.php?action=edit');
 
 	?>
 	<tr class='even' class='noprint'>
@@ -606,18 +606,19 @@ function domains() {
 						<td>
 							<select id='rows' onChange="applyFilter()" data-defaultLabel='<?php print __('Domains');?>'>
 								<option value='-1' <?php print(get_request_var('rows') == '-1' ? ' selected>' : '>') . __('Default'); ?></option>
-									<?php
-										if (cacti_sizeof($item_rows)) {
-											foreach ($item_rows as $key => $value) {
-												print "<option value='" . $key . "'";
+								<?php
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print "<option value='" . $key . "'";
 
-												if (get_request_var('rows') == $key) {
-													print ' selected';
-												}
-												print '>' . html_escape($value) . "</option>\n";
-											}
+										if (get_request_var('rows') == $key) {
+											print ' selected';
 										}
-	?>
+
+										print '>' . html_escape($value) . "</option>\n";
+									}
+								}
+								?>
 							</select>
 						</td>
 						<td>
@@ -630,39 +631,39 @@ function domains() {
 				</table>
 			</form>
 			<script type='text/javascript'>
-				function applyFilter() {
-					strURL = 'user_domains.php?rows=' + $('#rows').val();
-					strURL += '&filter=' + $('#filter').val();
-					loadUrl({
-						url: strURL
-					})
-				}
+			function applyFilter() {
+				strURL = 'user_domains.php?rows=' + $('#rows').val();
+				strURL += '&filter=' + $('#filter').val();
+				loadUrl({
+					url: strURL
+				})
+			}
 
-				function clearFilter() {
-					strURL = 'user_domains.php?clear=1';
-					loadUrl({
-						url: strURL
-					})
-				}
+			function clearFilter() {
+				strURL = 'user_domains.php?clear=1';
+				loadUrl({
+					url: strURL
+				})
+			}
 
-				$(function() {
-					$('#refresh').click(function() {
-						applyFilter();
-					});
-
-					$('#clear').click(function() {
-						clearFilter();
-					});
-
-					$('#form_domains').submit(function(event) {
-						event.preventDefault();
-						applyFilter();
-					});
+			$(function() {
+				$('#refresh').click(function() {
+					applyFilter();
 				});
+
+				$('#clear').click(function() {
+					clearFilter();
+				});
+
+				$('#form_domains').submit(function(event) {
+					event.preventDefault();
+					applyFilter();
+				});
+			});
 			</script>
 		</td>
 	</tr>
-<?php
+	<?php
 
 	html_end_box();
 

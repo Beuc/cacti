@@ -914,7 +914,7 @@ function automation_snmp() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('SNMP Options'), '100%', '', '3', 'center', 'automation_snmp.php?action=edit');
+	html_filter_start_box(__('SNMP Options'), 'automation_snmp.php?action=edit');
 
 	?>
 	<tr class='even'>

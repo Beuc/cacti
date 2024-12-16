@@ -969,7 +969,7 @@ function automation_tree_rules() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('Tree Rules'), '100%', '', '3', 'center', 'automation_tree_rules.php?action=edit');
+	html_filter_start_box(__('Tree Rules'), 'automation_tree_rules.php?action=edit');
 
 	?>
 	<tr class='even'>

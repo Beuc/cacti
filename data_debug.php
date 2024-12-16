@@ -1034,7 +1034,7 @@ function data_debug_filter() {
 		$hostname = '';
 	}
 
-	html_start_box(__('Data Source Troubleshooter [ %s ]', (empty($hostname) ? (get_request_var('host_id') == -1 ? __('All Devices') :__('No Device')) : html_escape($hostname))), '100%', '', '3', 'center', '');
+	html_filter_start_box(__('Data Source Troubleshooter [ %s ]', (empty($hostname) ? (get_request_var('host_id') == -1 ? __('All Devices') :__('No Device')) : html_escape($hostname))));
 
 	?>
 	<tr class='even noprint'>
@@ -1060,17 +1060,16 @@ function data_debug_filter() {
 								WHERE data_template_data.local_data_id > 0
 								ORDER BY data_template.name');
 
-	if (cacti_sizeof($templates) > 0) {
-		foreach ($templates as $template) {
-			print "<option value='" . $template['id'] . "'";
+							if (cacti_sizeof($templates)) {
+								foreach ($templates as $template) {
+									print "<option value='" . $template['id'] . "'";
 
-			if (get_request_var('template_id') == $template['id']) {
-				print ' selected';
-			} print '>' . html_escape($template['name']) . '</option>';
-		}
-	}
-	?>
-
+									if (get_request_var('template_id') == $template['id']) {
+										print ' selected';
+									} print '>' . html_escape($template['name']) . '</option>';
+								}
+							}
+							?>
 						</select>
 					</td>
 					<td>
@@ -1092,18 +1091,18 @@ function data_debug_filter() {
 						<select id='profile' name='profile' onChange='applyFilter()' data-defaultLabel='<?php print __('Profile');?>'>
 							<option value='-1'<?php print(get_request_var('profile') == '-1' ? ' selected>':'>') . __('All');?></option>
 							<?php
-	$profiles = array_rekey(db_fetch_assoc('SELECT id, name FROM data_source_profiles ORDER BY name'), 'id', 'name');
+							$profiles = array_rekey(db_fetch_assoc('SELECT id, name FROM data_source_profiles ORDER BY name'), 'id', 'name');
 
-	if (cacti_sizeof($profiles)) {
-		foreach ($profiles as $key => $value) {
-			print "<option value='" . $key . "'";
+							if (cacti_sizeof($profiles)) {
+								foreach ($profiles as $key => $value) {
+									print "<option value='" . $key . "'";
 
-			if (get_request_var('profile') == $key) {
-				print ' selected';
-			} print '>' . html_escape($value) . '</option>';
-		}
-	}
-	?>
+									if (get_request_var('profile') == $key) {
+										print ' selected';
+									} print '>' . html_escape($value) . '</option>';
+								}
+							}
+							?>
 						</select>
 					</td>
 					<td>
@@ -1133,19 +1132,19 @@ function data_debug_filter() {
 					<td>
 						<select id='refresh' name='refresh' onChange='applyFilter()' data-defaultLabel='<?php print __('Refresh');?>'>
 							<?php
-	unset($page_refresh_interval[5]);
-	unset($page_refresh_interval[10]);
-	unset($page_refresh_interval[20]);
+							unset($page_refresh_interval[5]);
+							unset($page_refresh_interval[10]);
+							unset($page_refresh_interval[20]);
 
-	foreach ($page_refresh_interval as $seconds => $display_text) {
-		print "<option value='" . $seconds . "'";
+							foreach ($page_refresh_interval as $seconds => $display_text) {
+								print "<option value='" . $seconds . "'";
 
-		if (get_request_var('refresh') == $seconds) {
-			print ' selected';
-		}
-		print '>' . $display_text . '</option>';
-	}
-	?>
+								if (get_request_var('refresh') == $seconds) {
+									print ' selected';
+								}
+								print '>' . $display_text . '</option>';
+							}
+							?>
 						</select>
 					</td>
 				</tr>
@@ -1165,16 +1164,16 @@ function data_debug_filter() {
 						<select id='rows' name='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Data Sources');?>'>
 							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
 							<?php
-	if (cacti_sizeof($item_rows) > 0) {
-		foreach ($item_rows as $key => $value) {
-			print "<option value='" . $key . "'";
+							if (cacti_sizeof($item_rows) > 0) {
+								foreach ($item_rows as $key => $value) {
+									print "<option value='" . $key . "'";
 
-			if (get_request_var('rows') == $key) {
-				print ' selected';
-			} print '>' . html_escape($value) . '</option>';
-		}
-	}
-	?>
+									if (get_request_var('rows') == $key) {
+										print ' selected';
+									} print '>' . html_escape($value) . '</option>';
+								}
+							}
+							?>
 						</select>
 					</td>
 				</tr>

@@ -1574,7 +1574,7 @@ function template() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('Device Rules'), '100%', '', '3', 'center', 'automation_templates.php?action=edit');
+	html_filter_start_box(__('Device Rules'), 'automation_templates.php?action=edit');
 
 	?>
 	<tr class='even'>

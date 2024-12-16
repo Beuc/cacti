@@ -1326,9 +1326,7 @@ function networks() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('Network Filters'), '100%', '', '3', 'center', 'automation_networks.php?action=edit');
 	networks_filter();
-	html_end_box();
 
 	$sql_where = '';
 
@@ -1500,6 +1498,8 @@ function networks() {
 function networks_filter() {
 	global $item_rows;
 
+	html_filter_start_box(__('Network Filters'), 'automation_networks.php?action=edit');
+
 	?>
 	<tr class='even'>
 		<td>
@@ -1518,7 +1518,7 @@ function networks_filter() {
 						<td>
 							<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Networks');?>'>
 								<option value='-1' <?php if (get_request_var('rows') == '-1') { ?> selected<?php } ?>><?php print __('Default'); ?></option>
-								<?php
+									<?php
 									if (cacti_sizeof($item_rows)) {
 										foreach ($item_rows as $key => $value) {
 											print "<option value='" . $key . "'";
@@ -1529,7 +1529,7 @@ function networks_filter() {
 											print '>' . $value . '</option>';
 										}
 									}
-	?>
+									?>
 							</select>
 						</td>
 						<td>
@@ -1605,4 +1605,6 @@ function networks_filter() {
 		</td>
 	</tr>
 	<?php
+
+	html_end_box();
 }

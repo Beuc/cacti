@@ -260,38 +260,13 @@ function pages() {
 		$rows = get_request_var('rows');
 	}
 
-	?>
-	<script type='text/javascript'>
-		function applyFilter() {
-			strURL = 'links.php?rows=' + $('#rows').val();
-			strURL += '&filter=' + $('#filter').val();
-			loadUrl({
-				url: strURL
-			})
-		}
+	html_filter_start_box(__('External Links'), 'links.php?action=edit');
 
-		function clearFilter() {
-			strURL = 'links.php?clear=true';
-			loadUrl({
-				url: strURL
-			})
-		}
-
-		$(function() {
-			$('#links').submit(function(event) {
-				event.preventDefault();
-				applyFilter();
-			});
-		});
-	</script>
-	<?php
-
-		html_start_box(__('External Links'), '100%', '', '3', 'center', 'links.php?action=edit');
 	?>
 	<tr class='even noprint'>
 		<td>
-			<form id='links' action='links.php' method='post'>
-				<table class='filterTable' cellpadding='2' cellspacing='0'>
+			<form id='links' action='links.php'>
+				<table class='filterTable'>
 					<tr>
 						<td>
 							<?php print __('Search'); ?>
@@ -321,6 +296,29 @@ function pages() {
 					</tr>
 				</table>
 			</form>
+			<script type='text/javascript'>
+			function applyFilter() {
+				strURL = 'links.php?rows=' + $('#rows').val();
+				strURL += '&filter=' + $('#filter').val();
+				loadUrl({
+					url: strURL
+				})
+			}
+
+			function clearFilter() {
+				strURL = 'links.php?clear=true';
+				loadUrl({
+					url: strURL
+				})
+			}
+
+			$(function() {
+				$('#links').submit(function(event) {
+					event.preventDefault();
+					applyFilter();
+				});
+			});
+			</script>
 		</td>
 	</tr>
 	<?php

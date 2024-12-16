@@ -815,7 +815,7 @@ function color_template() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('Color Templates'), '100%', '', '3', 'center', 'color_templates.php?action=template_edit');
+	html_filter_start_box(__('Color Templates'), 'color_templates.php?action=template_edit');
 
 	$filter_html = '<tr class="even">
 		<td>

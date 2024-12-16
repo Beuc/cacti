@@ -1073,7 +1073,7 @@ function template() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('Data Templates'), '100%', '', '3', 'center', 'data_templates.php?action=template_edit');
+	html_filter_start_box(__('Data Templates'), 'data_templates.php?action=template_edit');
 
 	?>
 	<tr class='even noprint'>

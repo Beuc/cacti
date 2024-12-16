@@ -1835,91 +1835,86 @@ function user_group() {
 	validate_store_request_vars($filters, 'sess_ugad');
 	/* ================= input validation ================= */
 
-	?>
-	<script type='text/javascript'>
-
-	function applyFilter() {
-		strURL  = 'user_group_admin.php'
-		strURL += '?rows=' + $('#rows').val();
-		strURL += '&filter=' + $('#filter').val();
-		loadUrl({url:strURL})
-	}
-
-	function clearFilter() {
-		strURL = 'user_group_admin.php?clear=1';
-		loadUrl({url:strURL})
-	}
-
-	$(function() {
-		$('#associated').click(function() {
-			applyFilter();
-		});
-
-		$('#clear').click(function() {
-			clearFilter();
-		});
-
-		$('#rows').change(function() {
-			applyFilter();
-		});
-
-		$('#forms').submit(function(event) {
-			event.preventDefault();
-			applyFilter();
-		});
-	});
-
-	</script>
-	<?php
-
-	html_start_box(__('User Group Management'), '100%', '', '3', 'center', 'user_group_admin.php?action=edit&tab=general');
-
 	if (get_request_var('rows') == '-1') {
 		$rows = read_config_option('num_rows_table');
 	} else {
 		$rows = get_request_var('rows');
 	}
 
+	html_filter_start_box(__('User Group Management'), 'user_group_admin.php?action=edit&tab=general');
+
 	?>
 	<tr class='even'>
 		<td>
-		<form id='forms' action='user_group_admin.php'>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('Groups');?>
-					</td>
-					<td>
-						<select id='rows' data-defaultLabel='<?php print __('Groups');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-							if (cacti_sizeof($item_rows)) {
-								foreach ($item_rows as $key => $value) {
-									print "<option value='" . $key . "'";
+			<form id='forms' action='user_group_admin.php'>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Search');?>
+						</td>
+						<td>
+							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
+						</td>
+						<td>
+							<?php print __('Groups');?>
+						</td>
+						<td>
+							<select id='rows' data-defaultLabel='<?php print __('Groups');?>'>
+								<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
+								<?php
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print "<option value='" . $key . "'";
 
-									if (get_request_var('rows') == $key) {
-										print ' selected';
-									} print '>' . html_escape($value) . '</option>';
+										if (get_request_var('rows') == $key) {
+											print ' selected';
+										} print '>' . html_escape($value) . '</option>';
+									}
 								}
-							}
-	?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __x('filter: use', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __x('filter: reset', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-		</form>
+								?>
+							</select>
+						</td>
+						<td>
+							<span>
+								<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __x('filter: use', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __x('filter: reset', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
+							</span>
+						</td>
+					</tr>
+				</table>
+			</form>
+			<script type='text/javascript'>
+			function applyFilter() {
+				strURL  = 'user_group_admin.php'
+				strURL += '?rows=' + $('#rows').val();
+				strURL += '&filter=' + $('#filter').val();
+				loadUrl({url:strURL})
+			}
+
+			function clearFilter() {
+				strURL = 'user_group_admin.php?clear=1';
+				loadUrl({url:strURL})
+			}
+
+			$(function() {
+				$('#associated').click(function() {
+					applyFilter();
+				});
+
+				$('#clear').click(function() {
+					clearFilter();
+				});
+
+				$('#rows').change(function() {
+					applyFilter();
+				});
+
+				$('#forms').submit(function(event) {
+					event.preventDefault();
+					applyFilter();
+				});
+			});
+			</script>
 		</td>
 	</tr>
 	<?php
@@ -2175,122 +2170,121 @@ function process_member_request_vars() {
 function graph_filter($header_label) {
 	global $config, $item_rows;
 
-	?>
-	<script type='text/javascript'>
-
-	function applyFilter() {
-		strURL  = 'user_group_admin.php?action=edit&tab=permsg&id=<?php print get_request_var('id');?>'
-		strURL += '&rows=' + $('#rows').val();
-		strURL += '&graph_template_id=' + $('#graph_template_id').val();
-		strURL += '&associated=' + $('#associated').is(':checked');
-		strURL += '&filter=' + $('#filter').val();
-		loadUrl({url:strURL})
-	}
-
-	function clearFilter() {
-		strURL = 'user_group_admin.php?action=edit&tab=permsg&id=<?php print get_request_var('id');?>&clear=true'
-		loadUrl({url:strURL})
-	}
-
-	$(function() {
-		$('#associated').click(function() {
-			applyFilter();
-		});
-
-		$('#clear').click(function() {
-			clearFilter();
-		});
-
-		$('#rows, #graph_template_id').change(function() {
-			applyFilter();
-		});
-
-		$('#forms').submit(function(event) {
-			event.preventDefault();
-			applyFilter();
-		});
-	});
-
-	</script>
-	<?php
-
-	html_start_box(__('Graph Permissions %s', $header_label), '100%', '', '3', 'center', '');
+	html_filter_start_box(__('Graph Permissions %s', $header_label));
 
 	?>
 	<tr class='even'>
 		<td>
-		<form id='forms' action='user_group_admin.php'>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('Template');?>
-					</td>
-					<td>
-						<select id='graph_template_id' data-defaultLabel='<?php print __('Template');?>'>
-							<option value='-1'<?php if (get_request_var('graph_template_id') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
-							<option value='0'<?php if (get_request_var('graph_template_id') == '0') {?> selected<?php }?>><?php print __('None');?></option>
-							<?php
-							$graph_templates = db_fetch_assoc('SELECT DISTINCT gt.id, gt.name
-								FROM graph_templates AS gt
-								INNER JOIN graph_local AS gl
-								ON gl.graph_template_id = gt.id
-								ORDER BY name');
+			<form id='forms' action='user_group_admin.php'>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Search');?>
+						</td>
+						<td>
+							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
+						</td>
+						<td>
+							<?php print __('Template');?>
+						</td>
+						<td>
+							<select id='graph_template_id' data-defaultLabel='<?php print __('Template');?>'>
+								<option value='-1'<?php if (get_request_var('graph_template_id') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
+								<option value='0'<?php if (get_request_var('graph_template_id') == '0') {?> selected<?php }?>><?php print __('None');?></option>
+								<?php
+								$graph_templates = db_fetch_assoc('SELECT DISTINCT gt.id, gt.name
+									FROM graph_templates AS gt
+									INNER JOIN graph_local AS gl
+									ON gl.graph_template_id = gt.id
+									ORDER BY name');
 
-	if (cacti_sizeof($graph_templates)) {
-		foreach ($graph_templates as $gt) {
-			print "<option value='" . $gt['id'] . "'";
+								if (cacti_sizeof($graph_templates)) {
+									foreach ($graph_templates as $gt) {
+										print "<option value='" . $gt['id'] . "'";
 
-			if (get_request_var('graph_template_id') == $gt['id']) {
-				print ' selected';
-			} print '>' . html_escape($gt['name']) . '</option>';
-		}
-	}
-	?>
-						</select>
-					</td>
-					<td>
-						<?php print __('Graphs');?>
-					</td>
-					<td>
-						<select id='rows' data-defaultLabel='<?php print __('Graphs');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-	if (cacti_sizeof($item_rows)) {
-		foreach ($item_rows as $key => $value) {
-			print "<option value='" . $key . "'";
+										if (get_request_var('graph_template_id') == $gt['id']) {
+											print ' selected';
+										}
 
-			if (get_request_var('rows') == $key) {
-				print ' selected';
-			} print '>' . html_escape($value) . '</option>';
-		}
-	}
-	?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='checkbox' id='associated' <?php print(get_request_var('associated') == 'true' || get_request_var('associated') == 'on' ? 'checked':'');?>>
-							<label for='associated'><?php print __('Only Show Exceptions');?></label>
-						</span>
-					</td>
-					<td>
-						<span>
-							<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __x('filter: use','Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __x('filter: reset','Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-			<input type='hidden' name='action' value='edit'>
-			<input type='hidden' name='tab' value='permsg'>
-			<input type='hidden' name='id' value='<?php print get_request_var('id');?>'>
-		</form>
+										print '>' . html_escape($gt['name']) . '</option>';
+									}
+								}
+								?>
+							</select>
+						</td>
+						<td>
+							<?php print __('Graphs');?>
+						</td>
+						<td>
+							<select id='rows' data-defaultLabel='<?php print __('Graphs');?>'>
+								<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
+								<?php
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print "<option value='" . $key . "'";
+
+										if (get_request_var('rows') == $key) {
+											print ' selected';
+										}
+
+										print '>' . html_escape($value) . '</option>';
+									}
+								}
+								?>
+							</select>
+						</td>
+						<td>
+							<span>
+								<input type='checkbox' id='associated' <?php print(get_request_var('associated') == 'true' || get_request_var('associated') == 'on' ? 'checked':'');?>>
+								<label for='associated'><?php print __('Only Show Exceptions');?></label>
+							</span>
+						</td>
+						<td>
+							<span>
+								<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __x('filter: use','Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __x('filter: reset','Clear');?>' title='<?php print __esc('Clear Filters');?>'>
+							</span>
+						</td>
+					</tr>
+				</table>
+				<input type='hidden' name='action' value='edit'>
+				<input type='hidden' name='tab' value='permsg'>
+				<input type='hidden' name='id' value='<?php print get_request_var('id');?>'>
+			</form>
+			<script type='text/javascript'>
+			function applyFilter() {
+				strURL  = 'user_group_admin.php?action=edit&tab=permsg&id=<?php print get_request_var('id');?>'
+				strURL += '&rows=' + $('#rows').val();
+				strURL += '&graph_template_id=' + $('#graph_template_id').val();
+				strURL += '&associated=' + $('#associated').is(':checked');
+				strURL += '&filter=' + $('#filter').val();
+				loadUrl({url:strURL})
+			}
+
+			function clearFilter() {
+				strURL = 'user_group_admin.php?action=edit&tab=permsg&id=<?php print get_request_var('id');?>&clear=true'
+				loadUrl({url:strURL})
+			}
+
+			$(function() {
+				$('#associated').click(function() {
+					applyFilter();
+				});
+
+				$('#clear').click(function() {
+					clearFilter();
+				});
+
+				$('#rows, #graph_template_id').change(function() {
+					applyFilter();
+				});
+
+				$('#forms').submit(function(event) {
+					event.preventDefault();
+					applyFilter();
+				});
+			});
+			</script>
 		</td>
 	</tr>
 	<?php
@@ -2301,118 +2295,117 @@ function graph_filter($header_label) {
 function device_filter($header_label) {
 	global $config, $item_rows;
 
-	?>
-	<script type='text/javascript'>
-
-	function applyFilter() {
-		strURL  = 'user_group_admin.php?action=edit&tab=permsd&id=<?php print get_request_var('id');?>'
-		strURL += '&rows=' + $('#rows').val();
-		strURL += '&host_template_id=' + $('#host_template_id').val();
-		strURL += '&associated=' + $('#associated').is(':checked');
-		strURL += '&filter=' + $('#filter').val();
-		loadUrl({url:strURL})
-	}
-
-	function clearFilter() {
-		strURL = 'user_group_admin.php?action=edit&tab=permsd&id=<?php print get_request_var('id');?>&clear=true'
-		loadUrl({url:strURL})
-	}
-
-	$(function() {
-		$('#associated').click(function() {
-			applyFilter();
-		});
-
-		$('#clear').click(function() {
-			clearFilter();
-		});
-
-		$('#rows, #host_template_id').change(function() {
-			applyFilter();
-		});
-
-		$('#forms').submit(function(event) {
-			event.preventDefault();
-			applyFilter();
-		});
-	});
-
-	</script>
-	<?php
-
-	html_start_box(__('Devices Permission %s', $header_label), '100%', '', '3', 'center', '');
+	html_filter_start_box(__('Devices Permission %s', $header_label));
 
 	?>
 	<tr class='even'>
 		<td>
-		<form id='forms' action='user_group_admin.php'>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('Template');?>
-					</td>
-					<td>
-						<select id='host_template_id' data-defaultLabel='<?php print __('Template');?>'>
-							<option value='-1'<?php if (get_request_var('host_template_id') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
-							<option value='0'<?php if (get_request_var('host_template_id') == '0') {?> selected<?php }?>><?php print __('None');?></option>
-							<?php
-							$host_templates = db_fetch_assoc('SELECT id, name FROM host_template ORDER BY name');
+			<form id='forms' action='user_group_admin.php'>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Search');?>
+						</td>
+						<td>
+							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
+						</td>
+						<td>
+							<?php print __('Template');?>
+						</td>
+						<td>
+							<select id='host_template_id' data-defaultLabel='<?php print __('Template');?>'>
+								<option value='-1'<?php if (get_request_var('host_template_id') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
+								<option value='0'<?php if (get_request_var('host_template_id') == '0') {?> selected<?php }?>><?php print __('None');?></option>
+								<?php
+								$host_templates = db_fetch_assoc('SELECT id, name FROM host_template ORDER BY name');
 
-	if (cacti_sizeof($host_templates) > 0) {
-		foreach ($host_templates as $host_template) {
-			print "<option value='" . $host_template['id'] . "'";
+								if (cacti_sizeof($host_templates)) {
+									foreach ($host_templates as $host_template) {
+										print "<option value='" . $host_template['id'] . "'";
 
-			if (get_request_var('host_template_id') == $host_template['id']) {
-				print ' selected';
-			} print '>' . html_escape($host_template['name']) . '</option>';
-		}
-	}
-	?>
-						</select>
-					</td>
-					<td>
-						<?php print __('Devices');?>
-					</td>
-					<td>
-						<select id='rows' data-defaultLabel='<?php print __('Devices');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-	if (cacti_sizeof($item_rows)) {
-		foreach ($item_rows as $key => $value) {
-			print "<option value='" . $key . "'";
+										if (get_request_var('host_template_id') == $host_template['id']) {
+											print ' selected';
+										}
 
-			if (get_request_var('rows') == $key) {
-				print ' selected';
-			} print '>' . html_escape($value) . '</option>';
-		}
-	}
-	?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='checkbox' id='associated' <?php print(get_request_var('associated') == 'true' || get_request_var('associated') == 'on' ? 'checked':'');?>>
-							<label for='associated'><?php print __('Only Show Exceptions');?></label>
-						</span>
-					</td>
-					<td>
-						<span>
-							<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __x('filter: use', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __x('filter: reset', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-			<input type='hidden' name='action' value='edit'>
-			<input type='hidden' name='tab' value='permsd'>
-			<input type='hidden' name='id' value='<?php print get_request_var('id');?>'>
-		</form>
+										print '>' . html_escape($host_template['name']) . '</option>';
+									}
+								}
+								?>
+							</select>
+						</td>
+						<td>
+							<?php print __('Devices');?>
+						</td>
+						<td>
+							<select id='rows' data-defaultLabel='<?php print __('Devices');?>'>
+								<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
+								<?php
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print "<option value='" . $key . "'";
+
+										if (get_request_var('rows') == $key) {
+											print ' selected';
+										}
+
+										print '>' . html_escape($value) . '</option>';
+									}
+								}
+								?>
+							</select>
+						</td>
+						<td>
+							<span>
+								<input type='checkbox' id='associated' <?php print(get_request_var('associated') == 'true' || get_request_var('associated') == 'on' ? 'checked':'');?>>
+								<label for='associated'><?php print __('Only Show Exceptions');?></label>
+							</span>
+						</td>
+						<td>
+							<span>
+								<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __x('filter: use', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __x('filter: reset', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
+							</span>
+						</td>
+					</tr>
+				</table>
+				<input type='hidden' name='action' value='edit'>
+				<input type='hidden' name='tab' value='permsd'>
+				<input type='hidden' name='id' value='<?php print get_request_var('id');?>'>
+			</form>
+			<script type='text/javascript'>
+			function applyFilter() {
+				strURL  = 'user_group_admin.php?action=edit&tab=permsd&id=<?php print get_request_var('id');?>'
+				strURL += '&rows=' + $('#rows').val();
+				strURL += '&host_template_id=' + $('#host_template_id').val();
+				strURL += '&associated=' + $('#associated').is(':checked');
+				strURL += '&filter=' + $('#filter').val();
+				loadUrl({url:strURL})
+			}
+
+			function clearFilter() {
+				strURL = 'user_group_admin.php?action=edit&tab=permsd&id=<?php print get_request_var('id');?>&clear=true'
+				loadUrl({url:strURL})
+			}
+
+			$(function() {
+				$('#associated').click(function() {
+					applyFilter();
+				});
+
+				$('#clear').click(function() {
+					clearFilter();
+				});
+
+				$('#rows, #host_template_id').change(function() {
+					applyFilter();
+				});
+
+				$('#forms').submit(function(event) {
+					event.preventDefault();
+					applyFilter();
+				});
+			});
+			</script>
 		</td>
 	</tr>
 	<?php
@@ -2423,95 +2416,90 @@ function device_filter($header_label) {
 function template_filter($header_label) {
 	global $config, $item_rows;
 
-	?>
-	<script type='text/javascript'>
-
-	function applyFilter() {
-		strURL  = 'user_group_admin.php?action=edit&tab=permste&id=<?php print get_request_var('id');?>'
-		strURL += '&rows=' + $('#rows').val();
-		strURL += '&associated=' + $('#associated').is(':checked');
-		strURL += '&filter=' + $('#filter').val();
-		loadUrl({url:strURL})
-	}
-
-	function clearFilter() {
-		strURL = 'user_group_admin.php?action=edit&tab=permste&id=<?php print get_request_var('id');?>&clear=true'
-		loadUrl({url:strURL})
-	}
-
-	$(function() {
-		$('#associated').click(function() {
-			applyFilter();
-		});
-
-		$('#clear').click(function() {
-			clearFilter();
-		});
-
-		$('#rows').change(function() {
-			applyFilter();
-		});
-
-		$('#forms').submit(function(event) {
-			event.preventDefault();
-			applyFilter();
-		});
-	});
-
-	</script>
-	<?php
-
-	html_start_box(__('Template Permission %s', $header_label), '100%', '', '3', 'center', '');
+	html_filter_start_box(__('Template Permission %s', $header_label));
 
 	?>
 	<tr class='even'>
 		<td>
-		<form id='forms' action='user_group_admin.php'>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('Templates');?>
-					</td>
-					<td>
-						<select id='rows' data-defaultLabel='<?php print __('Templates');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-							if (cacti_sizeof($item_rows)) {
-								foreach ($item_rows as $key => $value) {
-									print "<option value='" . $key . "'";
+			<form id='forms' action='user_group_admin.php'>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Search');?>
+						</td>
+						<td>
+							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
+						</td>
+						<td>
+							<?php print __('Templates');?>
+						</td>
+						<td>
+							<select id='rows' data-defaultLabel='<?php print __('Templates');?>'>
+								<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
+								<?php
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print "<option value='" . $key . "'";
 
-									if (get_request_var('rows') == $key) {
-										print ' selected';
-									} print '>' . html_escape($value) . '</option>';
+										if (get_request_var('rows') == $key) {
+											print ' selected';
+										} print '>' . html_escape($value) . '</option>';
+									}
 								}
-							}
-	?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='checkbox' id='associated' <?php print(get_request_var('associated') == 'true' || get_request_var('associated') == 'on' ? 'checked':'');?>>
-							<label for='associated'><?php print __('Only Show Exceptions');?></label>
-						</span>
-					</td>
-					<td>
-						<span>
-							<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __x('filter: use', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __x('filter: reset', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-			<input type='hidden' name='action' value='edit'>
-			<input type='hidden' name='tab' value='permste'>
-			<input type='hidden' name='id' value='<?php print get_request_var('id');?>'>
-		</form>
+								?>
+							</select>
+						</td>
+						<td>
+							<span>
+								<input type='checkbox' id='associated' <?php print(get_request_var('associated') == 'true' || get_request_var('associated') == 'on' ? 'checked':'');?>>
+								<label for='associated'><?php print __('Only Show Exceptions');?></label>
+							</span>
+						</td>
+						<td>
+							<span>
+								<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __x('filter: use', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __x('filter: reset', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
+							</span>
+						</td>
+					</tr>
+				</table>
+				<input type='hidden' name='action' value='edit'>
+				<input type='hidden' name='tab' value='permste'>
+				<input type='hidden' name='id' value='<?php print get_request_var('id');?>'>
+			</form>
+			<script type='text/javascript'>
+			function applyFilter() {
+				strURL  = 'user_group_admin.php?action=edit&tab=permste&id=<?php print get_request_var('id');?>'
+				strURL += '&rows=' + $('#rows').val();
+				strURL += '&associated=' + $('#associated').is(':checked');
+				strURL += '&filter=' + $('#filter').val();
+				loadUrl({url:strURL})
+			}
+
+			function clearFilter() {
+				strURL = 'user_group_admin.php?action=edit&tab=permste&id=<?php print get_request_var('id');?>&clear=true'
+				loadUrl({url:strURL})
+			}
+
+			$(function() {
+				$('#associated').click(function() {
+					applyFilter();
+				});
+
+				$('#clear').click(function() {
+					clearFilter();
+				});
+
+				$('#rows').change(function() {
+					applyFilter();
+				});
+
+				$('#forms').submit(function(event) {
+					event.preventDefault();
+					applyFilter();
+				});
+			});
+			</script>
 		</td>
 	</tr>
 	<?php
@@ -2522,95 +2510,90 @@ function template_filter($header_label) {
 function tree_filter($header_label) {
 	global $config, $item_rows;
 
-	?>
-	<script type='text/javascript'>
-
-	function applyFilter() {
-		strURL  = 'user_group_admin.php?action=edit&tab=permstr&id=<?php print get_request_var('id');?>'
-		strURL += '&rows=' + $('#rows').val();
-		strURL += '&associated=' + $('#associated').is(':checked');
-		strURL += '&filter=' + $('#filter').val();
-		loadUrl({url:strURL})
-	}
-
-	function clearFilter() {
-		strURL = 'user_group_admin.php?action=edit&tab=permstr&id=<?php print get_request_var('id');?>&clear=true'
-		loadUrl({url:strURL})
-	}
-
-	$(function() {
-		$('#associated').click(function() {
-			applyFilter();
-		});
-
-		$('#clear').click(function() {
-			clearFilter();
-		});
-
-		$('#rows').change(function() {
-			applyFilter();
-		});
-
-		$('#forms').submit(function(event) {
-			event.preventDefault();
-			applyFilter();
-		});
-	});
-
-	</script>
-	<?php
-
-	html_start_box(__('Tree Permission %s', $header_label), '100%', '', '3', 'center', '');
+	html_filter_start_box(__('Tree Permission %s', $header_label));
 
 	?>
 	<tr class='even'>
 		<td>
-		<form id='forms' action='user_group_admin.php'>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('Trees');?>
-					</td>
-					<td>
-						<select id='rows' data-defaultLabel='<?php print __('Trees');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-							if (cacti_sizeof($item_rows)) {
-								foreach ($item_rows as $key => $value) {
-									print "<option value='" . $key . "'";
+			<form id='forms' action='user_group_admin.php'>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Search');?>
+						</td>
+						<td>
+							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
+						</td>
+						<td>
+							<?php print __('Trees');?>
+						</td>
+						<td>
+							<select id='rows' data-defaultLabel='<?php print __('Trees');?>'>
+								<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
+								<?php
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print "<option value='" . $key . "'";
 
-									if (get_request_var('rows') == $key) {
-										print ' selected';
-									} print '>' . html_escape($value) . '</option>';
+										if (get_request_var('rows') == $key) {
+											print ' selected';
+										} print '>' . html_escape($value) . '</option>';
+									}
 								}
-							}
-	?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='checkbox' id='associated' <?php print(get_request_var('associated') == 'true' || get_request_var('associated') == 'on' ? 'checked':'');?>>
-							<label for='associated'><?php print __('Only Show Exceptions');?></label>
-						</span>
-					</td>
-					<td>
-						<span>
-							<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __x('filter: use', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __x('filter: reset', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-			<input type='hidden' name='action' value='edit'>
-			<input type='hidden' name='tab' value='permstr'>
-			<input type='hidden' name='id' value='<?php print get_request_var('id');?>'>
-		</form>
+								?>
+							</select>
+						</td>
+						<td>
+							<span>
+								<input type='checkbox' id='associated' <?php print(get_request_var('associated') == 'true' || get_request_var('associated') == 'on' ? 'checked':'');?>>
+								<label for='associated'><?php print __('Only Show Exceptions');?></label>
+							</span>
+						</td>
+						<td>
+							<span>
+								<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __x('filter: use', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __x('filter: reset', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
+							</span>
+						</td>
+					</tr>
+				</table>
+				<input type='hidden' name='action' value='edit'>
+				<input type='hidden' name='tab' value='permstr'>
+				<input type='hidden' name='id' value='<?php print get_request_var('id');?>'>
+			</form>
+			<script type='text/javascript'>
+			function applyFilter() {
+				strURL  = 'user_group_admin.php?action=edit&tab=permstr&id=<?php print get_request_var('id');?>'
+				strURL += '&rows=' + $('#rows').val();
+				strURL += '&associated=' + $('#associated').is(':checked');
+				strURL += '&filter=' + $('#filter').val();
+				loadUrl({url:strURL})
+			}
+
+			function clearFilter() {
+				strURL = 'user_group_admin.php?action=edit&tab=permstr&id=<?php print get_request_var('id');?>&clear=true'
+				loadUrl({url:strURL})
+			}
+
+			$(function() {
+				$('#associated').click(function() {
+					applyFilter();
+				});
+
+				$('#clear').click(function() {
+					clearFilter();
+				});
+
+				$('#rows').change(function() {
+					applyFilter();
+				});
+
+				$('#forms').submit(function(event) {
+					event.preventDefault();
+					applyFilter();
+				});
+			});
+			</script>
 		</td>
 	</tr>
 	<?php
@@ -2621,95 +2604,90 @@ function tree_filter($header_label) {
 function member_filter($header_label) {
 	global $config, $item_rows;
 
-	?>
-	<script type='text/javascript'>
-
-	function applyFilter() {
-		strURL  = 'user_group_admin.php?action=edit&tab=members&id=<?php print get_request_var('id');?>'
-		strURL += '&rows=' + $('#rows').val();
-		strURL += '&associated=' + $('#associated').is(':checked');
-		strURL += '&filter=' + $('#filter').val();
-		loadUrl({url:strURL})
-	}
-
-	function clearFilter() {
-		strURL = 'user_group_admin.php?action=edit&tab=members&id=<?php print get_request_var('id');?>&clear=true'
-		loadUrl({url:strURL})
-	}
-
-	$(function() {
-		$('#associated').click(function() {
-			applyFilter();
-		});
-
-		$('#clear').click(function() {
-			clearFilter();
-		});
-
-		$('#rows').change(function() {
-			applyFilter();
-		});
-
-		$('#forms').submit(function(event) {
-			event.preventDefault();
-			applyFilter();
-		});
-	});
-
-	</script>
-	<?php
-
-	html_start_box($header_label, '100%', '', '3', 'center', '');
+	html_filter_start_box($header_label);
 
 	?>
 	<tr class='even'>
 		<td>
-		<form id='forms' action='user_group_admin.php'>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('Users');?>
-					</td>
-					<td>
-						<select id='rows' data-defaultLabel='<?php print __('Users');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-							if (cacti_sizeof($item_rows)) {
-								foreach ($item_rows as $key => $value) {
-									print "<option value='" . $key . "'";
+			<form id='forms' action='user_group_admin.php'>
+				<table class='filterTable'>
+					<tr>
+						<td>
+							<?php print __('Search');?>
+						</td>
+						<td>
+							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
+						</td>
+						<td>
+							<?php print __('Users');?>
+						</td>
+						<td>
+							<select id='rows' data-defaultLabel='<?php print __('Users');?>'>
+								<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
+								<?php
+								if (cacti_sizeof($item_rows)) {
+									foreach ($item_rows as $key => $value) {
+										print "<option value='" . $key . "'";
 
-									if (get_request_var('rows') == $key) {
-										print ' selected';
-									} print '>' . html_escape($value) . '</option>';
+										if (get_request_var('rows') == $key) {
+											print ' selected';
+										} print '>' . html_escape($value) . '</option>';
+									}
 								}
-							}
-	?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='checkbox' id='associated' <?php print(get_request_var('associated') == 'true' || get_request_var('associated') == 'on' ? 'checked':'');?>>
-							<label for='associated'><?php print __('Show Members');?></label>
-						</span>
-					</td>
-					<td>
-						<span>
-							<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __x('filter: use', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __x('filter reset', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-			<input type='hidden' name='action' value='edit'>
-			<input type='hidden' name='tab' value='members'>
-			<input type='hidden' name='id' value='<?php print get_request_var('id');?>'>
-		</form>
+								?>
+							</select>
+						</td>
+						<td>
+							<span>
+								<input type='checkbox' id='associated' <?php print(get_request_var('associated') == 'true' || get_request_var('associated') == 'on' ? 'checked':'');?>>
+								<label for='associated'><?php print __('Show Members');?></label>
+							</span>
+						</td>
+						<td>
+							<span>
+								<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __x('filter: use', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
+								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __x('filter reset', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
+							</span>
+						</td>
+					</tr>
+				</table>
+				<input type='hidden' name='action' value='edit'>
+				<input type='hidden' name='tab' value='members'>
+				<input type='hidden' name='id' value='<?php print get_request_var('id');?>'>
+			</form>
+			<script type='text/javascript'>
+			function applyFilter() {
+				strURL  = 'user_group_admin.php?action=edit&tab=members&id=<?php print get_request_var('id');?>'
+				strURL += '&rows=' + $('#rows').val();
+				strURL += '&associated=' + $('#associated').is(':checked');
+				strURL += '&filter=' + $('#filter').val();
+				loadUrl({url:strURL})
+			}
+
+			function clearFilter() {
+				strURL = 'user_group_admin.php?action=edit&tab=members&id=<?php print get_request_var('id');?>&clear=true'
+				loadUrl({url:strURL})
+			}
+
+			$(function() {
+				$('#associated').click(function() {
+					applyFilter();
+				});
+
+				$('#clear').click(function() {
+					clearFilter();
+				});
+
+				$('#rows').change(function() {
+					applyFilter();
+				});
+
+				$('#forms').submit(function(event) {
+					event.preventDefault();
+					applyFilter();
+				});
+			});
+			</script>
 		</td>
 	</tr>
 	<?php

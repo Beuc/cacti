@@ -110,38 +110,7 @@ function manager() {
 		$rows = get_request_var('rows');
 	}
 
-	?>
-	<script type="text/javascript">
-	function applyFilter() {
-		strURL  = 'managers.php';
-		strURL += '?filter=' + $('#filter').val();
-		strURL += '&rows=' + $('#rows').val();
-		loadUrl({url:strURL})
-	}
-
-	function clearFilter() {
-		strURL = 'managers.php?clear=1';
-		loadUrl({url:strURL})
-	}
-
-	$(function() {
-		$('#refresh').click(function() {
-			applyFilter();
-		});
-
-		$('#clear').click(function() {
-			clearFilter();
-		});
-
-		$('#form_snmpagent_managers').submit(function(event) {
-			event.preventDefault();
-			applyFilter();
-		});
-	});
-	</script>
-	<?php
-
-	html_start_box(__('SNMP Notification Receivers'), '100%', '', '3', 'center', 'managers.php?action=edit');
+	html_filter_start_box(__('SNMP Notification Receivers'), 'managers.php?action=edit');
 
 	?>
 	<tr class='even noprint'>
@@ -183,9 +152,38 @@ function manager() {
 					</tr>
 				</table>
 			</form>
+			<script type="text/javascript">
+			function applyFilter() {
+				strURL  = 'managers.php';
+				strURL += '?filter=' + $('#filter').val();
+				strURL += '&rows=' + $('#rows').val();
+				loadUrl({url:strURL})
+			}
+
+			function clearFilter() {
+				strURL = 'managers.php?clear=1';
+				loadUrl({url:strURL})
+			}
+
+			$(function() {
+				$('#refresh').click(function() {
+					applyFilter();
+				});
+
+				$('#clear').click(function() {
+					clearFilter();
+				});
+
+				$('#form_snmpagent_managers').submit(function(event) {
+					event.preventDefault();
+					applyFilter();
+				});
+			});
+			</script>
 		</td>
 	</tr>
 	<?php
+
 	html_end_box();
 
 	/* form the 'where' clause for our main sql query */

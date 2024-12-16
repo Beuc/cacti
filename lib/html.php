@@ -30,14 +30,14 @@
  * @param bool $div - end with a starting div
  * @param int $cell_padding - the amount of cell padding to use inside of the box
  * @param string $align - the HTML alignment to use for the box (center, left, or right)
- * @param string|array $add_text - the url to use when the user clicks 'Add' in the upper-right
- *   corner of the box ("" for no 'Add' link)
+ * @param string|array $url_or_buttons - the url to use when the user clicks 'Add'
+ *   in the upper-right corner of the box ("" for no 'Add' link)
  *   This function has two method.  This first is for legacy behavior where you
  *   you pass in a href to the function, and an optional label as $add_label
  *   The new format accepts an array of hrefs to add to the start box.  The format
  *   of the array is as follows:
  *
- *   $add_text = array(
+ *   $add_url_or_buttons = array(
  *      array(
  *        'id' => 'uniqueid',
  *        'href' => 'value',
@@ -60,7 +60,7 @@
  *
  * @return void
  */
-function html_start_box($title, $width, $div, $cell_padding, $align, $add_text, $add_label = false, $showcols = true) {
+function html_start_box($title, $width, $div, $cell_padding, $align, $add_url_or_buttons, $add_label = false, $showcols = false) {
 	global $config;
 
 	static $table_suffix = 1;
@@ -134,16 +134,16 @@ function html_start_box($title, $width, $div, $cell_padding, $align, $add_text, 
 			$help_count++;
 		}
 
-		if ($add_text != '' && !is_array($add_text)) {
-			if ($showcols) {
-				print "<span class='cactiFilterColumns' title='" . __esc('Select Columns for Display') . "'><a id='showColumns' href='#'><i class='fa fa-bars'></i></a></span>";
-			}
+		if ($showcols) {
+			print "<span class='cactiFilterColumns' title='" . __esc('Select Columns for Display') . "'><a id='showColumns' href='#'><i class='fa fa-bars'></i></a></span>";
+		}
 
-			print "<span class='cactiFilterAdd' title='$add_label'><a class='linkOverDark' href='" . html_escape($add_text) . "'><i class='fa fa-plus'></i></a></span>";
+		if ($add_url_or_buttons != '' && !is_array($add_url_or_buttons)) {
+			print "<span class='cactiFilterAdd' title='$add_label'><a class='linkOverDark' href='" . html_escape($add_url_or_buttons) . "'><i class='fa fa-plus'></i></a></span>";
 		} else {
-			if (is_array($add_text)) {
-				if (cacti_sizeof($add_text)) {
-					foreach ($add_text as $icon) {
+			if (is_array($add_url_or_buttons)) {
+				if (cacti_sizeof($add_url_or_buttons)) {
+					foreach ($add_url_or_buttons as $icon) {
 						if (isset($icon['callback']) && $icon['callback'] === true) {
 							$classo = 'linkOverDark';
 						} else {
@@ -193,6 +193,14 @@ function html_start_box($title, $width, $div, $cell_padding, $align, $add_text, 
 	}
 
 	$table_suffix++;
+}
+
+/**
+ * Wrapper function for the html_start_box to control filters which presently are displayed
+ * as tables in Cacti.  This function will show the three bar show/hide column setting
+ */
+function html_filter_start_box($title, $add_url_or_buttons = '', $add_label = false, $showcols = true, $width = '100%') {
+	html_start_box($title, $width, false, 3, 'center', $add_url_or_buttons, $add_label, $showcols);
 }
 
 /**

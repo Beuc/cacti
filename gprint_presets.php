@@ -227,7 +227,7 @@ function gprint_presets() {
 		$rows = get_request_var('rows');
 	}
 
-	html_start_box(__('GPRINT Presets'), '100%', '', '3', 'center', 'gprint_presets.php?action=edit');
+	html_filter_start_box(__('GPRINT Presets'), 'gprint_presets.php?action=edit');
 
 	?>
 	<tr class='even'>
