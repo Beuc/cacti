@@ -199,8 +199,8 @@ function html_start_box($title, $width, $div, $cell_padding, $align, $add_url_or
  * Wrapper function for the html_start_box to control filters which presently are displayed
  * as tables in Cacti.  This function will show the three bar show/hide column setting
  */
-function html_filter_start_box($title, $add_url_or_buttons = '', $add_label = false, $showcols = true, $width = '100%') {
-	html_start_box($title, $width, false, 3, 'center', $add_url_or_buttons, $add_label, $showcols);
+function html_filter_start_box($title, $add_url_or_buttons = '', $div = false, $showcols = true, $add_label = false, $width = '100%') {
+	html_start_box($title, $width, $div, 3, 'center', $add_url_or_buttons, $add_label, $showcols);
 }
 
 /**
@@ -291,6 +291,10 @@ function html_end_box($trailing_br = true, $div = false) {
 	if ($trailing_br == true) {
 		print "<div class='break'></div>";
 	}
+}
+
+function html_filter_end_box() {
+	html_end_box(true, true);
 }
 
 /**

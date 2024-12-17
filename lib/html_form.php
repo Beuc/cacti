@@ -266,7 +266,8 @@ function draw_edit_control($field_name, &$field_array) {
 				((isset($field_array['none_value'])) ? $field_array['none_value'] : ''),
 				((isset($field_array['default'])) ? $field_array['default'] : ''),
 				((isset($field_array['class'])) ? $field_array['class'] : ''),
-				((isset($field_array['on_change'])) ? $field_array['on_change'] : '')
+				((isset($field_array['on_change'])) ? $field_array['on_change'] : ''),
+				((isset($field_array['friendly_name'])) ? $field_array['friendly_name'] : '')
 			);
 
 			break;
@@ -334,7 +335,8 @@ function draw_edit_control($field_name, &$field_array) {
 				((isset($field_array['none_value'])) ? $field_array['none_value'] : ''),
 				((isset($field_array['default'])) ? $field_array['default'] : ''),
 				((isset($field_array['class'])) ? $field_array['class'] : ''),
-				((isset($field_array['on_change'])) ? $field_array['on_change'] : '')
+				((isset($field_array['on_change'])) ? $field_array['on_change'] : ''),
+				((isset($field_array['friendly_name'])) ? $field_array['friendly_name'] : '')
 			);
 
 			break;
@@ -348,7 +350,8 @@ function draw_edit_control($field_name, &$field_array) {
 				((isset($field_array['none_value'])) ? $field_array['none_value'] : ''),
 				((isset($field_array['default'])) ? $field_array['default'] : ''),
 				((isset($field_array['class'])) ? $field_array['class'] : ''),
-				((isset($field_array['on_change'])) ? $field_array['on_change'] : '')
+				((isset($field_array['on_change'])) ? $field_array['on_change'] : ''),
+				((isset($field_array['friendly_name'])) ? $field_array['friendly_name'] : '')
 			);
 
 			break;
@@ -810,10 +813,11 @@ function form_hidden_box($form_name, $form_previous_value, $form_default_value, 
  *   no current value available
  * @param string $css_class - any css that needs to be applied to this form element
  * @param string $on_change - onChange modifier
+ * @param string $display_name - The display name for this form object
  *
  * @return void
  */
-function form_dropdown($form_name, $form_data, $column_display, $column_id, $form_previous_value, $form_none_entry, $form_default_value, $class = '', $on_change = '') {
+function form_dropdown($form_name, $form_data, $column_display, $column_id, $form_previous_value, $form_none_entry, $form_default_value, $class = '', $on_change = '', $display_name = '') {
 	if ($form_previous_value == '') {
 		$form_previous_value = $form_default_value;
 	}
@@ -831,6 +835,12 @@ function form_dropdown($form_name, $form_data, $column_display, $column_id, $for
 		}
 	}
 
+	if ($display_name != '') {
+		$display = " data-defaultLabel='" . html_escape($display_name) . "'";
+	} else {
+		$display = '';
+	}
+
 	if ($class != '') {
 		$class = " class='$class' ";
 	}
@@ -839,7 +849,7 @@ function form_dropdown($form_name, $form_data, $column_display, $column_id, $for
 		$on_change = " onChange='$on_change' ";
 	}
 
-	print "<select id='" . html_escape($form_name) . "' name='" . html_escape($form_name) . "'" . $class . $on_change . '>';
+	print "<select id='" . html_escape($form_name) . "' name='" . html_escape($form_name) . "'" . $display . $class . $on_change . '>';
 
 	if (!empty($form_none_entry)) {
 		print "<option value='0'" . (empty($form_previous_value) ? ' selected' : '') . ">$form_none_entry</option>";

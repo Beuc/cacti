@@ -442,176 +442,32 @@ function color_edit() {
 	<?php
 }
 
-function process_request_vars() {
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-		),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'name',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'has_graphs' => array(
-			'filter'  => FILTER_VALIDATE_REGEXP,
-			'options' => array('options' => array('regexp' => '(true|false)')),
-			'pageset' => true,
-			'default' => read_config_option('default_has') == 'on' ? 'true':'false'
-		),
-		'named' => array(
-			'filter'  => FILTER_VALIDATE_REGEXP,
-			'options' => array('options' => array('regexp' => '(true|false)')),
-			'pageset' => true,
-			'default' => 'true'
-		)
-	);
+function process_sanitize_render_filter($render = false) {
+	$pageFilter = new CactiTableFilter(__('Colors'), 'color.php', 'form_color', 'sess_color', 'color.php?action=edit');
 
-	validate_store_request_vars($filters, 'sess_color');
-	/* ================= input validation ================= */
+	$pageFilter->rows_label = __('Colors');
+	$pageFilter->has_graphs = true;
+	$pageFilter->has_import = true;
+	$pageFilter->has_export = true;
+	$pageFilter->has_named  = true;
+
+	if ($render) {
+		$pageFilter->render();
+	} else {
+		$pageFilter->sanitize();
+	}
 }
 
 function color() {
 	global $actions, $item_rows;
 
-	process_request_vars();
+	process_sanitize_render_filter(true);
 
 	if (get_request_var('rows') == '-1') {
 		$rows = read_config_option('num_rows_table');
 	} else {
 		$rows = get_request_var('rows');
 	}
-
-	html_filter_start_box(__('Colors'), 'color.php?action=edit');
-
-	?>
-	<tr class='even'>
-		<td>
-			<form id='form_color' action='color.php'>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' name='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('Colors');?>
-					</td>
-					<td>
-						<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Colors');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-							if (cacti_sizeof($item_rows) > 0) {
-								foreach ($item_rows as $key => $value) {
-									print "<option value='" . $key . "'";
-
-									if (get_request_var('rows') == $key) {
-										print ' selected';
-									} print '>' . html_escape($value) . "</option>\n";
-								}
-							}
-	?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='checkbox' id='named' <?php print(get_request_var('named') == 'true' ? 'checked':'');?>>
-							<label for='named'><?php print __('Named Colors');?></label>
-						</span>
-					</td>
-					<td>
-						<span>
-							<input type='checkbox' id='has_graphs' <?php print(get_request_var('has_graphs') == 'true' ? 'checked':'');?>>
-							<label for='has_graphs'><?php print __('Has Graphs');?></label>
-						</span>
-					</td>
-					<td>
-						<span>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc('Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-						</span>
-					</td>
-					<td>
-						<span>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='import' value='<?php print __esc('Import');?>' title='<?php print __esc('Import Colors');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='export' value='<?php print __esc('Export');?>' title='<?php print __esc('Export Colors');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-			</form>
-			<script type='text/javascript'>
-			function applyFilter() {
-				strURL  = 'color.php';
-				strURL += '?filter='+$('#filter').val();
-				strURL += '&rows='+$('#rows').val();
-				strURL += '&has_graphs='+$('#has_graphs').is(':checked');
-				strURL += '&named='+$('#named').is(':checked');
-				loadUrl({url:strURL})
-			}
-
-			function clearFilter() {
-				strURL = 'color.php?clear=1';
-				loadUrl({url:strURL})
-			}
-
-			$(function() {
-				$('#refresh').click(function() {
-					applyFilter();
-				});
-
-				$('#has_graphs').click(function() {
-					applyFilter();
-				});
-
-				$('#named').click(function() {
-					applyFilter();
-				});
-
-				$('#clear').click(function() {
-					clearFilter();
-				});
-
-				$('#form_color').submit(function(event) {
-					event.preventDefault();
-					applyFilter();
-				});
-
-				$('#import').click(function(event) {
-					strURL = 'color.php?action=import';
-					loadUrl({url:strURL})
-				});
-
-				$('#export').click(function(event) {
-					strURL = 'color.php?action=export';
-					document.location = strURL;
-					Pace.stop();
-				});
-			});
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
 
 	/* form the 'where' clause for our main sql query */
 	if (get_request_var('filter') != '') {
@@ -741,7 +597,7 @@ function color() {
 }
 
 function color_export() {
-	process_request_vars();
+	process_sanitize_render_filter(false);
 
 	/* form the 'where' clause for our main sql query */
 	if (get_request_var('filter') != '') {

@@ -686,97 +686,6 @@ function vdef_edit() {
 	<?php
 }
 
-function vdef_filter() {
-	global $item_rows;
-
-	html_filter_start_box(__('VDEFs'), 'vdef.php?action=edit');
-
-	?>
-	<tr class='even'>
-		<td>
-			<form id='form_vdef' action='vdef.php'>
-				<table class='filterTable'>
-					<tr>
-						<td>
-							<?php print __('Search');?>
-						</td>
-						<td>
-							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-						</td>
-						<td>
-							<?php print __('VDEFs');?>
-						</td>
-						<td>
-							<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('VDEFs');?>'>
-								<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-								<?php
-								if (cacti_sizeof($item_rows)) {
-									foreach ($item_rows as $key => $value) {
-										print "<option value='" . $key . "'";
-
-										if (get_request_var('rows') == $key) {
-											print ' selected';
-										} print '>' . $value . "</option>";
-									}
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<span>
-								<input type='checkbox' id='has_graphs' <?php print(get_request_var('has_graphs') == 'true' ? 'checked':'');?>>
-								<label for='has_graphs'><?php print __('Has Graphs');?></label>
-							</span>
-						</td>
-						<td>
-							<span>
-								<input type='button' class='ui-button ui-corner-all ui-widget' value='<?php print __esc_x('Button: use filter settings', 'Go');?>' id='refresh'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' value='<?php print __esc_x('Button: reset filter settings', 'Clear');?>' id='clear'>
-							</span>
-						</td>
-					</tr>
-				</table>
-			</form>
-			<script type='text/javascript'>
-			function applyFilter() {
-				strURL  = 'vdef.php';
-				strURL += '?filter='+$('#filter').val();
-				strURL += '&rows='+$('#rows').val();
-				strURL += '&has_graphs='+$('#has_graphs').is(':checked');
-				loadUrl({url:strURL})
-			}
-
-			function clearFilter() {
-				strURL = 'vdef.php?clear=1';
-				loadUrl({url:strURL})
-			}
-
-			$(function() {
-				$('#refresh').click(function() {
-					applyFilter();
-				});
-
-				$('#has_graphs').click(function() {
-					applyFilter();
-				});
-
-				$('#clear').click(function() {
-					clearFilter();
-				});
-
-				$('#form_vdef').submit(function(event) {
-					event.preventDefault();
-					applyFilter();
-				});
-			});
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
-}
-
 function get_vdef_records(&$total_rows, &$rows) {
 	/* form the 'where' clause for our main sql query */
 	if (get_request_var('filter') != '') {
@@ -806,44 +715,12 @@ function get_vdef_records(&$total_rows, &$rows) {
 function vdef($refresh = true) {
 	global $actions;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-		),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'name',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'has_graphs' => array(
-			'filter'  => FILTER_VALIDATE_REGEXP,
-			'options' => array('options' => array('regexp' => '(true|false)')),
-			'pageset' => true,
-			'default' => read_config_option('default_has') == 'on' ? 'true':'false'
-		)
-	);
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter(__('VDEFs'), 'vdef.php', 'form_vdef', 'sess_vdef', 'vdef.php?action=edit');
 
-	validate_store_request_vars($filters, 'sess_vdef');
-	/* ================= input validation ================= */
-
-	vdef_filter();
+	$pageFilter->rows_label = __('VDEFs');
+	$pageFilter->has_graphs = true;
+	$pageFilter->render();
 
 	$total_rows = 0;
 	$vdefs      = array();

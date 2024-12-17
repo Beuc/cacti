@@ -1454,8 +1454,32 @@ legend {
 	white-space: nowrap;
 }
 
-.filterTable label {
+.filterTable td label {
 	vertical-align: 10%;
+}
+
+.filterTable .filterRow {
+	display: table-row;
+}
+
+.filterTable .filterColumn {
+	display: table-cell;
+	padding: 5px 0px 5px 5px;
+	text-align: left;
+}
+
+.filterTable .filterColumn label {
+	vertical-align: -10%;
+}
+
+.filterTable .filterColumnButton {
+	display: table-cell;
+	padding: 5px 0px 5px 5px;
+	text-align: left;
+}
+
+.filterTable .filterColumn:first-child {
+	width: 55px;
 }
 
 .settingsFilter {
