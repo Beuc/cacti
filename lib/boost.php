@@ -1652,9 +1652,5 @@ function boost_debug($string) {
 
 	if ($debug || ($boost_log != '' && $boost_debug)) {
 		print $string . PHP_EOL;
-
-		if ($child && $debug) {
-			cacti_log($string, false, 'BOOST CHILD');
-		}
 	}
 }
