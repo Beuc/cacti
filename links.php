@@ -223,107 +223,18 @@ function form_actions() {
 function pages() {
 	global $item_rows, $config, $actions;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-		),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'sortorder',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-		)
-	);
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter(__('External Links'), 'links.php', 'links', 'sess_links', 'links.php?action=edit');
 
-	validate_store_request_vars($filters, 'sess_links');
-	/* ================= input validation ================= */
+	$pageFilter->rows_label = __('Receivers');
+	$pageFilter->set_sort_array('sortorder', 'ASC');
+	$pageFilter->render();
 
 	if (get_request_var('rows') == '-1') {
 		$rows = read_config_option('num_rows_table');
 	} else {
 		$rows = get_request_var('rows');
 	}
-
-	html_filter_start_box(__('External Links'), 'links.php?action=edit');
-
-	?>
-	<tr class='even noprint'>
-		<td>
-			<form id='links' action='links.php'>
-				<table class='filterTable'>
-					<tr>
-						<td>
-							<?php print __('Search'); ?>
-						</td>
-						<td>
-							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter'); ?>'>
-						</td>
-						<td>
-							<?php print __('Links'); ?>
-						</td>
-						<td>
-							<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Links');?>'>
-								<option value=-1 <?php get_request_var('rows') == -1 ? 'selected' : ''; ?>><?php print __('Default'); ?></option>
-								<?php
-								foreach ($item_rows as $key => $row) {
-									print "<option value='" . $key . "'" . ($key == get_request_var('rows') ? ' selected' : '') . '>' . $row . '</option>';
-								}
-	?>
-							</select>
-						</td>
-						<td>
-							<span>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __('Go'); ?>' title='<?php print __esc('Apply Filter'); ?>' onClick='applyFilter()'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __('Clear'); ?>' title='<?php print __esc('Reset filters'); ?>' onClick='clearFilter()'>
-							</span>
-						</td>
-					</tr>
-				</table>
-			</form>
-			<script type='text/javascript'>
-			function applyFilter() {
-				strURL = 'links.php?rows=' + $('#rows').val();
-				strURL += '&filter=' + $('#filter').val();
-				loadUrl({
-					url: strURL
-				})
-			}
-
-			function clearFilter() {
-				strURL = 'links.php?clear=true';
-				loadUrl({
-					url: strURL
-				})
-			}
-
-			$(function() {
-				$('#links').submit(function(event) {
-					event.preventDefault();
-					applyFilter();
-				});
-			});
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
 
 	$style_translate = array(
 		'CONSOLE'    => __('Console'),

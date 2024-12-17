@@ -1330,143 +1330,20 @@ function get_span($duration) {
 function profile() {
 	global $actions, $item_rows, $sampling_intervals, $heartbeats, $config;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-			),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-			),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-			),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'step',
-			'options' => array('options' => 'sanitize_search_string')
-			),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-			),
-		'has_data' => array(
-			'filter'  => FILTER_VALIDATE_REGEXP,
-			'options' => array('options' => array('regexp' => '(true|false)')),
-			'pageset' => true,
-			'default' => read_config_option('default_has') == 'on' ? 'true':'false'
-			)
-	);
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter(__('Data Source Profiles'), 'data_source_profiles.php', 'snmp_dsp', 'sess_dsp', 'data_source_profiles.php?action=edit');
 
-	validate_store_request_vars($filters, 'sess_dsp');
-	/* ================= input validation ================= */
+	$pageFilter->rows_label = __('Profiles');
+	$pageFilter->set_sort_array('step', 'ASC');
+	$pageFilter->has_data   = true;
+	$pageFilter->has_import = true;
+	$pageFilter->render();
 
 	if (get_request_var('rows') == '-1') {
 		$rows = read_config_option('num_rows_table');
 	} else {
 		$rows = get_request_var('rows');
 	}
-
-	html_filter_start_box(__('Data Source Profiles'), 'data_source_profiles.php?action=edit');
-
-	?>
-	<tr class='even'>
-		<td>
-			<form id='form_dsp' action='data_source_profiles.php'>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' name='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('Profiles');?>
-					</td>
-					<td>
-						<select id='rows' name='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Profiles');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-							if (cacti_sizeof($item_rows)) {
-								foreach ($item_rows as $key => $value) {
-									print "<option value='" . $key . "'";
-
-									if (get_request_var('rows') == $key) {
-										print ' selected';
-									} print '>' . html_escape($value) . "</option>\n";
-								}
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='checkbox' id='has_data' <?php print(get_request_var('has_data') == 'true' ? 'checked':'');?>>
-							<label for='has_data'><?php print __('Has Data Sources');?></label>
-						</span>
-					</td>
-					<td>
-						<span>
-							<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __esc('Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='import' value='<?php print __esc('Import');?>' title='<?php print __esc('Import Data Source Profile');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-			</form>
-			<script type='text/javascript'>
-
-			function applyFilter() {
-				strURL  = 'data_source_profiles.php';
-				strURL += '?filter='+$('#filter').val();
-				strURL += '&rows='+$('#rows').val();
-				strURL += '&has_data='+$('#has_data').is(':checked');
-				loadUrl({url:strURL})
-			}
-
-			function clearFilter() {
-				strURL = 'data_source_profiles.php?clear=1';
-				loadUrl({url:strURL})
-			}
-
-			function importProfiles() {
-				strURL = 'data_source_profiles.php?action=import';
-				loadUrl({ url: strURL });
-			}
-
-			$(function() {
-				$('#has_data').click(function() {
-					applyFilter();
-				});
-
-				$('#clear').click(function() {
-					clearFilter();
-				});
-
-				$('#import').click(function() {
-					importProfiles();
-				});
-
-				$('#form_dsp').submit(function(event) {
-					event.preventDefault();
-					applyFilter();
-				});
-			});
-
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
 
 	/* form the 'where' clause for our main sql query */
 	if (get_request_var('filter') != '') {

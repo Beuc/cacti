@@ -540,109 +540,18 @@ function aggregate_template_edit() {
 function aggregate_template() {
 	global $actions, $item_rows, $config;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-		),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'pgt.name',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'has_graphs' => array(
-			'filter'  => FILTER_VALIDATE_REGEXP,
-			'options' => array('options' => array('regexp' => '(true|false)')),
-			'pageset' => true,
-			'default' => read_config_option('default_has') == 'on' ? 'true' : 'false'
-		)
-	);
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter(__('Aggregate Templates'), 'aggregate_templates.php', 'forms', 'sess_agg_tmp', 'aggregate_templates.php?action=edit');
 
-	validate_store_request_vars($filters, 'sess_agg_tmp');
-	/* ================= input validation ================= */
+	$pageFilter->rows_label = __('Templates');
+	$pageFilter->set_sort_array('pgt.name', 'ASC');
+	$pageFilter->render();
 
 	if (get_request_var('rows') == '-1') {
 		$rows = read_config_option('num_rows_table');
 	} else {
 		$rows = get_request_var('rows');
 	}
-
-	html_filter_start_box(__('Aggregate Templates'), 'aggregate_templates.php?action=edit');
-
-	$filter_html = '<tr class="even">
-		<td>
-			<form id="forms">
-				<table class="filterTable">
-					<tr>
-						<td>
-							' . __('Search') . '
-						</td>
-						<td>
-							<input type="text" class="ui-state-default ui-corner-all" id="filter" size="25" value="' . html_escape_request_var('filter') . '">
-						</td>
-						<td>
-							' . __('Templates') . '
-						</td>
-						<td>
-							<select id="rows" onChange="applyFilter()" data-defaultLabel="' . __('Templates') . '">
-							<option value="-1" ';
-
-	if (get_request_var('rows') == '-1') {
-		$filter_html .= 'selected';
-	}
-
-	$filter_html .= '>' . __('Default') . '</option>';
-
-	if (cacti_sizeof($item_rows)) {
-		foreach ($item_rows as $key => $value) {
-			$filter_html .= "<option value='" . $key . "'";
-
-			if (get_request_var('rows') == $key) {
-				$filter_html .= ' selected';
-			}
-			$filter_html .= '>' . $value . "</option>\n";
-		}
-	}
-
-	$filter_html .= '</select>
-					</td>
-						<td>
-							<span>
-								<input type="checkbox" id="has_graphs" ' . (get_request_var('has_graphs') == 'true' ? 'checked' : '') . ' onChange="applyFilter()">
-								<label for="has_graphs">' . __('Has Graphs') . '</label>
-							</span>
-						</td>
-						<td>
-							<span>
-								<input type="submit" class="ui-button ui-corner-all ui-widget" value="' . __esc('Go') . '" id="go">
-								<input type="button" class="ui-button ui-corner-all ui-widget" value="' . __esc('Clear') . '" id="clear">
-							</span>
-						</td>
-					</tr>
-				</table>
-			</form>
-		</td>
-	</tr>';
-
-	print $filter_html;
-
-	html_end_box();
 
 	/* form the 'where' clause for our main sql query */
 	$sql_where = '';
@@ -691,7 +600,7 @@ function aggregate_template() {
 			'align'   => 'right',
 			'tip'     => __('Aggregate Templates that are in use can not be Deleted.  In use is defined as being referenced by an Aggregate.')
 		),
-		'graphs.graphs' => array(
+		'nosort1' => array(
 			'display' => __('Graphs Using'),
 			'align'   => 'right',
 			'sort'    => 'DESC'

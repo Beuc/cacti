@@ -709,122 +709,17 @@ function data_edit() {
 function data() {
 	global $input_types, $actions, $item_rows, $hash_system_data_inputs;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-			),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-			),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-			),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'name',
-			'options' => array('options' => 'sanitize_search_string')
-			),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-			)
-	);
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter(__('Data Input Methods'), 'data_input.php', 'form_data_input', 'sess_data_input', 'data_input.php?action=edit');
 
-	validate_store_request_vars($filters, 'sess_data_input');
-	/* ================= input validation ================= */
+	$pageFilter->rows_label = __('Input Methods');
+	$pageFilter->render();
 
 	if (get_request_var('rows') == '-1') {
 		$rows = read_config_option('num_rows_table');
 	} else {
 		$rows = get_request_var('rows');
 	}
-
-	html_filter_start_box(__('Data Input Methods'), 'data_input.php?action=edit');
-
-	?>
-	<tr class='even noprint'>
-		<td class='noprint'>
-		<form id='form_data_input' method='get' action='data_input.php'>
-			<table class='filterTable'>
-				<tr class='noprint'>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' name='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('Input Methods');?>
-					</td>
-					<td>
-						<select id='rows' name='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Input Methods');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-							if (cacti_sizeof($item_rows)) {
-								foreach ($item_rows as $key => $value) {
-									print "<option value='" . $key . "'";
-
-									if (get_request_var('rows') == $key) {
-										print ' selected';
-									}
-
-									print '>' . html_escape($value) . "</option>";
-								}
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc('Go');?>' title='<?php __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>' title='<?php __esc('Clear Filters');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-		</form>
-		<script type='text/javascript'>
-
-		function applyFilter() {
-			strURL  = 'data_input.php';
-			strURL += '?filter='+$('#filter').val();
-			strURL += '&rows='+$('#rows').val();
-			loadUrl({url:strURL})
-		}
-
-		function clearFilter() {
-			strURL = 'data_input.php?clear=1';
-			loadUrl({url:strURL})
-		}
-
-		$(function() {
-			$('#refresh').click(function() {
-				applyFilter();
-			});
-
-			$('#clear').click(function() {
-				clearFilter();
-			});
-
-			$('#form_data_input').submit(function(event) {
-				event.preventDefault();
-				applyFilter();
-			});
-		});
-
-		</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
 
 	/* form the 'where' clause for our main sql query */
 	if (get_request_var('filter') != '') {

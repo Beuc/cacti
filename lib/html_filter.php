@@ -43,6 +43,7 @@ class CactiTableFilter {
 	public $has_import     = false;
 	public $has_export     = false;
 	public $has_named      = false;
+	public $sort_array     = false;
 
 	private $item_rows     = array();
 	private $filter_array  = array();
@@ -151,7 +152,7 @@ class CactiTableFilter {
 	}
 
 	public function set_sort_array($sort_column, $sort_direction) {
-		$this->filter_array['sort'] = array(
+		$this->sort_array = array(
 			'sort_column'    => $sort_column,
 			'sort_direction' => $sort_direction
 		);
@@ -184,6 +185,10 @@ class CactiTableFilter {
 	private function create_filter() {
 		if (!cacti_sizeof($this->filter_array)) {
 			$this->filter_array = $this->create_default();
+		}
+
+		if ($this->sort_array !== false) {
+			$this->filter_array['sort'] = $this->sort_array;
 		}
 
 		// Make common adjustements
