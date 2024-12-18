@@ -50,6 +50,7 @@ class CactiTableFilter {
 	public $has_save       = false;
 	public $has_import     = false;
 	public $has_export     = false;
+	public $has_purge      = false;
 	public $has_named      = false;
 	public $has_refresh    = false;
 
@@ -323,6 +324,15 @@ class CactiTableFilter {
 			);
 		}
 
+		if ($this->has_purge) {
+			$this->filter_array['buttons']['purge'] = array(
+				'method'  => 'button',
+				'display' => __('Purge'),
+				'title'   => __('Purge Data'),
+			);
+		}
+
+		$this->filter_array['rows'][0] += $this->filter_array['buttons'];
 		$this->filter_array['rows'][0] += $this->filter_array['buttons'];
 
 		// Buffer output
@@ -398,6 +408,7 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 		$saveFilter   = $applyFilter;
 		$importFilter = $applyFilter;
 		$exportFilter = $applyFilter;
+		$purgeFilter  = $applyFilter;
 
 		if (strpos($applyFilter, '?') === false) {
 			$separator = '?';
@@ -410,6 +421,7 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 		$saveFilter   .= $separator . "action=savefilter'";
 		$importFilter .= $separator . "action=import'";
 		$exportFilter .= $separator . "action=export'";
+		$purgeFilter  .= $separator . "action=purge'";
 		$changeChain   = '';
 		$clickChain    = '';
 
@@ -421,18 +433,45 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 			$importFilter = "'#'";
 		}
 
-		if (!$this->has_export) {
+		if (!$this->has_export && !isset($this->filter_array['buttons']['export'])) {
 			$exportFilter = "'#'";
+		}
+
+		if (!$this->has_purge && !isset($this->filter_array['buttons']['purge'])) {
+			$purgeFilter = "'#'";
 		}
 
 		$filterLength    = 0;
 		$refreshMSeconds = 9999999;
+		$buttonFunctions = '';
+		$buttonReady     = '';
 
 		if (isset($this->filter_array['rows'])) {
 			foreach($this->filter_array['rows'] as $index => $row) {
 				foreach($row as $field_name => $field_array) {
 					switch($field_array['method']) {
 						case 'button':
+							switch($field_name) {
+								case 'go':
+								case 'clear':
+								case 'import':
+								case 'export':
+								case 'save':
+								case 'purge':
+
+									break;
+								default:
+									$buttonAction     = str_replace('savefilter', $field_name, $saveFilter);
+									$buttonFunctions .= PHP_EOL . "
+										function {$field_name}Function () {
+											loadUrl({ url: $buttonAction });
+										};";
+
+									$buttonReady     .= PHP_EOL . "
+										$('#{$field_name}').click(function()
+											{$field_name}Function();
+										});";
+							}
 
 							break;
 						case 'filter_checkbox':
@@ -498,10 +537,16 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 				loadUrl({ url: $importFilter });
 			}
 
+			function purgeFilter() {
+				loadUrl({ url: $purgeFilter });
+			}
+
 			function exportFilter() {
 				document.location = $exportFilter;
 				Pace.stop();
 			}
+
+			$buttonFunctions
 
 			$(function() {
 				refreshFunction = 'applyFilter()';
@@ -521,6 +566,8 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 					applyFilter();
 				});
 
+				$buttonReady
+
 				$('#clear').click(function() {
 					clearFilter();
 				})
@@ -535,6 +582,10 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 
 				$('#export').click(function() {
 					exportFilter();
+				})
+
+				$('#purge').click(function() {
+					purgeFilter();
 				})
 			});
 		</script>" . PHP_EOL;

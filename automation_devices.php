@@ -63,8 +63,6 @@ $networks = array_rekey(db_fetch_assoc('SELECT an.id, an.name
 
 set_default_action();
 
-process_request_vars();
-
 switch(get_request_var('action')) {
 	case 'purge':
 		purge_discovery_results();
@@ -272,7 +270,7 @@ function display_discovery_page() {
 
 	top_header();
 
-	draw_filter();
+	process_sanitize_draw_filter(true);
 
 	$total_rows = 0;
 
@@ -448,63 +446,6 @@ function get_network_description($id) {
 	}
 }
 
-function process_request_vars() {
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-			),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-			),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-			),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'hostname',
-			'options' => array('options' => 'sanitize_search_string')
-			),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-			),
-		'status' => array(
-			'filter'  => FILTER_CALLBACK,
-			'pageset' => true,
-			'default' => '',
-			'options' => array('options' => 'sanitize_search_string')
-			),
-		'network' => array(
-			'filter'  => FILTER_CALLBACK,
-			'pageset' => true,
-			'default' => '',
-			'options' => array('options' => 'sanitize_search_string')
-			),
-		'snmp' => array(
-			'filter'  => FILTER_CALLBACK,
-			'pageset' => true,
-			'default' => '',
-			'options' => array('options' => 'sanitize_search_string')
-			),
-		'os' => array(
-			'filter'  => FILTER_CALLBACK,
-			'pageset' => true,
-			'default' => '',
-			'options' => array('options' => 'sanitize_search_string')
-		)
-	);
-
-	validate_store_request_vars($filters, 'sess_autom_device');
-	/* ================= input validation ================= */
-}
-
 function get_discovery_results(&$total_rows = 0, $rows = 0, $export = false) {
 	global $os_arr, $status_arr, $networks, $actions;
 
@@ -515,43 +456,53 @@ function get_discovery_results(&$total_rows = 0, $rows = 0, $export = false) {
 	$os         = get_request_var('os');
 	$filter     = get_request_var('filter');
 
-	if ($status == __('Down')) {
-		$sql_where .= 'WHERE up=0';
-	} elseif ($status == __('Up')) {
-		$sql_where .= 'WHERE up=1';
+	$sql_where  = '';
+	$sql_params = array();
+
+	if ($status != '-1') {
+		$sql_where   .= 'WHERE up = ?';
+		$sql_params[] = $status;
 	}
 
 	if ($network > 0) {
-		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . 'network_id=' . $network;
+		$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . 'network_id = ?';
+		$sql_params[] = $network;
 	}
 
-	if ($snmp == __('Down')) {
-		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . 'snmp=0';
-	} elseif ($snmp == __('Up')) {
-		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . 'snmp=1';
+	if ($snmp != '-1') {
+		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . 'snmp = ?';
+		$sql_params[] = $snmp;
 	}
 
-	if ($os != '-1' && in_array($os, $os_arr, true)) {
-		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . "os='$os'";
+	if ($os != '-1') {
+		$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . 'os= ?';
+		$sql_params[] = $network;
 	}
 
 	if ($filter != '') {
-		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . '(hostname LIKE ' . db_qstr('%' . $filter . '%') . '
-			OR ip LIKE ' . db_qstr('%' . $filter . '%') . '
-			OR sysName LIKE ' . db_qstr('%' . $filter . '%') . '
-			OR sysDescr LIKE ' . db_qstr('%' . $filter . '%') . '
-			OR sysLocation LIKE ' . db_qstr('%' . $filter . '%') . '
-			OR sysContact LIKE ' . db_qstr('%' . $filter . '%') . '
-		)';
+		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') .
+			'(hostname LIKE ? OR ip LIKE ? OR sysName LIKE ? OR sysDescr ? OR sysLocation ? OR sysContact LIKE ?)';
+
+		$sql_params[] = "%$filter%";
+		$sql_params[] = "%$filter%";
+		$sql_params[] = "%$filter%";
+		$sql_params[] = "%$filter%";
+		$sql_params[] = "%$filter%";
+		$sql_params[] = "%$filter%";
 	}
 
 	if ($export) {
-		return db_fetch_assoc("SELECT * FROM automation_devices $sql_where ORDER BY INET_ATON(ip)");
+		return db_fetch_assoc_prepared("SELECT *
+			FROM automation_devices
+			$sql_where
+			ORDER BY INET_ATON(ip)",
+			$sql_params);
 	} else {
-		$total_rows = db_fetch_cell("SELECT
+		$total_rows = db_fetch_cell_prepared("SELECT
 			COUNT(*)
 			FROM automation_devices
-			$sql_where");
+			$sql_where",
+			$sql_params);
 
 		$page      = get_request_var('page');
 		$sql_order = get_order_string();
@@ -563,190 +514,133 @@ function get_discovery_results(&$total_rows = 0, $rows = 0, $export = false) {
 			$sql_order
 			$sql_limit";
 
-		return db_fetch_assoc($sql_query);
+		return db_fetch_assoc_prepared($sql_query, $sql_params);
 	}
 }
 
-function draw_filter() {
-	global $item_rows, $os_arr, $status_arr, $networks, $actions;
+function create_filter() {
+	global $item_rows, $os_arr, $status_arr, $networks;
 
-	html_filter_start_box(__('Discovery Filters'));
+	$any          = array(-1 => __('Any'));
+	$networks_arr = $any + $networks;
+	$status_arr   = $any + $status_arr;
+	$os_arr       = $any + $os_arr;
 
-	?>
-	<tr class='even'>
-		<td class='noprint'>
-		<form id='form_devices' method='get' action='automation_devices.php'>
-			<table class='filterTable'>
-				<tr class='noprint'>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('Network');?>
-					</td>
-					<td>
-						<select id='network' onChange='applyFilter()' data-defaultLabel='<?php print __('Network');?>'>
-							<option value='-1' <?php if (get_request_var('network') == -1) {?> selected<?php }?>><?php print __('Any');?></option>
-							<?php
-							if (cacti_sizeof($networks)) {
-								foreach ($networks as $key => $name) {
-									print "<option value='" . html_escape($key) . "'";
+	return array(
+		'rows' => array(
+			array(
+				'filter' => array(
+					'method'        => 'textbox',
+					'friendly_name'  => __('Search'),
+					'filter'         => FILTER_DEFAULT,
+					'placeholder'    => __('Enter a search term'),
+					'size'           => '30',
+					'default'        => '',
+					'pageset'        => true,
+					'max_length'     => '120',
+					'value'          => ''
+				),
+				'network' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Network'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $networks_arr,
+					'value'         => '-1'
+				)
+			),
+			array(
+				'status' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Status'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $status_arr,
+					'value'         => '-1'
+				),
+				'os' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('OS'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $os_arr,
+					'value'         => '-1'
+				),
+				'snmp' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('SNMP'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $status_arr,
+					'value'         => '-1'
+				),
+				'rows' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Devices'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $item_rows,
+					'value'         => '-1'
+				)
+			)
+		),
+		'buttons' => array(
+			'go' => array(
+				'method'  => 'submit',
+				'display' => __('Go'),
+				'title'   => __('Apply filter to table'),
+			),
+			'clear' => array(
+				'method'  => 'button',
+				'display' => __('Clear'),
+				'title'   => __('Reset filter to default values'),
+			),
+			'export' => array(
+				'method'  => 'button',
+				'display' => __('Export'),
+				'action'  => 'default',
+				'title'   => __('Export the Discovered Devices to CSV'),
+			),
+			'purge' => array(
+				'method'  => 'button',
+				'display' => __('Purge'),
+				'action'  => 'default',
+				'title'   => __('Purge the Discovered Devices from the Database'),
+			)
+		),
+		'sort' => array(
+			'sort_column'    => 'hostname',
+			'sort_direction' => 'ASC'
+		)
+	);
+}
 
-									if (get_request_var('network') == $key) {
-										print ' selected';
-									} print '>' . html_escape($name) . '</option>';
-								}
-							}
-	?>
-						</select>
-					<td>
-						<span>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc('Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Reset fields to defaults');?>'>
-						</span>
-					</td>
-					<td>
-						<span>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='export' value='<?php print __esc('Export');?>' title='<?php print __esc('Export to a file');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='purge' value='<?php print __esc('Purge');?>' title='<?php print __esc('Purge Discovered Devices');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Status');?>
-					</td>
-					<td>
-						<select id='status' onChange='applyFilter()' data-defaultLabel='<?php print __('Status');?>'>
-							<option value='-1' <?php if (get_request_var('status') == '') {?> selected<?php }?>><?php print __('Any');?></option>
-							<?php
-	if (cacti_sizeof($status_arr)) {
-		foreach ($status_arr as $st) {
-			print "<option value='" . html_escape($st) . "'";
+function process_sanitize_draw_filter($render = false) {
+	global $item_rows, $filters, $os_arr, $status_arr, $networks, $actions;
 
-			if (get_request_var('status') == $st) {
-				print ' selected';
-			} print '>' . html_escape($st) . '</option>';
-		}
+	$filters = create_filter();
+
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter(__('Discovered Devices'), 'automation_devices.php', 'form_devices', 'sess_autom_device');
+
+	$pageFilter->rows_label = __('Devices');
+	$pageFilter->set_filter_array($filters);
+
+	if ($render) {
+		$pageFilter->render();
+	} else {
+		$pageFilter->sanitize();
 	}
-	?>
-						</select>
-					</td>
-					<td>
-						<?php print __('OS');?>
-					</td>
-					<td>
-						<select id='os' onChange='applyFilter()' data-defaultLabel='<?php print __('OS');?>'>
-							<option value='-1' <?php if (get_request_var('os') == '') {?> selected<?php }?>><?php print __('Any');?></option>
-							<?php
-	if (cacti_sizeof($os_arr)) {
-		foreach ($os_arr as $st) {
-			print "<option value='" . html_escape($st) . "'";
-
-			if (get_request_var('os') == $st) {
-				print ' selected';
-			} print '>' . html_escape($st) . '</option>';
-		}
-	}
-	?>
-						</select>
-					</td>
-					<td>
-						<?php print __('SNMP');?>
-					</td>
-					<td>
-						<select id='snmp' onChange='applyFilter()' data-defaultLabel='<?php print __('SNMP');?>'>
-							<option value='-1' <?php if (get_request_var('snmp') == '') {?> selected<?php }?>><?php print __('Any');?></option>
-							<?php
-	if (cacti_sizeof($status_arr)) {
-		foreach ($status_arr as $st) {
-			print "<option value='" . html_escape($st) . "'";
-
-			if (get_request_var('snmp') == $st) {
-				print ' selected';
-			} print '>' . html_escape($st) . '</option>';
-		}
-	}
-	?>
-						</select>
-					</td>
-					<td>
-						<?php print __('Devices');?>
-					</td>
-					<td>
-						<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Devices');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-	if (cacti_sizeof($item_rows) > 0) {
-		foreach ($item_rows as $key => $value) {
-			print "<option value='" . $key . "'";
-
-			if (get_request_var('rows') == $key) {
-				print ' selected';
-			} print '>' . html_escape($value) . '</option>';
-		}
-	}
-	?>
-						</select>
-					</td>
-				</tr>
-			</table>
-		</form>
-		<script type='text/javascript'>
-
-		$(function() {
-			$('#refresh').click(function() {
-				applyFilter();
-			});
-
-			$('#clear').click(function() {
-				clearFilter();
-			});
-
-			$('#form_devices').submit(function(event) {
-				event.preventDefault();
-				applyFilter();
-			});
-
-			$('#purge').click(function() {
-				loadUrl({url:'automation_devices.php?action=purge&network_id='+$('#network').val()})
-			});
-
-			$('#export').click(function() {
-				document.location = 'automation_devices.php?action=export';
-				Pace.stop();
-			});
-		});
-
-		function clearFilter() {
-			loadUrl({url:'automation_devices.php?clear=1'})
-		}
-
-		function applyFilter() {
-			strURL  = 'automation_devices.php';
-			strURL += '?status=' + $('#status').val();
-			strURL += '&network=' + $('#network').val();
-			strURL += '&snmp=' + $('#snmp').val();
-			strURL += '&os=' + $('#os').val();
-			strURL += '&filter=' + $('#filter').val();
-			strURL += '&rows=' + $('#rows').val();
-
-			loadUrl({url:strURL})
-		}
-
-		</script>
-		</td>
-	</tr>
-	<?php
-	html_end_box();
 }
 
 function export_discovery_results() {
+	process_sanitize_draw_filter(false);
+
 	$results = get_discovery_results($total_rows, 0, true);
 
 	header('Content-type: application/csv');
