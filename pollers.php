@@ -879,153 +879,19 @@ function test_database_connection($poller = array()) {
 function pollers() {
 	global $actions, $poller_status, $item_rows;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'refresh' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '20'
-		),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-		),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'name',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-		)
-	);
+    /* create the page filter */
+    $pageFilter = new CactiTableFilter(__('Data Collectors'), 'pollers.php', 'form_poller', 'sess_pollers');
 
-	validate_store_request_vars($filters, 'sess_pollers');
-	/* ================= input validation ================= */
-
-	$refresh['page']    = 'pollers.php';
-	$refresh['seconds'] = get_request_var('refresh');
-	$refresh['logout']  = 'false';
-
-	set_page_refresh($refresh);
+    $pageFilter->rows_label = __('Collectors');
+    $pageFilter->has_refresh = true;
+	$pageFilter->def_refresh = 20;
+    $pageFilter->render();
 
 	if (get_request_var('rows') == '-1') {
 		$rows = read_config_option('num_rows_table');
 	} else {
 		$rows = get_request_var('rows');
 	}
-
-	html_filter_start_box(__('Data Collectors'));
-
-	?>
-	<tr class='even'>
-		<td>
-			<form id='form_poller' action='pollers.php'>
-				<table class='filterTable'>
-					<tr>
-						<td>
-							<?php print __('Search'); ?>
-						</td>
-						<td>
-							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter'); ?>'>
-						</td>
-						<td>
-							<?php print __('Collectors'); ?>
-						</td>
-						<td>
-							<select id='rows' onChange='applyFilter()'  data-defaultLabel='<?php print __('Collectors');?>'>
-								<option value='-1' <?php print(get_request_var('rows') == '-1' ? ' selected>' : '>') . __('Default'); ?></option>
-									<?php
-									if (cacti_sizeof($item_rows)) {
-										foreach ($item_rows as $key => $value) {
-											print "<option value='" . $key . "'";
-
-											if (get_request_var('rows') == $key) {
-												print ' selected';
-											}
-											print '>' . html_escape($value) . "</option>\n";
-										}
-									}
-	?>
-							</select>
-						</td>
-						<td>
-							<?php print __('Refresh'); ?>
-						</td>
-						<td>
-							<select id='refresh' onChange='applyFilter()'  data-defaultLabel='<?php print __('Refresh');?>'>
-								<?php
-								$frequency = array(
-									5   => __('%d Seconds', 5),
-									10  => __('%d Seconds', 10),
-									20  => __('%d Seconds', 20),
-									30  => __('%d Seconds', 30),
-									45  => __('%d Seconds', 45),
-									60  => __('%d Minute', 1),
-									120 => __('%d Minutes', 2),
-									300 => __('%d Minutes', 5)
-								);
-
-								foreach ($frequency as $r => $row) {
-									print "<option value='" . $r . "'" . (isset_request_var('refresh') && $r == get_request_var('refresh') ? ' selected' : '') . '>' . $row . '</option>';
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<span>
-								<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __esc('Go'); ?>' title='<?php print __esc('Set/Refresh Filters'); ?>'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear'); ?>' title='<?php print __esc('Clear Filters'); ?>'>
-							</span>
-						</td>
-					</tr>
-				</table>
-			</form>
-			<script type='text/javascript'>
-				function applyFilter() {
-					strURL = 'pollers.php';
-					strURL += '?filter=' + $('#filter').val();
-					strURL += '&refresh=' + $('#refresh').val();
-					strURL += '&rows=' + $('#rows').val();
-					loadUrl({
-						url: strURL
-					})
-				}
-
-				function clearFilter() {
-					strURL = 'pollers.php?clear=1';
-					loadUrl({
-						url: strURL
-					})
-				}
-
-				$(function() {
-					$('#clear').click(function() {
-						clearFilter();
-					});
-
-					$('#form_poller').submit(function(event) {
-						event.preventDefault();
-						applyFilter();
-					});
-				});
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
 
 	/* form the 'where' clause for our main sql query */
 	if (get_request_var('filter') != '') {

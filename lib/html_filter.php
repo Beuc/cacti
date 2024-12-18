@@ -32,21 +32,31 @@ class CactiTableFilter {
 	public $form_id        = '';
 	public $action_url     = '';
 	public $action_label   = '';
-	public $session_var    = 'sess_default';
+	public $session_var    = 'sess_';
 	public $default_filter = array();
 	public $rows_label     = '';
 	public $js_extra       = '';
 	public $dynamic        = true;
+	public $def_refresh    = 300;
+
+	/**
+	 * Custom hooks for common functionality.
+	 * These hooks will reduce the number of
+	 * pages that will require a full stack replacement
+	 * filter.
+	 */
 	public $has_graphs     = false;
 	public $has_data       = false;
 	public $has_save       = false;
 	public $has_import     = false;
 	public $has_export     = false;
 	public $has_named      = false;
-	public $sort_array     = false;
+	public $has_refresh    = false;
 
+	private $sort_array    = false;
 	private $item_rows     = array();
 	private $filter_array  = array();
+	private $frequencies   = array();
 
 	public function __construct($form_header = '', $form_action = '', $form_id = '',
 		$session_var = '', $action_url = '', $action_label = false) {
@@ -60,13 +70,31 @@ class CactiTableFilter {
 		$this->action_label  = $action_label;
 		$this->session_var   = $session_var;
 		$this->item_rows     = $item_rows;
-		$this->has_graphs    = false;
-		$this->has_data      = false;
-		$this->has_save      = false;
-		$this->has_import    = false;
-		$this->has_export    = false;
-		$this->has_named     = false;
 		$this->rows_label    = __('Rows');
+
+		$this->frequencies = array(
+			5   => __('%d Seconds', 5),
+			10  => __('%d Seconds', 10),
+			20  => __('%d Seconds', 20),
+			30  => __('%d Seconds', 30),
+			45  => __('%d Seconds', 45),
+			60  => __('%d Minute', 1),
+			120 => __('%d Minutes', 2),
+			300 => __('%d Minutes', 5)
+		);
+
+		if ($session_var == '') {
+			$action = get_nfilter_request_var('action');
+			$tab    = get_nfilter_request_var('tab');
+
+			if ($action != '') {
+				$session_var .= basename(get_current_page(), '.php') . '_' . $action;
+			} elseif ($tab != '') {
+				$session_var .= basename(get_current_page(), '.php') . '_' . $tab;
+			} else {
+				$session_var .= basename(get_current_page(), '.php');
+			}
+		}
 
 		if ($this->action_url != '' && $this->action_label == '') {
 			$this->action_label = __('Add');
@@ -159,11 +187,11 @@ class CactiTableFilter {
 	}
 
 	public function render() {
-		/* create the filter for the page */
-		$filter = $this->create_filter();
-
 		/* validate filter variables */
 		$this->sanitize_filter_variables();
+
+		/* create the filter for the page */
+		$filter = $this->create_filter();
 
 		/* if validation succeeds, print output the data */
 		print $filter;
@@ -192,6 +220,27 @@ class CactiTableFilter {
 		}
 
 		// Make common adjustements
+		if ($this->has_refresh) {
+			if (isset_request_var('refresh')) {
+				$value = get_nfilter_request_var('refresh');
+cacti_log('The refresh is ' . $value);
+			} else {
+cacti_log('The refresh is default');
+				$value = $this->def_refresh;
+			}
+
+			$this->filter_array['rows'][0] += array(
+				'refresh' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Refresh'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => $this->def_refresh,
+					'array'         => $this->frequencies,
+					'value'         => $value
+				)
+			);
+		}
+
 		if ($this->has_graphs) {
 			if (isset_request_var('has_graphs')) {
 				$value = get_request_var('has_graphs');
@@ -378,7 +427,8 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 			$exportFilter = "'#'";
 		}
 
-		$filterLength = 0;
+		$filterLength    = 0;
+		$refreshMSeconds = 9999999;
 
 		if (isset($this->filter_array['rows'])) {
 			foreach($this->filter_array['rows'] as $index => $row) {
@@ -418,10 +468,18 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 						default:
 							break;
 					}
+
+					if ($this->has_refresh && $field_name == 'refresh') {
+						$refreshMSeconds = $field_array['value'] * 1000;
+					}
 				}
 			}
 
 			$applyFilter .= ';';
+		}
+
+		if ($this->has_refresh && isset_request_var('refresh')) {
+			$refreshMSeconds = get_request_var('refresh') * 1000;
 		}
 
 		return "<script type='text/javascript'>
@@ -448,6 +506,10 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 			}
 
 			$(function() {
+				refreshFunction = 'applyFilter()';
+				refreshMSeconds = $refreshMSeconds;
+				setupPageTimeout();
+
 				$('#" . $this->form_id . "').submit(function(event) {
 					event.preventDefault();
 					applyFilter();
@@ -519,6 +581,10 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 
 		if (!isset_request_var('page')) {
 			set_request_var('page', 1);
+		}
+
+		if (!isset_request_var('rows')) {
+			set_request_var('rows', read_config_option('num_rows_table'));
 		}
 
 		if (isset($this->filter_array['sort'])) {
