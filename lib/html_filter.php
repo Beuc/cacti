@@ -187,11 +187,11 @@ class CactiTableFilter {
 	}
 
 	public function render() {
-		/* validate filter variables */
-		$this->sanitize_filter_variables();
-
 		/* create the filter for the page */
 		$filter = $this->create_filter();
+
+		/* validate filter variables */
+		$this->sanitize_filter_variables();
 
 		/* if validation succeeds, print output the data */
 		print $filter;
@@ -223,9 +223,7 @@ class CactiTableFilter {
 		if ($this->has_refresh) {
 			if (isset_request_var('refresh')) {
 				$value = get_nfilter_request_var('refresh');
-cacti_log('The refresh is ' . $value);
 			} else {
-cacti_log('The refresh is default');
 				$value = $this->def_refresh;
 			}
 
