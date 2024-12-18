@@ -721,12 +721,6 @@ function form_actions() {
 	}
 }
 
-function network_javascript() {
-}
-
-function network_change_javascript() {
-}
-
 function network_get_field_array($network = array()) {
 	global $config, $ping_methods, $sched_types;
 
@@ -1275,48 +1269,15 @@ function get_networks(&$sql_where, $rows, $apply_limits = true) {
 }
 
 function networks() {
-	global $actions, $networkss, $config, $item_rows, $sched_types;
+	global $actions, $networks, $config, $item_rows, $sched_types;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'refresh' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '20'
-		),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-		),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'name',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-		)
-	);
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter(__('Network Rules'), 'automation_networks.php', 'networks', 'sess_networks', 'automation_networks.php?action=edit');
 
-	validate_store_request_vars($filters, 'sess_networks');
-	/* ================= input validation ================= */
-
-	$refresh['page']    = 'automation_networks.php';
-	$refresh['seconds'] = get_request_var('refresh');
-	$refresh['logout']  = 'false';
-
-	set_page_refresh($refresh);
+	$pageFilter->rows_label = __('Networks');
+	$pageFilter->has_refresh = true;
+	$pageFilter->def_refresh = 20;
+	$pageFilter->render();
 
 	if (get_request_var('rows') == -1) {
 		$rows = read_config_option('num_rows_table');
@@ -1325,8 +1286,6 @@ function networks() {
 	} else {
 		$rows = get_request_var('rows');
 	}
-
-	networks_filter();
 
 	$sql_where = '';
 
@@ -1495,116 +1454,3 @@ function networks() {
 	form_end();
 }
 
-function networks_filter() {
-	global $item_rows;
-
-	html_filter_start_box(__('Network Filters'), 'automation_networks.php?action=edit');
-
-	?>
-	<tr class='even'>
-		<td>
-			<form id='networks' action='automation_networks.php'>
-				<table class='filterTable'>
-					<tr>
-						<td>
-							<?php print __('Search'); ?>
-						</td>
-						<td>
-							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter'); ?>'>
-						</td>
-						<td>
-							<?php print __('Networks'); ?>
-						</td>
-						<td>
-							<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Networks');?>'>
-								<option value='-1' <?php if (get_request_var('rows') == '-1') { ?> selected<?php } ?>><?php print __('Default'); ?></option>
-									<?php
-									if (cacti_sizeof($item_rows)) {
-										foreach ($item_rows as $key => $value) {
-											print "<option value='" . $key . "'";
-
-											if (get_request_var('rows') == $key) {
-												print ' selected';
-											}
-											print '>' . $value . '</option>';
-										}
-									}
-									?>
-							</select>
-						</td>
-						<td>
-							<?php print __('Refresh'); ?>
-						</td>
-						<td>
-							<select id='refresh' onChange='applyFilter()' data-defaultLabel='<?php print __('Refresh');?>'>
-								<?php
-								$frequency = array(
-									10  => __('%d Seconds', 10),
-									20  => __('%d Seconds', 20),
-									30  => __('%d Seconds', 30),
-									45  => __('%d Seconds', 45),
-									60  => __('%d Minute', 1),
-									120 => __('%d Minutes', 2),
-									300 => __('%d Minutes', 5)
-								);
-
-								foreach ($frequency as $r => $row) {
-									print "<option value='" . $r . "'" . (isset_request_var('refresh') && $r == get_request_var('refresh') ? ' selected' : '') . '>' . $row . '</option>';
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<span>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='go' title='<?php print __esc('Search'); ?>' value='<?php print __esc('Go'); ?>'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' title='<?php print __esc('Clear Filtered'); ?>' value='<?php print __esc('Clear'); ?>'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='import' title='<?php print __esc('Import Networks'); ?>' value='<?php print __esc('Import'); ?>'>
-							</span>
-						</td>
-					</tr>
-				</table>
-			</form>
-			<script type='text/javascript'>
-				function applyFilter() {
-					strURL = '?rows=' + $('#rows').val();
-					strURL += '&filter=' + $('#filter').val();
-					strURL += '&refresh=' + $('#refresh').val();
-
-					loadUrl({ url: strURL });
-				}
-
-				function clearFilter() {
-					strURL = '?clear=true';
-					loadUrl({ url: strURL });
-				}
-
-				function importNetworks() {
-					strURL = '?action=import';
-					loadUrl({ url: strURL });
-				}
-
-				$(function() {
-					$('#go').click(function() {
-						applyFilter();
-					});
-
-					$('#clear').click(function() {
-						clearFilter();
-					});
-
-					$('#import').click(function() {
-						importNetworks();
-					});
-
-					$('#networks').submit(function(event) {
-						event.preventDefault();
-						applyFilter();
-					});
-				});
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
-}
