@@ -113,6 +113,8 @@ switch (get_request_var('action')) {
 }
 
 function automation_export() {
+	process_sanitize_draw_filter(true);
+
 	/* if we are to save this form, instead of display it */
 	if (isset_request_var('selected_items')) {
 		$selected_items = sanitize_unserialize_selected_items(get_nfilter_request_var('selected_items'));
@@ -139,6 +141,10 @@ function automation_export() {
 				print $output;
 			}
 		}
+	} else {
+		raise_message(40);
+		header('Location: automation_tree_rules.php');
+		exit;
 	}
 }
 
@@ -917,9 +923,96 @@ function automation_tree_rules_edit() {
 	<?php
 }
 
+function create_filter() {
+	global $item_rows;
+
+	$status_arr = array(
+		'-1' => __('Any'),
+		'-2' => __('Enabled'),
+		'-3' => __('Disabled')
+	);
+
+	return array(
+		'rows' => array(
+			array(
+				'filter' => array(
+					'method'        => 'textbox',
+					'friendly_name'  => __('Search'),
+					'filter'         => FILTER_DEFAULT,
+					'placeholder'    => __('Enter a search term'),
+					'size'           => '30',
+					'default'        => '',
+					'pageset'        => true,
+					'max_length'     => '120',
+					'value'          => ''
+				),
+				'status' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Status'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $status_arr,
+					'value'         => '-1'
+				),
+				'rows' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Tree Rules'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $item_rows,
+					'value'         => '-1'
+				)
+			)
+		),
+		'buttons' => array(
+			'go' => array(
+				'method'  => 'submit',
+				'display' => __('Go'),
+				'title'   => __('Apply filter to table'),
+			),
+			'clear' => array(
+				'method'  => 'button',
+				'display' => __('Clear'),
+				'title'   => __('Reset filter to default values'),
+			),
+			'import' => array(
+				'method'  => 'button',
+				'display' => __('Import'),
+				'action'  => 'default',
+				'title'   => __('Import Tree Rules'),
+			)
+		),
+		'sort' => array(
+			'sort_column'    => 'name',
+			'sort_direction' => 'ASC'
+		)
+	);
+}
+
+function process_sanitize_draw_filter($render = false) {
+	$filters = create_filter();
+
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter(__('Tree Rules'), 'automation_tree_rules.php', 'form_automation', 'sess_autom_tr', 'automation_tree_rules.php?action=edit');
+
+	$pageFilter->rows_label = __('Tree Rules');
+	$pageFilter->set_filter_array($filters);
+
+	if ($render) {
+		$pageFilter->render();
+	} else {
+		$pageFilter->sanitize();
+	}
+}
+
+
 function automation_tree_rules() {
 	global $actions, $config, $item_rows;
 	global $automation_tree_item_types, $host_group_types;
+
+	process_sanitize_draw_filter(true);
 
 	if ((!empty($_SESSION['sess_autom_tr_status'])) && (!isempty_request_var('status'))) {
 		if ($_SESSION['sess_autom_tr_status'] != get_nfilter_request_var('status')) {
@@ -927,171 +1020,39 @@ function automation_tree_rules() {
 		}
 	}
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-		),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'name',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'status' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => ''
-		)
-	);
-
-	validate_store_request_vars($filters, 'sess_autom_tr');
-	/* ================= input validation ================= */
-
 	if (get_request_var('rows') == -1) {
 		$rows = read_config_option('num_rows_table');
 	} else {
 		$rows = get_request_var('rows');
 	}
 
-	html_filter_start_box(__('Tree Rules'), 'automation_tree_rules.php?action=edit');
-
-	?>
-	<tr class='even'>
-		<td>
-			<form id='form_automation' action='automation_tree_rules.php'>
-				<table class='filterTable'>
-					<tr>
-						<td>
-							<?php print __('Search');?>
-						</td>
-						<td>
-							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-						</td>
-						<td>
-							<?php print __('Status');?>
-						</td>
-						<td>
-							<select id='status' data-defaultLabel='<?php print __('Status');?>'>
-								<option value='-1' <?php print(get_request_var('status') == '-1' ? ' selected':'');?>><?php print __('Any');?></option>
-								<option value='-2' <?php print(get_request_var('status') == '-2' ? ' selected':'');?>><?php print __('Enabled');?></option>
-								<option value='-3' <?php print(get_request_var('status') == '-3' ? ' selected':'');?>><?php print __('Disabled');?></option>
-							</select>
-						</td>
-						<td>
-							<?php print __('Tree Rules');?>
-						</td>
-						<td>
-							<select id='rows' data-defaultLabel='<?php print __('Tree Rules');?>'>
-								<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-								<?php
-								if (cacti_sizeof($item_rows) > 0) {
-									foreach ($item_rows as $key => $value) {
-										print "<option value='" . $key . "'" . (get_request_var('rows') == $key ? ' selected':'') . '>' . $value . '</option>';
-									}
-								}
-	?>
-							</select>
-						</td>
-						<td>
-							<span>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc('Go');?>'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='import' value='<?php print __esc('Import');?>'>
-							</span>
-						</td>
-					</tr>
-				</table>
-			</form>
-			<script type='text/javascript'>
-			function applyFilter() {
-				strURL = 'automation_tree_rules.php' +
-					'?status='+$('#status').val() +
-					'&filter='+$('#filter').val() +
-					'&rows='+$('#rows').val();
-
-				loadUrl({url:strURL})
-			}
-
-			function clearFilter() {
-				strURL = 'automation_tree_rules.php?clear=1';
-				loadUrl({url:strURL})
-			}
-
-			function importTemplate() {
-				strURL = 'automation_tree_rules.php?action=import';
-				loadUrl({url:strURL})
-			}
-
-			$(function() {
-				$('#rows, #status').change(function() {
-					applyFilter();
-				});
-
-				$('#refresh').click(function() {
-					applyFilter();
-				});
-
-				$('#clear').click(function() {
-					clearFilter();
-				});
-
-				$('#import').click(function() {
-					importTemplate();
-				});
-
-				$('#form_automation').submit(function(event) {
-					event.preventDefault();
-					applyFilter();
-				});
-			});
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
+	$sql_where  = '';
+	$sql_params = array();
 
 	/* form the 'WHERE' clause for our main sql query */
 	if (get_request_var('filter') != '') {
-		$sql_where = 'WHERE (atr.name LIKE ' . db_qstr('%' . get_request_var('filter') . '%') . ')';
-	} else {
-		$sql_where = '';
+		$sql_where    = 'WHERE (atr.name LIKE ?)';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
 	}
 
-	if (get_request_var('status') == '-1') {
-		/* Show all items */
-	} elseif (get_request_var('status') == '-2') {
-		$sql_where .= ($sql_where != '' ? " AND atr.enabled='on'" : "WHERE atr.enabled='on'");
+	if (get_request_var('status') == '-2') {
+		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . " AND atr.enabled = 'on'";
 	} elseif (get_request_var('status') == '-3') {
-		$sql_where .= ($sql_where != '' ? " AND atr.enabled=''" : "WHERE atr.enabled=''");
+		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . " AND atr.enabled = ''";
 	}
 
-	$total_rows = db_fetch_cell("SELECT COUNT(atr.id)
+	$total_rows = db_fetch_cell_prepared("SELECT COUNT(atr.id)
 		FROM automation_tree_rules AS atr
 		LEFT JOIN graph_tree AS gt
 		ON atr.id=gt.id
-		$sql_where");
+		$sql_where",
+		$sql_params);
 
 	$sql_order = get_order_string();
 	$sql_limit = ' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows;
 
-	$automation_tree_rules = db_fetch_assoc("SELECT atr.id, atr.name, atr.tree_id, atr.tree_item_id,
+	$automation_tree_rules = db_fetch_assoc("SELECT atr.id, atr.name,
+		atr.tree_id, atr.tree_item_id,
 		atr.leaf_type, atr.host_grouping_type, atr.enabled,
 		gt.name AS tree_name, gti.title AS subtree_name
 		FROM automation_tree_rules AS atr
@@ -1101,7 +1062,8 @@ function automation_tree_rules() {
 		ON atr.tree_item_id = gti.id
 		$sql_where
 		$sql_order
-		$sql_limit");
+		$sql_limit",
+		$sql_params);
 
 	$nav = html_nav_bar('automation_tree_rules.php?filter=' . get_request_var('filter'), MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, 11, __('Tree Rules'), 'page', 'main');
 

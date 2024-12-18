@@ -305,6 +305,7 @@ class CactiTableFilter {
 				'method'  => 'button',
 				'display' => __('Save'),
 				'title'   => __('Save Filter Defaults'),
+				'status'  => __('Saving Filter')
 			);
 		}
 
@@ -329,6 +330,7 @@ class CactiTableFilter {
 				'method'  => 'button',
 				'display' => __('Purge'),
 				'title'   => __('Purge Data'),
+				'status'  => __('Purging Data')
 			);
 		}
 
@@ -338,12 +340,19 @@ class CactiTableFilter {
 		// Buffer output
 		ob_start();
 
+		$text_appended = false;
+
 		html_filter_start_box($this->form_header, $this->action_url, true, true, $this->action_label);
 
 		if (isset($this->filter_array['rows'])) {
 			print "<form id='" . $this->form_id . "' action='" . $this->form_action . "'>";
 
 			foreach($this->filter_array['rows'] as $index => $row) {
+				if ($index > 0 && !$text_appended) {
+					print "<div class='filterColumnButton' id='text'></div>";
+					$text_appened = true;
+				}
+
 				print "<div class='filterTable'>";
 				print "<div class='filterRow'>";
 
@@ -390,6 +399,10 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 					}
 				}
 
+				if ($index == 0) {
+					print "<div class='filterColumnButton' id='text'></div>";
+				}
+
 				print '</div>' . PHP_EOL;
 				print '</div>' . PHP_EOL;
 			}
@@ -402,13 +415,44 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 		return ob_get_clean();
 	}
 
+	private function make_function($buttonId, $buttonArray, $buttonAction) {
+		$func_nl = "\n\t\t\t";
+		$func_el = "\n\t\t";
+		$buttonFunction = '';
+
+		if (isset($buttonArray['url'])) {
+			if (!isset($buttonArray['status'])) {
+				$buttonFunction .= PHP_EOL . "\t\tfunction {$buttonId}Function () {" . $func_nl .
+					"loadUrl({ url: '{$buttonArray['url']}' });" . $func_el .
+				"};" . PHP_EOL;
+			} else {
+				$buttonFunction .= PHP_EOL . "\t\tfunction {$buttonId}Function () {" . $func_nl .
+					"$('#text').text('{$field_array['status']}');" . $func_nl .
+					"pulsate('#text');" . $func_nl .
+					"loadUrl({ url: '{$buttonArray['url']}', funcEnd: 'finishFinalize' });" . $func_el .
+				"};" . PHP_EOL;
+			}
+		} else {
+			if (!isset($buttonArray['status'])) {
+				$buttonFunction .= PHP_EOL . "\t\tfunction {$buttonId}Function () {" . $func_nl .
+					"loadUrl({ url: $buttonAction });" . $func_el .
+				"};" . PHP_EOL;
+			} else {
+				$buttonFunction .= PHP_EOL . "\t\tfunction {$buttonId}Function () {" . $func_nl .
+					"$('#text').text('{$field_array['status']}');" . $func_nl .
+					"pulsate('#text');" . $func_nl .
+					"loadUrl({ url: $buttonAction, funcEnd: 'finishFinalize' });" . $func_el .
+					"};" . PHP_EOL;
+			}
+		}
+
+		return $buttonFunction;
+	}
+
 	private function create_javascript() {
-		$applyFilter  = "'" . $this->form_action;
-		$clearFilter  = $applyFilter;
-		$saveFilter   = $applyFilter;
-		$importFilter = $applyFilter;
-		$exportFilter = $applyFilter;
-		$purgeFilter  = $applyFilter;
+		$applyFilter   = "'" . $this->form_action;
+		$clearFilter   = $applyFilter;
+		$defaultFilter = $applyFilter;
 
 		if (strpos($applyFilter, '?') === false) {
 			$separator = '?';
@@ -416,12 +460,10 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 			$separator = '';
 		}
 
-		$applyFilter  .= $separator;
-		$clearFilter  .= $separator . "clear=true'";
-		$saveFilter   .= $separator . "action=savefilter'";
-		$importFilter .= $separator . "action=import'";
-		$exportFilter .= $separator . "action=export'";
-		$purgeFilter  .= $separator . "action=purge'";
+		$applyFilter   .= $separator;
+		$clearFilter   .= $separator . "clear=true'";
+		$defaultFilter .= $separator . "action=noaction'";
+
 		$changeChain   = '';
 		$clickChain    = '';
 
@@ -453,24 +495,13 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 						case 'button':
 							switch($field_name) {
 								case 'go':
-								case 'clear':
-								case 'import':
-								case 'export':
-								case 'save':
-								case 'purge':
-
 									break;
 								default:
-									$buttonAction     = str_replace('savefilter', $field_name, $saveFilter);
-									$buttonFunctions .= PHP_EOL . "
-										function {$field_name}Function () {
-											loadUrl({ url: $buttonAction });
-										};";
+									$buttonAction = str_replace('noaction', $field_name, $defaultFilter);
 
-									$buttonReady     .= PHP_EOL . "
-										$('#{$field_name}').click(function()
-											{$field_name}Function();
-										});";
+									$buttonFunctions .= $this->make_function($field_name, $field_array, $buttonAction);
+
+									$buttonReady .= PHP_EOL . "\t\t\t$('#{$field_name}').click(function() { {$field_name}Function(); });";
 							}
 
 							break;
@@ -519,76 +550,47 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 			$refreshMSeconds = get_request_var('refresh') * 1000;
 		}
 
-		return "<script type='text/javascript'>
-			function applyFilter() {
-				strURL = $applyFilter
-				loadUrl({ url: strURL });
-			}
+		if ($clickChain != '') {
+			$clickReady = "$('" . $clickChain . "').click(function() {\n\t\t\t\t" .
+				"applyFilter();\n\t\t\t" .
+			"});" . PHP_EOL;
+		} else {
+			$clickReady = '';
+		}
 
-			function clearFilter() {
-				loadUrl({ url: $clearFilter });
-			}
+		if ($changeChain != '') {
+			$changeReady = "$('" . $changeChain . "').change(function() {\n\t\t\t\t" .
+				"applyFilter();\n\t\t\t" .
+			"});" . PHP_EOL;
+		} else {
+			$changeReady = '';
+		}
 
-			function saveFilter() {
-				loadUrl({ url: $saveFilter });
-			}
+		return PHP_EOL . "<script type='text/javascript'>
+		function applyFilter() {
+			strURL = $applyFilter
+			loadUrl({ url: strURL });
+		}
 
-			function importFilter() {
-				loadUrl({ url: $importFilter });
-			}
+		function finishFinalize(options, data) {
+			$('#text').text('Finished').fadeOut(2000);
+		}
+		$buttonFunctions
 
-			function purgeFilter() {
-				loadUrl({ url: $purgeFilter });
-			}
+		$(function() {
+			refreshFunction = 'applyFilter()';
+			refreshMSeconds = $refreshMSeconds;
+			setupPageTimeout();
 
-			function exportFilter() {
-				document.location = $exportFilter;
-				Pace.stop();
-			}
-
-			$buttonFunctions
-
-			$(function() {
-				refreshFunction = 'applyFilter()';
-				refreshMSeconds = $refreshMSeconds;
-				setupPageTimeout();
-
-				$('#" . $this->form_id . "').submit(function(event) {
-					event.preventDefault();
-					applyFilter();
-				});
-
-				$('" . $changeChain . "').change(function() {
-					applyFilter();
-				});
-
-				$('" . $clickChain . "').change(function() {
-					applyFilter();
-				});
-
-				$buttonReady
-
-				$('#clear').click(function() {
-					clearFilter();
-				})
-
-				$('#save').click(function() {
-					saveFilter();
-				})
-
-				$('#import').click(function() {
-					importFilter();
-				})
-
-				$('#export').click(function() {
-					exportFilter();
-				})
-
-				$('#purge').click(function() {
-					purgeFilter();
-				})
+			$('#" . $this->form_id . "').submit(function(event) {
+				event.preventDefault();
+				applyFilter();
 			});
-		</script>" . PHP_EOL;
+			$changeReady
+			$clickReady
+			$buttonReady
+		});
+	</script>" . PHP_EOL;
 	}
 
 	private function sanitize_filter_variables() {
