@@ -28,7 +28,7 @@ include('./include/auth.php');
 set_default_action();
 
 switch (get_request_var('action')) {
-	case 'clear':
+	case 'purge_execute':
 		clear_user_log();
 		raise_message('purge_user_log', __('User Log Purged.'), MESSAGE_LEVEL_INFO);
 		header('location: user_log.php');
@@ -40,7 +40,6 @@ switch (get_request_var('action')) {
 		bottom_footer();
 
 		break;
-
 	default:
 		top_header();
 		view_user_log();
@@ -64,11 +63,11 @@ function view_user_log() {
 	$sql_params = array();
 
 	/* filter by username */
-	if (get_request_var('user') == '-2') {
+	if (get_request_var('user_id') == '-2') {
 		$sql_where    = 'WHERE ul.user_id NOT IN (SELECT DISTINCT id FROM user_auth)';
-	} elseif (get_request_var('user') != '-1') {
+	} elseif (get_request_var('user_id') != '-1') {
 		$sql_where    = 'WHERE ul.user_id = ?';
-		$sql_params[] = get_request_var('user');
+		$sql_params[] = get_request_var('user_id');
 	}
 
 	/* filter by result */
@@ -115,7 +114,7 @@ function view_user_log() {
 		'ip'        => array(__('IP Address'), 'DESC')
 	);
 
-	$nav = html_nav_bar('user_log.php?user=' . get_request_var('user') . '&filter=' . get_request_var('filter'), MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, 6, __('Login Attempts'), 'page', 'main');
+	$nav = html_nav_bar('user_log.php?user_id=' . get_request_var('user_id') . '&filter=' . get_request_var('filter'), MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, 6, __('Login Attempts'), 'page', 'main');
 
 	print $nav;
 
@@ -172,7 +171,7 @@ function view_user_log() {
 }
 
 function clear_user_log() {
-	$users = db_fetch_assoc('SELECT DISTINCT username FROM user_auth');
+	$users = db_fetch_assoc('SELECT DISTINCT id, username FROM user_auth');
 
 	if (cacti_sizeof($users)) {
 		/* remove active users */
@@ -182,24 +181,27 @@ function clear_user_log() {
 				$total_rows = db_fetch_cell_prepared('SELECT COUNT(username)
 					FROM user_log
 					WHERE username = ?
+					AND user_id = ?
 					AND result = ?',
-					array($user['username'], $result));
+					array($user['username'], $user['id'], $result));
 
 				if ($total_rows > 1) {
 					db_execute_prepared('DELETE
 						FROM user_log
 						WHERE username = ?
+						AND user_id = ?
 						AND result = ?
 						ORDER BY time LIMIT ' . ($total_rows - 1),
-						array($user['username'], $result));
+						array($user['username'], $user['id'], $result));
 				}
 			}
 
 			db_execute_prepared('DELETE
 				FROM user_log
 				WHERE username = ?
+				AND user_id = ?
 				AND result = 0',
-				array($user['username']));
+				array($user['username'], $user['id']));
 		}
 
 		/* delete inactive users */
@@ -227,7 +229,7 @@ function purge_user_log() {
 				<script type='text/javascript'>
 				$(function() {
 					$('#pc').click(function() {
-						strURL = location.pathname+'?action=clear';
+						strURL = location.pathname+'?action=purge_execute';
 						loadUrl({url:strURL})
 					});
 
@@ -238,7 +240,7 @@ function purge_user_log() {
 				});
 				</script>
 			</td>
-		</tr>\n";
+		</tr>";
 
 	html_end_box();
 }
@@ -248,12 +250,23 @@ function create_filter() {
 
 	$all     = array('-1' => __('All'));
 	$deleted = array('-2' => __('Deleted/Invalid'));
-	$users   = array_rekey(
-		db_fetch_assoc('SELECT DISTINCT id, username
-			FROM user_auth
-			ORDER BY username'),
-		'id', 'username'
-	);
+	$users   = db_fetch_assoc('SELECT DISTINCT id,
+		IF(ud.domain_name != "",
+			CONCAT(ua.username, " (", ud.domain_name, ")"),
+			IF(ua.realm = 0,
+				CONCAT(ua.username, " (' . __esc('Local Auth') . ')"),
+				CONCAT(ua.username, " (' . __esc('Basic Auth') . ')")
+			)
+		) AS name
+		FROM user_auth AS ua
+		LEFT JOIN user_domains AS ud
+		ON ua.realm = ud.domain_id+1000
+		ORDER BY username, realm');
+
+
+	if (cacti_sizeof($users)) {
+		$users = array_rekey($users, 'id', 'name');
+	}
 
 	$users = $all + $deleted + $users;
 
@@ -279,7 +292,7 @@ function create_filter() {
 					'max_length'     => '120',
 					'value'          => ''
 				),
-				'user' => array(
+				'user_id' => array(
 					'method'        => 'drop_array',
 					'friendly_name' => __('User'),
 					'filter'        => FILTER_VALIDATE_INT,
