@@ -121,7 +121,7 @@ function clog_purge_logfile() {
 }
 
 function clog_view_logfile() {
-	global $config;
+	global $config, $base_page;
 
 	$exclude_reported = false;
 
@@ -197,8 +197,15 @@ function clog_view_logfile() {
 
 	$page_nr = get_request_var('page');
 
-	$page = CACTI_PATH_URL . 'clog' . (!$clogAdmin ? '_user' : '') . '.php';
-	$page .= '?filename=' . basename($logfile) . '&page=' . $page_nr;
+	$current_page = get_current_page();
+
+	if ($current_page == 'utilities.php') {
+		$base_page  = 'utilities.php?action=view_logfile';
+		$page = $base_page . '?filename=' . basename($logfile) . '&page=' . $page_nr;
+	} else {
+		$base_page  = 'clog' . (!$clogAdmin ? '_user' : '') . '.php';
+		$page = $base_page . '?filename=' . basename($logfile) . '&page=' . $page_nr;
+	}
 
 	$refresh = array(
 		'seconds' => get_request_var('refresh'),
@@ -215,7 +222,7 @@ function clog_view_logfile() {
 	}
 
 	if ($clogAdmin && isset_request_var('purge')) {
-		form_start('clog.php');
+		form_start($current_page);
 
 		html_start_box(__('Purge'), '50%', '', '3', 'center', '');
 
@@ -244,7 +251,7 @@ function clog_view_logfile() {
 				});
 				</script>
 			</td>
-		</tr>\n";
+		</tr>";
 
 		html_end_box();
 
@@ -503,7 +510,8 @@ function clog_get_logfiles() {
 }
 
 function filter($clogAdmin, $selectedFile) {
-	global $page_refresh_interval, $log_tail_lines, $config;
+	global $page_refresh_interval, $base_page, $log_tail_lines, $config;
+
 	?>
 	<tr class='even'>
 		<td>
@@ -644,6 +652,8 @@ function filter($clogAdmin, $selectedFile) {
 			</table>
 		</form>
 		<script type='text/javascript'>
+		var currentPage = '<?php print $base_page;?>';
+		var delimiter = currentPage.indexOf('?') >= 0 ? '&':'?';
 
 		$(function() {
 			$('#rfilter, #reverse, #refresh, #message_type, #filename, #tail_lines, #expand, #matches').unbind().change(function() {
@@ -651,12 +661,12 @@ function filter($clogAdmin, $selectedFile) {
 			});
 
 			$('#clear').unbind().click(function() {
-				strURL = basename(location.pathname) + '?clear=true';
+				strURL = currentPage + delimiter + 'clear=true';
 				loadUrl({url:strURL});
 			});
 
 			$('#purge').unbind().click(function() {
-				strURL = basename(location.pathname) + '?purge=true&filename=' + $('#filename').val();
+				strURL = currentPage + delimiter + 'purge=true&filename=' + $('#filename').val();
 				loadUrl({url:strURL});
 			});
 
@@ -669,8 +679,8 @@ function filter($clogAdmin, $selectedFile) {
 		function applyFilter() {
 			refreshMSeconds=$('#refresh').val()*1000;
 
-			strURL = basename(location.pathname)+
-				'?rfilter=' + base64_encode($('#rfilter').val())+
+			var strURL = currentPage + delimiter
+				'rfilter=' + base64_encode($('#rfilter').val())+
 				'&reverse='+$('#reverse').val()+
 				'&refresh='+$('#refresh').val()+
 				'&expand='+$('#expand').val()+

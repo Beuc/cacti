@@ -29,6 +29,7 @@ include_once('./lib/rrd.php');
 include_once('./lib/clog_webapi.php');
 include_once('./lib/poller.php');
 include_once('./lib/utility.php');
+include_once('./lib/clog_webapi.php');
 
 /* set default action */
 set_default_action();
@@ -162,335 +163,7 @@ function rebuild_resource_cache() {
 }
 
 function utilities_view_logfile() {
-	global $log_tail_lines, $page_refresh_interval, $config;
-
-	$logfile = basename(get_nfilter_request_var('filename'));
-	$logbase = basename(read_config_option('path_cactilog'));
-
-	if ($logfile == '') {
-		$logfile = $logbase;
-	}
-
-	if ($logfile == '') {
-		$logfile = 'cacti.log';
-	}
-
-	$logname = '';
-	$logpath = '';
-
-	if (!clog_validate_filename($logfile, $logpath, $logname, true)) {
-		raise_message('clog_invalid');
-		header('Location: utilities.php?action=view_logfile&filename=' . $logbase);
-
-		exit(0);
-	} else {
-		$logfile = $logpath . '/' . $logfile;
-	}
-
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-			),
-		'tail_lines' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-			),
-		'rfilter' => array(
-			'filter'  => FILTER_VALIDATE_IS_REGEX,
-			'pageset' => true,
-			'default' => ''
-			),
-		'message_type' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-			),
-		'reverse' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-			),
-		'refresh' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => read_config_option('log_refresh_interval')
-			)
-	);
-
-	validate_store_request_vars($filters, 'sess_log');
-	/* ================= input validation ================= */
-
-	$page_nr = get_request_var('page');
-
-	$page = 'utilities.php?action=view_logfile';
-	$page .= '&filename=' . basename($logfile) . '&page=' . $page_nr;
-
-	$refresh = array(
-		'seconds' => get_request_var('refresh'),
-		'page'    => $page,
-		'logout'  => 'false'
-	);
-
-	set_page_refresh($refresh);
-
-	top_header();
-
-	html_filter_start_box(__('Log Filters'));
-
-	?>
-	<tr class='even noprint'>
-		<td>
-			<form id='form_logfile' action='utilities.php'>
-				<table class='filterTable'>
-					<tr>
-						<td>
-							<?php print __('File');?>
-						</td>
-						<td>
-							<select id='filename' onChange='applyFilter()' data-defaultLabel='<?php print __('File');?>'>
-								<?php
-								$logFileArray = clog_get_logfiles();
-
-								if (cacti_sizeof($logFileArray)) {
-									foreach ($logFileArray as $logFile) {
-										print "<option value='" . html_escape($logFile) . "'";
-
-										if (get_nfilter_request_var('filename') == $logFile) {
-											print ' selected';
-										}
-
-										$logParts = explode('-', $logFile);
-
-										$logDate = cacti_count($logParts) < 2 ? '' : $logParts[1] . (isset($logParts[2]) ? '-' . $logParts[2]:'');
-										$logName = $logParts[0];
-
-										print '>' . html_escape($logName . ($logDate != '' ? ' [' . substr($logDate,4) . ']':'')) . '</option>';
-									}
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<?php print __('Tail Lines');?>
-						</td>
-						<td>
-							<select id='tail_lines' onChange='applyFilter()' data-defaultLabel='<?php print __('Tail Lines');?>'>
-								<?php
-								foreach ($log_tail_lines as $tail_lines => $display_text) {
-									print "<option value='" . $tail_lines . "'";
-
-									if (get_request_var('tail_lines') == $tail_lines) {
-										print ' selected';
-									} print '>' . $display_text . '</option>';
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<span>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='refreshme' value='<?php print __esc_x('Button: use filter settings', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc_x('Button: reset filter settings', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='purge' value='<?php print __esc_x('Button: delete all table entries', 'Purge');?>' title='<?php print __esc('Purge Log');?>'>
-							</span>
-						</td>
-					</tr>
-				</table>
-				<table class='filterTable'>
-					<tr>
-						<td>
-							<?php print __('Type');?>
-						</td>
-						<td>
-							<select id='message_type' onChange='applyFilter()' data-defaultLabel='<?php print __('Type');?>'>
-								<option value='-1'<?php if (get_request_var('message_type') == '-1') {?> selected<?php }?>><?php print __('All');?></option>
-								<option value='1'<?php if (get_request_var('message_type') == '1') {?> selected<?php }?>><?php print __('Stats');?></option>
-								<option value='2'<?php if (get_request_var('message_type') == '2') {?> selected<?php }?>><?php print __('Warnings');?></option>
-								<option value='3'<?php if (get_request_var('message_type') == '3') {?> selected<?php }?>><?php print __('Errors');?></option>
-								<option value='4'<?php if (get_request_var('message_type') == '4') {?> selected<?php }?>><?php print __('Debug');?></option>
-								<option value='5'<?php if (get_request_var('message_type') == '5') {?> selected<?php }?>><?php print __('SQL Calls');?></option>
-							</select>
-						</td>
-						<td>
-							<?php print __('Display Order');?>
-						</td>
-						<td>
-							<select id='reverse' onChange='applyFilter()' data-defaultLabel='<?php print __('Display Order');?>'>
-								<option value='1'<?php if (get_request_var('reverse') == '1') {?> selected<?php }?>><?php print __('Newest First');?></option>
-								<option value='2'<?php if (get_request_var('reverse') == '2') {?> selected<?php }?>><?php print __('Oldest First');?></option>
-							</select>
-						</td>
-						<td>
-							<?php print __('Refresh');?>
-						</td>
-						<td>
-							<select id='refresh' onChange='applyFilter()' data-defaultLabel='<?php print __('Refresh');?>'>
-								<?php
-								foreach ($page_refresh_interval as $seconds => $display_text) {
-									print "<option value='" . $seconds . "'";
-
-									if (get_request_var('refresh') == $seconds) {
-										print ' selected';
-									} print '>' . $display_text . '</option>';
-								}
-								?>
-							</select>
-						</td>
-					</tr>
-				</table>
-				<table class='filterTable'>
-					<tr>
-						<td>
-							<?php print __('Search');?>
-						</td>
-						<td>
-							<input type='text' class='ui-state-default ui-corner-all' id='rfilter' size='75' value='<?php print html_escape_request_var('rfilter');?>'>
-						</td>
-					</tr>
-				</table>
-				<input type='hidden' name='action' value='view_logfile'>
-			</form>
-			<script type='text/javascript'>
-			function purgeLog() {
-				strURL = urlPath+'utilities.php?action=purge_logfile&filename='+$('#filename').val();
-				loadUrl({url:strURL})
-			}
-
-			$(function() {
-				$('#refreshme').click(function() {
-					applyFilter();
-				});
-
-				$('#clear').click(function() {
-					clearFilter();
-				});
-
-				$('#purge').click(function() {
-					purgeLog();
-				});
-
-				$('#form_logfile').submit(function(event) {
-					event.preventDefault();
-					applyFilter();
-				});
-			});
-
-			function applyFilter() {
-				strURL  = urlPath+'utilities.php' +
-					'?tail_lines=' + $('#tail_lines').val() +
-					'&message_type=' + $('#message_type').val() +
-					'&refresh=' + $('#refresh').val() +
-					'&reverse=' + $('#reverse').val() +
-					'&rfilter=' + base64_encode($('#rfilter').val()) +
-					'&filename=' + $('#filename').val() +
-					'&action=view_logfile';
-				refreshMSeconds=$('#refresh').val()*1000;
-				loadUrl({url:strURL})
-			}
-
-			function clearFilter() {
-				strURL  = urlPath+'utilities.php?clear=1';
-				strURL += '&action=view_logfile';
-				loadUrl({url:strURL})
-			}
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
-
-	/* read logfile into an array and display */
-	$total_rows      = 0;
-	$number_of_lines = get_request_var('tail_lines') < 0 ? read_config_option('max_display_rows') : get_request_var('tail_lines');
-
-	$logcontents = tail_file($logfile, $number_of_lines, get_request_var('message_type'), get_request_var('rfilter'), $page_nr, $total_rows);
-
-	if (get_request_var('reverse') == 1) {
-		$logcontents = array_reverse($logcontents);
-	}
-
-	if (get_request_var('message_type') > 0) {
-		$start_string = __('Log [Total Lines: %d - Non-Matching Items Hidden]', $total_rows);
-	} else {
-		$start_string = __('Log [Total Lines: %d - All Items Shown]', $total_rows);
-	}
-
-	$rfilter      = get_request_var('rfilter');
-	$reverse      = get_request_var('reverse');
-	$refreshTime  = get_request_var('refresh');
-	$message_type = get_request_var('message_type');
-	$tail_lines   = get_request_var('tail_lines');
-	$base_url     = 'utilities.php?action=view_logfile&filename='.basename($logfile);
-
-	$nav = html_nav_bar($base_url, MAX_DISPLAY_PAGES, $page_nr, $number_of_lines, $total_rows, 13, __('Entries'), 'page', 'main');
-
-	print $nav;
-
-	html_start_box($start_string, '100%', '', '3', 'center', '');
-
-	$linecolor = false;
-
-	foreach ($logcontents as $item) {
-		$host_start = strpos($item, 'Device[');
-		$ds_start   = strpos($item, 'DS[');
-
-		if (!$host_start && !$ds_start) {
-			$new_item = html_escape($item);
-		} else {
-			$new_item = '';
-
-			while ($host_start) {
-				$host_end   = strpos($item, ']', $host_start);
-				$host_id    = substr($item, $host_start + 7, $host_end - ($host_start + 7));
-				$new_item .= html_escape(substr($item, 0, $host_start + 7)) . "<a href='" . html_escape('host.php?action=edit&id=' . $host_id) . "'>" . html_escape(substr($item, $host_start + 7, $host_end - ($host_start + 7))) . '</a>';
-				$item       = substr($item, $host_end);
-				$host_start = strpos($item, 'Device[');
-			}
-
-			$ds_start = strpos($item, 'DS[');
-
-			while ($ds_start) {
-				$ds_end    = strpos($item, ']', $ds_start);
-				$ds_id     = substr($item, $ds_start + 3, $ds_end - ($ds_start + 3));
-				$new_item .= html_escape(substr($item, 0, $ds_start + 3)) . "<a href='" . html_escape('data_sources.php?action=ds_edit&id=' . $ds_id) . "'>" . html_escape(substr($item, $ds_start + 3, $ds_end - ($ds_start + 3))) . '</a>';
-				$item      = substr($item, $ds_end);
-				$ds_start  = strpos($item, 'DS[');
-			}
-
-			$new_item .= html_escape($item);
-		}
-
-		/* get the background color */
-		if (strpos($new_item, 'ERROR') !== false || strpos($new_item, 'FATAL') !== false) {
-			$class = 'clogError';
-		} elseif (strpos($new_item, 'WARN') !== false) {
-			$class = 'clogWarning';
-		} elseif (strpos($new_item, ' SQL ') !== false) {
-			$class = 'clogSQL';
-		} elseif (strpos($new_item, 'DEBUG') !== false) {
-			$class = 'clogDebug';
-		} elseif (strpos($new_item, 'STATS') !== false) {
-			$class = 'clogStats';
-		} else {
-			if ($linecolor) {
-				$class = 'odd';
-			} else {
-				$class = 'even';
-			}
-			$linecolor = !$linecolor;
-		}
-
-		print "<tr class='" . $class . "'><td>" . $new_item . '</td></tr>';
-	}
-
-	html_end_box();
-
-	if ($total_rows) {
-		print $nav;
-	}
-
-	bottom_footer();
+	clog_view_logfile();
 }
 
 function utilities_clear_logfile() {
@@ -1805,6 +1478,81 @@ function boost_display_run_status() {
 	}
 }
 
+function create_snmp_agent_cache_filter() {
+	global $item_rows;
+
+	$mibs = array_rekey(
+		db_fetch_assoc("SELECT 'any' AS id, '" . __esc('Any') . "' AS name UNION SELECT DISTINCT mib AS id, mib AS name FROM snmpagent_cache"),
+		'id', 'name'
+	);
+
+	return array(
+		'rows' => array(
+			array(
+				'filter' => array(
+					'method'         => 'textbox',
+					'friendly_name'  => __('Search'),
+					'filter'         => FILTER_DEFAULT,
+					'placeholder'    => __('Enter a search term'),
+					'size'           => '30',
+					'default'        => '',
+					'pageset'        => true,
+					'max_length'     => '120',
+					'value'          => ''
+				),
+				'mib' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('MIB'),
+					'filter'         => FILTER_CALLBACK,
+					'filter_options' => array('options' => 'sanitize_search_string'),
+					'default'        => 'any',
+					'pageset'        => true,
+					'array'          => $mibs,
+					'value'          => 'any'
+				),
+				'rows' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Entries'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'pageset'        => true,
+					'array'          => $item_rows,
+					'value'          => '-1'
+				)
+			)
+		),
+		'buttons' => array(
+			'go' => array(
+				'method'  => 'submit',
+				'display' => __('Go'),
+				'title'   => __('Apply Filter to Table'),
+			),
+			'clear' => array(
+				'method'  => 'button',
+				'display' => __('Clear'),
+				'title'   => __('Reset Filter to Default Values'),
+			)
+		)
+	);
+	get_filter_request_var('mib', FILTER_CALLBACK, array('options' => 'sanitize_search_string'));
+}
+
+function process_sanitize_draw_snmp_agent_cache_filter($render = false) {
+	$filters = create_snmp_agent_cache_filter();
+
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter(__('SNMP Agent Cache'), 'utilities.php?action=view_snmpagent_cache', 'form_agent', 'sess_snmpc');
+
+	$pageFilter->rows_label = __('OIDs');
+	$pageFilter->set_filter_array($filters);
+
+	if ($render) {
+		$pageFilter->render();
+	} else {
+		$pageFilter->sanitize();
+	}
+}
+
 /**
  *
  *
@@ -1814,11 +1562,7 @@ function boost_display_run_status() {
  * @return
  */
 function snmpagent_utilities_run_cache() {
-	global $item_rows;
-
-	get_filter_request_var('mib', FILTER_CALLBACK, array('options' => 'sanitize_search_string'));
-
-	$mibs            = db_fetch_assoc('SELECT DISTINCT mib FROM snmpagent_cache');
+	$mibs = db_fetch_assoc('SELECT DISTINCT mib FROM snmpagent_cache');
 	$registered_mibs = array();
 
 	if ($mibs && $mibs > 0) {
@@ -1827,37 +1571,7 @@ function snmpagent_utilities_run_cache() {
 		}
 	}
 
-	/* ================= input validation ================= */
-	if (!in_array(get_request_var('mib'), $registered_mibs, true) && get_request_var('mib') != '-1' && get_request_var('mib') != '') {
-		die_html_input_error('mib');
-	}
-	/* ==================================================== */
-
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-			),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-			),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-			),
-		'mib' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => '-1',
-			'options' => array('options' => 'sanitize_search_string')
-			)
-	);
-
-	validate_store_request_vars($filters, 'sess_snmpac');
-	/* ================= input validation ================= */
+	process_sanitize_draw_snmp_agent_cache_filter(true);
 
 	if (get_request_var('rows') == -1) {
 		$rows = read_config_option('num_rows_table');
@@ -1865,128 +1579,48 @@ function snmpagent_utilities_run_cache() {
 		$rows = get_request_var('rows');
 	}
 
-	html_filter_start_box(__('SNMP Agent Cache'));
-
-	?>
-	<tr class='even noprint'>
-		<td>
-			<form id='form_snmpagent_cache' action='utilities.php'>
-				<table class='filterTable'>
-					<tr>
-						<td>
-							<?php print __('Search');?>
-						</td>
-						<td>
-							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-						</td>
-						<td>
-							<?php print __('MIB');?>
-						</td>
-						<td>
-							<select id='mib' onChange='applyFilter()' data-defaultLabel='<?php print __('MIB');?>'>
-								<option value='-1'<?php if (get_request_var('mib') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
-								<?php
-								if (cacti_sizeof($mibs)) {
-									foreach ($mibs as $mib) {
-										print "<option value='" . html_escape($mib['mib']) . "'";
-
-										if (get_request_var('mib') == $mib['mib']) {
-											print ' selected';
-										} print '>' . html_escape($mib['mib']) . '</option>';
-									}
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<?php print __('OIDs');?>
-						</td>
-						<td>
-							<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('OIDs');?>'>
-								<option value='-1'<?php if (get_request_var('rows') == '-1') {?> selected<?php }?>><?php print __('Default');?></option>
-								<?php
-								if (cacti_sizeof($item_rows)) {
-									foreach ($item_rows as $key => $value) {
-										print "<option value='" . $key . "'";
-
-										if (get_request_var('rows') == $key) {
-											print ' selected';
-										}
-
-										print '>' . html_escape($value) . '</option>';
-									}
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<span>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc_x('Button: use filter settings', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc_x('Button: reset filter settings', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-							</span>
-						</td>
-					</tr>
-				</table>
-			</form>
-			<script type='text/javascript'>
-			function applyFilter() {
-				strURL  = 'utilities.php?action=view_snmpagent_cache';
-				strURL += '&mib=' + $('#mib').val();
-				strURL += '&rows=' + $('#rows').val();
-				strURL += '&filter=' + $('#filter').val();
-				loadUrl({url:strURL})
-			}
-
-			function clearFilter() {
-				strURL = 'utilities.php?action=view_snmpagent_cache&clear=1';
-				loadUrl({url:strURL})
-			}
-
-			$(function() {
-				$('#refresh').click(function() {
-					applyFilter();
-				});
-
-				$('#clear').click(function() {
-					clearFilter();
-				});
-
-				$('#form_snmpagent_cache').submit(function(event) {
-					event.preventDefault();
-					applyFilter();
-				});
-			});
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
-
-	$sql_where = '';
+	$sql_where  = '';
+	$sql_params = array();
 
 	/* filter by host */
-	if (get_request_var('mib') == '-1') {
-		/* Show all items */
-	} elseif (!isempty_request_var('mib')) {
-		$sql_where .= " AND snmpagent_cache.mib='" . get_request_var('mib') . "'";
+	if (!isempty_request_var('mib') && get_request_var('mib') != 'any') {
+		$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . 'snmpagent_cache.mib = ?';
+		$sql_params[] = get_request_var('mib');
 	}
 
 	/* filter by search string */
 	if (get_request_var('filter') != '') {
-		$sql_where .= ' AND (
-			`oid` LIKE '		   . db_qstr('%' . get_request_var('filter') . '%') . '
-			OR `name` LIKE '	   . db_qstr('%' . get_request_var('filter') . '%') . '
-			OR `mib` LIKE '		. db_qstr('%' . get_request_var('filter') . '%') . '
-			OR `max-access` LIKE ' . db_qstr('%' . get_request_var('filter') . '%') . ')';
+		$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') .
+			' (`oid` LIKE ? OR `name` LIKE ? OR `mib` LIKE ? OR `max-access` LIKE ?)';
+
+		$sql_params[] = '%' . get_request_var('filter') . '%';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
 	}
 
 	$sql_where .= ' ORDER by `oid`';
 
-	$total_rows = db_fetch_cell("SELECT COUNT(*) FROM snmpagent_cache WHERE 1 $sql_where");
+	$total_rows = db_fetch_cell_prepared("SELECT COUNT(*)
+		FROM snmpagent_cache
+		$sql_where",
+		$sql_params);
 
-	$snmp_cache_sql = "SELECT * FROM snmpagent_cache WHERE 1 $sql_where LIMIT " . ($rows * (get_request_var('page') - 1)) . ',' . $rows;
-	$snmp_cache     = db_fetch_assoc($snmp_cache_sql);
+	$snmp_cache_sql = "SELECT *
+		FROM snmpagent_cache
+		$sql_where
+		LIMIT " . ($rows * (get_request_var('page') - 1)) . ',' . $rows;
+
+	$snmp_cache = db_fetch_assoc_prepared($snmp_cache_sql, $sql_params);
+
+	$display_text = array(
+		__('OID'),
+		__('Name'),
+		__('MIB'),
+		__('Type'),
+		__('Max-Access'),
+		__('Value')
+	);
 
 	/* generate page list */
 	$nav = html_nav_bar('utilities.php?action=view_snmpagent_cache&mib=' . get_request_var('mib') . '&filter=' . get_request_var('filter'), MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, 11, __('Entries'), 'page', 'main');
@@ -1995,7 +1629,7 @@ function snmpagent_utilities_run_cache() {
 
 	html_start_box('', '100%', '', '3', 'center', '');
 
-	html_header(array(__('OID'), __('Name'), __('MIB'), __('Type'), __('Max-Access'), __('Value')));
+	html_header($display_text);
 
 	if (cacti_sizeof($snmp_cache)) {
 		foreach ($snmp_cache as $item) {
@@ -2005,19 +1639,24 @@ function snmpagent_utilities_run_cache() {
 			$max_access = filter_value($item['max-access'], get_request_var('filter'));
 
 			form_alternate_row('line' . $item['oid'], false);
+
 			form_selectable_cell($oid, $item['oid']);
 
 			if ($item['description']) {
-				print '<td><a href="#" title="<div class=\'header\'>' . $name . '</div><div class=\'content preformatted\'>' . html_escape($item['description']) . '</div>" class="tooltip">' . $name . '</a></td>';
+				form_selectable_cell(filter_value($name, '', '#', $item['description']), $item['oid']);
 			} else {
-				print "<td>$name</td>";
+				form_selectable_cell($name, $item['oid']);
 			}
+
 			form_selectable_cell($mib, $item['oid']);
 			form_selectable_cell($item['kind'], $item['oid']);
 			form_selectable_cell($max_access, $item['oid']);
 			form_selectable_ecell((in_array($item['kind'], array(__('Scalar'), __('Column Data')), true) ? $item['value'] : __('N/A')), $item['oid']);
+
 			form_end_row();
 		}
+	} else {
+		print '<tr><td colspan="6"><em>' . __('No SNMP Agent Cache Entries Found') . '</em></td></tr>';
 	}
 
 	html_end_box();
@@ -2025,24 +1664,105 @@ function snmpagent_utilities_run_cache() {
 	if (cacti_sizeof($snmp_cache)) {
 		print $nav;
 	}
+}
 
-	?>
-	<script type='text/javascript'>
-	$(function() {
-		$('.tooltip').tooltip({
-			track: true,
-			show: 250,
-			hide: 250,
-			position: { collision: 'flipfit' },
-			content: function() { return DOMPurify.sanitize($(this).attr('title')); }
-		});
-	});
-	</script>
-	<?php
+function create_snmp_agent_events_filter() {
+	global $item_rows, $severity_levels, $severity_colors, $receivers;
+
+	$any = array('-1' => __('Any'));
+
+	$mibs = array_rekey(
+		db_fetch_assoc("SELECT 'any' AS id, '" . __esc('Any') . "' AS name
+			UNION
+			SELECT DISTINCT mib AS id, mib AS name FROM snmpagent_cache"),
+		'id', 'name'
+	);
+
+	$receivers = $any + $receivers;
+
+	return array(
+		'rows' => array(
+			array(
+				'filter' => array(
+					'method'         => 'textbox',
+					'friendly_name'  => __('Search'),
+					'filter'         => FILTER_DEFAULT,
+					'placeholder'    => __('Enter a search term'),
+					'size'           => '30',
+					'default'        => '',
+					'pageset'        => true,
+					'max_length'     => '120',
+					'value'          => ''
+				),
+				'severity' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Severity'),
+					'filter'         => FILTER_CALLBACK,
+					'default'        => '-1',
+					'pageset'        => true,
+					'array'          => $severity_levels,
+					'value'          => '-1'
+				),
+				'receiver' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Receiver'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'pageset'        => true,
+					'array'          => $receivers,
+					'value'          => '-1'
+				),
+				'rows' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Events'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'pageset'        => true,
+					'array'          => $item_rows,
+					'value'          => '-1'
+				)
+			)
+		),
+		'buttons' => array(
+			'go' => array(
+				'method'  => 'submit',
+				'display' => __('Go'),
+				'title'   => __('Apply Filter to Table'),
+			),
+			'clear' => array(
+				'method'  => 'button',
+				'display' => __('Clear'),
+				'title'   => __('Reset Filter to Default Values'),
+			),
+			'purge' => array(
+				'method'  => 'button',
+				'display' => __('Purge'),
+				'title'   => __('Purge the SNMP Agent Event Log'),
+				'url'     => 'utilities.php?action=view_snmpagent_events&purge=true'
+			)
+		)
+	);
+	get_filter_request_var('mib', FILTER_CALLBACK, array('options' => 'sanitize_search_string'));
+}
+
+function process_sanitize_draw_snmp_agent_events_filter($render = false) {
+	$filters = create_snmp_agent_events_filter();
+
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter(__('SNMP Agent Notification Log'), 'utilities.php?action=view_snmpagent_events', 'form_agent', 'sess_snmpae');
+
+	$pageFilter->rows_label = __('Events');
+	$pageFilter->set_filter_array($filters);
+
+	if ($render) {
+		$pageFilter->render();
+	} else {
+		$pageFilter->sanitize();
+	}
 }
 
 function snmpagent_utilities_run_eventlog() {
-	global $item_rows;
+	global $severity_levels, $severity_colors, $receivers;
 
 	$severity_levels = array(
 		SNMPAGENT_EVENT_SEVERITY_LOW      => 'LOW',
@@ -2058,18 +1778,13 @@ function snmpagent_utilities_run_eventlog() {
 		SNMPAGENT_EVENT_SEVERITY_CRITICAL => '#FF00FF'
 	);
 
-	$receivers = db_fetch_assoc('SELECT DISTINCT manager_id, hostname
-		FROM snmpagent_notifications_log
-		INNER JOIN snmpagent_managers
-		ON snmpagent_managers.id = snmpagent_notifications_log.manager_id');
-
-	/* ================= input validation ================= */
-	get_filter_request_var('receiver');
-
-	if (!in_array(get_request_var('severity'), array_keys($severity_levels), true) && get_request_var('severity') != '-1' && get_request_var('severity') != '') {
-		die_html_input_error('mib');
-	}
-	/* ==================================================== */
+	$receivers = array_rekey(
+		db_fetch_assoc('SELECT DISTINCT manager_id, hostname
+			FROM snmpagent_notifications_log AS al
+			INNER JOIN snmpagent_managers AS am
+			ON am.id = al.manager_id'),
+		'manager_id', 'hostname'
+	);
 
 	if (isset_request_var('purge')) {
 		db_execute('TRUNCATE table snmpagent_notifications_log');
@@ -2078,36 +1793,7 @@ function snmpagent_utilities_run_eventlog() {
 		set_request_var('clear', true);
 	}
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-		),
-		'severity' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'receiver' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		)
-	);
-
-	validate_store_request_vars($filters, 'sess_snmpl');
-	/* ================= input validation ================= */
+	process_sanitize_draw_snmp_agent_events_filter(true);
 
 	if (get_request_var('rows') == -1) {
 		$rows = read_config_option('num_rows_table');
@@ -2115,149 +1801,26 @@ function snmpagent_utilities_run_eventlog() {
 		$rows = get_request_var('rows');
 	}
 
-	html_filter_start_box(__('SNMP Agent Notification Log'));
-
-	?>
-	<tr class='even noprint'>
-		<td>
-			<form id='form_snmpagent_notifications' action='utilities.php'>
-				<table class='filterTable'>
-					<tr>
-						<td>
-							<?php print __('Search');?>
-						</td>
-						<td>
-							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-						</td>
-						<td>
-							<?php print __('Severity');?>
-						</td>
-						<td>
-							<select id='severity' onChange='applyFilter()' data-defaultLabel='<?php print __('Severity');?>'>
-								<option value='-1'<?php if (get_request_var('severity') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
-								<?php
-								foreach ($severity_levels as $level => $name) {
-									print "<option value='" . $level . "'";
-
-									if (get_request_var('severity') == $level) {
-										print ' selected';
-									} print '>' . html_escape($name) . '</option>';
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<?php print __('Receiver');?>
-						</td>
-						<td>
-							<select id='receiver' onChange='applyFilter()' data-defaultLabel='<?php print __('Receiver');?>'>
-								<option value='-1'<?php if (get_request_var('receiver') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
-								<?php
-								foreach ($receivers as $receiver) {
-									print "<option value='" . $receiver['manager_id'] . "'";
-
-									if (get_request_var('receiver') == $receiver['manager_id']) {
-										print ' selected';
-									}
-
-									print '>' . html_escape($receiver['hostname']) . '</option>';
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<?php print __('Entries');?>
-						</td>
-						<td>
-							<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Entries');?>'>
-								<option value='-1'<?php if (get_request_var('rows') == '-1') {?> selected<?php }?>><?php print __('Default');?></option>
-								<?php
-								if (cacti_sizeof($item_rows)) {
-									foreach ($item_rows as $key => $value) {
-										print "<option value='" . $key . "'";
-
-										if (get_request_var('rows') == $key) {
-											print ' selected';
-										}
-
-										print '>' . html_escape($value) . '</option>';
-									}
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<span>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc_x('Button: use filter settings', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc_x('Button: reset filter settings', 'Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='purge' value='<?php print __esc_x('Button: delete all table entries', 'Purge');?>' title='<?php print __esc('Purge Notification Log');?>'>
-							</span>
-						</td>
-					</tr>
-				</table>
-			</form>
-			<script type='text/javascript'>
-			function applyFilter() {
-				strURL  = 'utilities.php?action=view_snmpagent_events';
-				strURL += '&severity=' + $('#severity').val();
-				strURL += '&receiver=' + $('#receiver').val();
-				strURL += '&rows=' + $('#rows').val();
-				strURL += '&filter=' + $('#filter').val();
-				loadUrl({url:strURL})
-			}
-
-			function clearFilter() {
-				strURL = 'utilities.php?action=view_snmpagent_events&clear=1';
-				loadUrl({url:strURL})
-			}
-
-			function purgeFilter() {
-				strURL = 'utilities.php?action=view_snmpagent_events&purge=1';
-				loadUrl({url:strURL})
-			}
-
-			$(function() {
-				$('#refresh').click(function() {
-					applyFilter();
-				});
-
-				$('#clear').click(function() {
-					clearFilter();
-				});
-
-				$('#purge').click(function() {
-					purgeFilter();
-				});
-
-				$('#form_snmpagent_notifications').submit(function(event) {
-					event.preventDefault();
-					applyFilter();
-				});
-			});
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
-
-	$sql_where = ' 1';
+	$sql_where  = '';
+	$sql_params = array();
 
 	/* filter by severity */
 	if (get_request_var('receiver') != '-1') {
-		$sql_where .= " AND snl.manager_id='" . get_request_var('receiver') . "'";
+		$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . ' snl.manager_id = ?';
+		$sql_params[] = get_request_var('receiver');
 	}
 
 	/* filter by severity */
-	if (get_request_var('severity') == '-1') {
-		/* Show all items */
-	} elseif (!isempty_request_var('severity')) {
-		$sql_where .= " AND snl.severity='" . get_request_var('severity') . "'";
+	if (!isempty_request_var('severity') && get_request_var('severity') != '-1') {
+		$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . ' snl.severity = ?';
+		$sql_params[] = get_request_var('severity');
+
 	}
 
 	/* filter by search string */
 	if (get_request_var('filter') != '') {
-		$sql_where .= ' AND (`varbinds` LIKE ' . db_qstr('%' . get_request_var('filter') . '%');
+		$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . ' (`varbinds` LIKE ?';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
 	}
 
 	$sql_where .= ' ORDER by `time` DESC';
@@ -2268,14 +1831,15 @@ function snmpagent_utilities_run_eventlog() {
 		ON sm.id = snl.manager_id
 		LEFT JOIN snmpagent_cache AS sc
 		ON sc.name = snl.notification
-		WHERE $sql_where
+		$sql_where
 		LIMIT " . ($rows * (get_request_var('page') - 1)) . ',' . $rows;
 
-	$total_rows = db_fetch_cell("SELECT COUNT(*)
+	$total_rows = db_fetch_cell_prepared("SELECT COUNT(*)
 		FROM snmpagent_notifications_log AS snl
-		WHERE $sql_where");
+		$sql_where",
+		$sql_params);
 
-	$logs = db_fetch_assoc($sql_query);
+	$logs = db_fetch_assoc_prepared($sql_query, $sql_params);
 
 	$nav = html_nav_bar('utilities.php?action=view_snmpagent_events&severity='. get_request_var('severity').'&receiver='. get_request_var('receiver').'&filter=' . get_request_var('filter'), MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, 11, __('Log Entries'), 'page', 'main');
 
@@ -2290,24 +1854,26 @@ function snmpagent_utilities_run_eventlog() {
 	if (cacti_sizeof($logs)) {
 		foreach ($logs as $item) {
 			$varbinds = filter_value($item['varbinds'], get_request_var('filter'));
+
 			form_alternate_row('line' . $item['id'], false);
 
-			print "<td title='" . __esc('Severity Level: %s', $severity_levels[$item['severity']]) . "' style='width:10px;background-color: " . $severity_colors[$item['severity']] . ";border-top:1px solid white;border-bottom:1px solid white;'></td>";
-			print "<td class='nowrap'>" . date('Y-m-d H:i:s', $item['time']) . '</td>';
-			print '<td>' . html_escape($item['hostname']) . '</td>';
+			form_selectable_cell(__esc('Severity Level: %s', $severity_levels[$item['severity']]), $item['id'], '', 'background-color:' . $severity_colors[$item['severity']]);
+
+			form_selectable_cell(date('Y-m-d H:i:s', $item['time']), $item['id']);
+			form_selectable_ecell($item['hostname'], $item['id']);
 
 			if ($item['description']) {
-				print '<td><a href="#" title="<div class=\'header\'>' . html_escape($item['notification']) . '</div><div class=\'content preformatted\'>' . html_escape($item['description']) . '</div>" class="tooltip">' . html_escape($item['notification']) . '</a></td>';
+				form_selectable_cell(filter_value($item['notification'], '', '#', html_escape($item['notification'])), $item['id']);
 			} else {
-				print '<td>' . html_escape($item['notification']) . '</td>';
+				form_selectable_ecell($item['notification'], $item['id']);
 			}
 
-			print "<td>$varbinds</td>";
+			form_selectable_cell($varbinds, $item['id']);
 
 			form_end_row();
 		}
 	} else {
-		print '<tr><td colspan="5"><em>' . __('No SNMP Notification Log Entries') . '</em></td></tr>';
+		print '<tr class="tableRow odd"><td colspan="5"><em>' . __('No SNMP Notification Log Entries') . '</em></td></tr>';
 	}
 
 	html_end_box();
@@ -2315,16 +1881,5 @@ function snmpagent_utilities_run_eventlog() {
 	if (cacti_sizeof($logs)) {
 		print $nav;
 	}
-
-	?>
-
-	<script type='text/javascript' >
-	$('.tooltip').tooltip({
-		track: true,
-		position: { collision: 'flipfit' },
-		content: function() { return $(this).attr('title'); }
-	});
-	</script>
-	<?php
 }
 

@@ -457,7 +457,7 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 		if (strpos($applyFilter, '?') === false) {
 			$separator = '?';
 		} else {
-			$separator = '';
+			$separator = '&';
 		}
 
 		$applyFilter   .= $separator;
