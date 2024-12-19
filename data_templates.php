@@ -64,18 +64,14 @@ switch (get_request_var('action')) {
 		break;
 	case 'template_edit':
 		top_header();
-
 		template_edit();
-
 		bottom_footer();
 
 		break;
 
 	default:
 		top_header();
-
-		template();
-
+		data_templates();
 		bottom_footer();
 
 		break;
@@ -1017,184 +1013,16 @@ function template_edit() {
 	<?php
 }
 
-function template() {
+function data_templates() {
 	global $actions, $item_rows;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-		),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'name',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'profile' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'method' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'has_data' => array(
-			'filter'  => FILTER_VALIDATE_REGEXP,
-			'options' => array('options' => array('regexp' => '(true|false)')),
-			'pageset' => true,
-			'default' => read_config_option('default_has') == 'on' ? 'true':'false'
-		)
-	);
-
-	validate_store_request_vars($filters, 'sess_dt');
-	/* ================= input validation ================= */
+	process_sanitize_draw_filter(true);
 
 	if (get_request_var('rows') == '-1') {
 		$rows = read_config_option('num_rows_table');
 	} else {
 		$rows = get_request_var('rows');
 	}
-
-	html_filter_start_box(__('Data Templates'), 'data_templates.php?action=template_edit');
-
-	?>
-	<tr class='even noprint'>
-		<td>
-		<form id='form_data_template' action='data_templates.php'>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Method');?>
-					</td>
-					<td>
-						<select id='method' data-defaultLabel='<?php print __('Method');?>'>
-							<option value='-1'<?php print(get_request_var('method') == '-1' ? ' selected>':'>') . __('All');?></option>
-							<?php
-							$methods = array_rekey(db_fetch_assoc('SELECT id, name FROM data_input ORDER BY name'), 'id', 'name');
-
-							if (cacti_sizeof($methods)) {
-								foreach ($methods as $key => $value) {
-									print "<option value='" . $key . "'" . (get_request_var('method') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
-								}
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<?php print __('Profile');?>
-					</td>
-					<td>
-						<select id='profile' data-defaultLabel='<?php print __('Profile');?>'>
-							<option value='-1'<?php print(get_request_var('profile') == '-1' ? ' selected>':'>') . __('All');?></option>
-							<?php
-							$profiles = array_rekey(db_fetch_assoc('SELECT id, name FROM data_source_profiles ORDER BY name'), 'id', 'name');
-
-							if (cacti_sizeof($profiles)) {
-								foreach ($profiles as $key => $value) {
-									print "<option value='" . $key . "'" . (get_request_var('profile') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
-								}
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='checkbox' id='has_data' <?php print(get_request_var('has_data') == 'true' ? 'checked':'');?>>
-							<label for='has_data'><?php print __('Has Data Sources');?></label>
-						</span>
-					</td>
-					<td>
-						<span>
-							<input type='submit' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc('Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' name='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('Data Templates');?>
-					</td>
-					<td>
-						<select id='rows' name='rows' data-defaultLabel='<?php print __('Data Templates');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-							if (cacti_sizeof($item_rows)) {
-								foreach ($item_rows as $key => $value) {
-									print "<option value='" . $key . "'" . (get_request_var('rows') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
-								}
-							}
-							?>
-						</select>
-					</td>
-				</tr>
-			</table>
-		</form>
-		</td>
-		<script type='text/javascript'>
-		function applyFilter() {
-			strURL  = 'data_templates.php';
-			strURL += '?filter='+$('#filter').val();
-			strURL += '&rows='+$('#rows').val();
-			strURL += '&profile='+$('#profile').val();
-			strURL += '&method='+$('#method').val();
-			strURL += '&has_data='+$('#has_data').is(':checked');
-			loadUrl({url:strURL})
-		}
-
-		function clearFilter() {
-			strURL = 'data_templates.php?clear=1';
-			loadUrl({url:strURL})
-		}
-
-		$(function() {
-			$('#has_data').click(function() {
-				applyFilter();
-			});
-
-			$('#rows, #method, #profile').change(function() {
-				applyFilter();
-			});
-
-			$('#clear').click(function() {
-				clearFilter();
-			});
-
-			$('#form_data_template').submit(function(event) {
-				event.preventDefault();
-				applyFilter();
-			});
-		});
-		</script>
-	</tr>
-	<?php
-
-	html_end_box();
 
 	/* form the 'where' clause for our main sql query */
 	$rows_where = '';
@@ -1249,16 +1077,19 @@ function template() {
 		$sql_order
 		$sql_limit";
 
+cacti_log($sql_order);
+cacti_log($template_list_sql);
+
 	$template_list = db_fetch_assoc_prepared($template_list_sql, $sql_params);
 
 	$display_text = array(
-		'name' => array(
+		'dt.name' => array(
 			'display' => __('Data Template Name'),
 			'align'   => 'left',
 			'sort'    => 'ASC',
 			'tip'     => __('The name of this Data Template.')
 		),
-		'id' => array(
+		'dt.id' => array(
 			'display' => __('ID'),
 			'align'   => 'right',
 			'sort'    => 'ASC',
@@ -1275,7 +1106,7 @@ function template() {
 			'sort'    => 'DESC',
 			'tip'     => __('The number of Data Sources using this Data Template.')
 		),
-		'data_input_method' => array(
+		'dtd.data_input_method' => array(
 			'display' => __('Input Method'),
 			'align'   => 'left',
 			'sort'    => 'ASC',
@@ -1347,3 +1178,125 @@ function template() {
 
 	form_end();
 }
+
+function create_filter() {
+	global $item_rows, $page_refresh_interval;
+
+	$all     = array('-1' => __('All'));
+	$any     = array('-1' => __('Any'));
+	$none    = array('0'  => __('None'));
+
+	if (isset_request_var('has_data')) {
+		$value = get_nfilter_request_var('has_data');
+	} else {
+		$value = read_config_option('default_has') == 'on' ? 'true':'false';
+	}
+
+	$profiles = array_rekey(
+		db_fetch_assoc('SELECT id, name
+			FROM data_source_profiles
+			ORDER BY name'),
+		'id', 'name'
+	);
+	$profiles = $all + $profiles;
+
+	$methods = array_rekey(
+		db_fetch_assoc_prepared('SELECT id, name
+			FROM data_input
+			ORDER BY name'),
+		'id', 'name'
+	);
+
+	$methods = $all + $methods;
+
+cacti_log(get_nfilter_request_var('sort_column'));
+
+	return array(
+		'rows' => array(
+			array(
+				'method' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Method'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $methods,
+					'value'         => '-1'
+				),
+				'profile' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Profile'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $profiles,
+					'value'         => '-1'
+				),
+                'has_data' => array(
+                    'method'         => 'filter_checkbox',
+                    'friendly_name'  => __('Has Data Sources'),
+                    'filter'         => FILTER_VALIDATE_REGEXP,
+                    'filter_options' => array('options' => array('regexp' => '(true|false)')),
+                    'default'        => '',
+                    'pageset'        => true,
+                    'value'          => $value
+                )
+			),
+			array(
+				'filter' => array(
+					'method'        => 'textbox',
+					'friendly_name'  => __('Search'),
+					'filter'         => FILTER_DEFAULT,
+					'placeholder'    => __('Enter a search term'),
+					'size'           => '30',
+					'default'        => '',
+					'pageset'        => true,
+					'max_length'     => '120',
+					'value'          => ''
+				),
+				'rows' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Data Templates'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $item_rows,
+					'value'         => '-1'
+				)
+			)
+		),
+		'buttons' => array(
+			'go' => array(
+				'method'  => 'submit',
+				'display' => __('Go'),
+				'title'   => __('Apply filter to table'),
+			),
+			'clear' => array(
+				'method'  => 'button',
+				'display' => __('Clear'),
+				'title'   => __('Reset filter to default values'),
+			)
+		),
+		'sort' => array(
+			'sort_column'    => 'dt.name',
+			'sort_direction' => 'ASC'
+		)
+	);
+}
+
+function process_sanitize_draw_filter($render = false) {
+	$filters = create_filter();
+
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter(__('Data Templates'), 'data_templates.php', 'form_data', 'sess_dt', 'data_templates.php?action=edit');
+
+	$pageFilter->rows_label = __('Data Templates');
+	$pageFilter->set_filter_array($filters);
+
+	if ($render) {
+		$pageFilter->render();
+	} else {
+		$pageFilter->sanitize();
+	}
+}
+
