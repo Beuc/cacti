@@ -1510,216 +1510,13 @@ function template_edit() {
 function template() {
 	global $actions, $item_rows, $image_types, $graph_template_classes;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-		),
-		'class' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => '-1',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'name',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'cdef_id' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'vdef_id' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'has_graphs' => array(
-			'filter'  => FILTER_VALIDATE_REGEXP,
-			'options' => array('options' => array('regexp' => '(true|false)')),
-			'pageset' => true,
-			'default' => read_config_option('default_has') == 'on' ? 'true':'false'
-		)
-	);
-
-	validate_store_request_vars($filters, 'sess_gt');
-	/* ================= input validation ================= */
+	process_sanitize_draw_filter(true);
 
 	if (get_request_var('rows') == '-1') {
 		$rows = read_config_option('num_rows_table');
 	} else {
 		$rows = get_request_var('rows');
 	}
-
-	html_filter_start_box(__('Graph Templates'), 'graph_templates.php?action=template_edit');
-
-	?>
-	<tr class='even noprint'>
-		<td>
-			<form id='form_graph_template' action='graph_templates.php'>
-				<table class='filterTable'>
-					<tr>
-						<td>
-							<?php print __('Class');?>
-						</td>
-						<td>
-							<select id='class' data-defaultLabel='<?php print __('Class');?>'>
-								<option value='-1'<?php print (get_request_var('class') == '-1' ? ' selected>':'>') . __('All');?></option>
-								<?php
-								if (cacti_sizeof($graph_template_classes)) {
-									foreach ($graph_template_classes as $key => $value) {
-										print "<option value='" . $key . "'" . (get_request_var('class') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
-									}
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<?php print __('CDEFs');?>
-						</td>
-						<td>
-							<select id='cdef_id' data-defaultLabel='<?php print __('CDEFs');?>'>
-								<option value='-1'<?php if (get_request_var('cdef_id') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
-								<?php
-								$cdefs = db_fetch_assoc('SELECT c.id, c.name
-									FROM cdef AS c
-									INNER JOIN (SELECT DISTINCT cdef_id FROM graph_templates_item WHERE cdef_id > 0) AS gti
-									ON c.id = gti.cdef_id
-									ORDER BY name');
-
-								if (cacti_sizeof($cdefs)) {
-									foreach ($cdefs as $cdef) {
-										print "<option value='" . $cdef['id'] . "'" . (get_request_var('cdef_id') == $cdef['id'] ? ' selected':'') . '>' . html_escape($cdef['name']) . '</option>';
-									}
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<?php print __('VDEFs');?>
-						</td>
-						<td>
-							<select id='vdef_id' data-defaultLabel='<?php print __('VDEFs');?>'>
-								<option value='-1'<?php if (get_request_var('vdef_id') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
-								<?php
-								$vdefs = db_fetch_assoc('SELECT v.id, v.name
-									FROM vdef AS v
-									INNER JOIN (SELECT DISTINCT vdef_id FROM graph_templates_item WHERE vdef_id > 0) AS gti
-									ON v.id = gti.vdef_id
-									ORDER BY name');
-
-								if (cacti_sizeof($vdefs)) {
-									foreach ($vdefs as $vdef) {
-										print "<option value='" . $vdef['id'] . "'" . (get_request_var('vdef_id') == $vdef['id'] ? ' selected':'') . '>' . html_escape($vdef['name']) . '</option>';
-									}
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<span>
-								<input type='checkbox' id='has_graphs' <?php print(get_request_var('has_graphs') == 'true' ? 'checked':'');?>>
-								<label for='has_graphs'><?php print __('Has Graphs');?></label>
-							</span>
-						</td>
-						<td>
-							<span>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc('Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-							</span>
-						</td>
-					</tr>
-				</table>
-				<table class='filterTable'>
-					<tr>
-						<td>
-							<?php print __('Search');?>
-						</td>
-						<td>
-							<input type='text' class='ui-state-default' id='filter' name='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-						</td>
-						<td>
-							<?php print __('Graph Templates');?>
-						</td>
-						<td>
-							<select id='rows' name='rows' data-defaultLabel='<?php print __('Graph Templates');?>'>
-								<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-								<?php
-								if (cacti_sizeof($item_rows)) {
-									foreach ($item_rows as $key => $value) {
-										print "<option value='" . $key . "'" . (get_request_var('rows') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
-									}
-								}
-								?>
-							</select>
-						</td>
-					</tr>
-				</table>
-			</form>
-			<script type='text/javascript'>
-			var disabled = true;
-
-			function applyFilter() {
-				strURL  = 'graph_templates.php';
-				strURL += '?filter='+$('#filter').val();
-				strURL += '&rows='+$('#rows').val();
-				strURL += '&class='+$('#class').val();
-				strURL += '&cdef_id='+$('#cdef_id').val();
-				strURL += '&vdef_id='+$('#vdef_id').val();
-				strURL += '&has_graphs='+$('#has_graphs').is(':checked');
-				loadUrl({url:strURL})
-			}
-
-			function clearFilter() {
-				strURL = 'graph_templates.php?clear=1';
-				loadUrl({url:strURL})
-			}
-
-			$(function() {
-				$('#refresh').click(function() {
-					applyFilter();
-				});
-
-				$('#has_graphs').click(function() {
-					applyFilter();
-				});
-
-				$('#clear').click(function() {
-					clearFilter();
-				});
-
-				$('#rows, #class, #vdef_id, #cdef_id').change(function() {
-					applyFilter();
-				});
-
-				$('#form_graph_template').submit(function(event) {
-					event.preventDefault();
-					applyFilter();
-				});
-			});
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
 
 	/* form the 'where' clause for our main sql query */
 	$sql_where  = '';
@@ -1878,8 +1675,9 @@ function template() {
 			form_end_row();
 		}
 	} else {
-		print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Graph Templates Found') . "</em></td></tr>\n";
+		print "<tr class='tableRow odd'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Graph Templates Found') . "</em></td></tr>\n";
 	}
+
 	html_end_box(false);
 
 	if (cacti_sizeof($template_list)) {
@@ -1958,7 +1756,8 @@ function input_edit() {
 		ON dl.id = dtd.local_data_id
 		WHERE gti.local_graph_id = 0
 		AND gti.graph_template_id = ?
-		ORDER BY gti.sequence", array(get_request_var('id'), get_request_var('graph_template_id')));
+		ORDER BY gti.sequence",
+		array(get_request_var('id'), get_request_var('graph_template_id')));
 
 	html_start_box(__('Associated Graph Items'), '100%', false, '3', 'center', '');
 
@@ -2000,7 +1799,7 @@ function input_edit() {
 			form_end_row();
 		}
 	} else {
-		print '<tr><td><em>' . __('No Items') . '</em></td></tr>';
+		print '<tr class="tableRow odd"><td><em>' . __('No Items') . '</em></td></tr>';
 	}
 
 	form_hidden_box('any_selected_item', $any_selected_item, '');
@@ -2009,3 +1808,139 @@ function input_edit() {
 
 	form_save_button('graph_templates.php?action=template_edit&id=' . get_request_var('graph_template_id'));
 }
+
+function create_filter() {
+	global $item_rows, $graph_template_classes;
+
+	$all     = array('-1' => __('All'));
+	$any     = array('-1' => __('Any'));
+	$none    = array('0'  => __('None'));
+
+	$graph_template_classes = $all + $graph_template_classes;
+
+	$cdefs = array_rekey(
+		db_fetch_assoc('SELECT DISTINCT c.id, c.name
+			FROM cdef AS c
+			INNER JOIN (SELECT DISTINCT cdef_id FROM graph_templates_item WHERE cdef_id > 0) AS gti
+			ON c.id = gti.cdef_id
+			ORDER BY name'),
+		'id', 'name'
+	);
+
+	$cdefs = $all + $cdefs;
+
+	$vdefs = array_rekey(
+		db_fetch_assoc('SELECT v.id, v.name
+			FROM vdef AS v
+			INNER JOIN (SELECT DISTINCT vdef_id FROM graph_templates_item WHERE vdef_id > 0) AS gti
+			ON gti.vdef_id = v.id
+			ORDER BY name'),
+		'id', 'name'
+	);
+
+	$vdefs = $all + $vdefs;
+
+	if (isset_request_var('has_graphs')) {
+		$value = get_request_var('has_graphs');
+	} else {
+		$value = read_config_option('default_has') == 'on' ? 'true':'false';
+	}
+
+	return array(
+		'rows' => array(
+			array(
+				'class' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Class'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'pageset'        => true,
+					'array'          => $graph_template_classes,
+					'value'          => '-1'
+				),
+				'cdefs' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('CDEFs'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $cdefs,
+					'value'         => '-1'
+				),
+				'vdefs' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('VDEFs'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $vdefs,
+					'value'         => '-1'
+				),
+				'has_graphs' => array(
+					'method'         => 'filter_checkbox',
+					'friendly_name'  => __('Has Graphs'),
+					'filter'         => FILTER_VALIDATE_REGEXP,
+					'filter_options' => array('options' => array('regexp' => '(true|false)')),
+					'default'        => '',
+					'pageset'        => true,
+					'value'          => $value
+				)
+			),
+			array(
+				'filter' => array(
+					'method'        => 'textbox',
+					'friendly_name'  => __('Search'),
+					'filter'         => FILTER_VALIDATE_IS_REGEX,
+					'placeholder'    => __('Enter a search term'),
+					'size'           => '30',
+					'default'        => '',
+					'pageset'        => true,
+					'max_length'     => '120',
+					'value'          => ''
+				),
+				'rows' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Graph Templates'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $item_rows,
+					'value'         => '-1'
+				)
+			)
+		),
+		'buttons' => array(
+			'go' => array(
+				'method'  => 'submit',
+				'display' => __('Go'),
+				'title'   => __('Apply filter to table'),
+			),
+			'clear' => array(
+				'method'  => 'button',
+				'display' => __('Clear'),
+				'title'   => __('Reset filter to default values'),
+			)
+		),
+		'sort' => array(
+			'sort_column'    => 'name',
+			'sort_direction' => 'ASC'
+		)
+	);
+}
+
+function process_sanitize_draw_filter($render = false) {
+	$filters = create_filter();
+
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter(__('Graph Templates'), 'graph_templates.php', 'form_graphs', 'sess_gt', 'graph_templates.php?action=edit');
+
+	$pageFilter->rows_label = __('Graph Templates');
+	$pageFilter->set_filter_array($filters);
+
+	if ($render) {
+		$pageFilter->render();
+	} else {
+		$pageFilter->sanitize();
+	}
+}
+
