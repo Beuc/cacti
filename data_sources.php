@@ -46,8 +46,6 @@ $actions = api_plugin_hook_function('data_source_action_array', $actions);
 /* set default action */
 set_default_action();
 
-validate_data_source_vars();
-
 switch (get_request_var('action')) {
 	case 'save':
 		form_save();
@@ -115,7 +113,7 @@ switch (get_request_var('action')) {
 	default:
 		top_header();
 
-		ds();
+		data_sources();
 
 		bottom_footer();
 
@@ -1228,73 +1226,10 @@ function get_poller_interval($seconds, $data_source_profile_id) {
 	}
 }
 
-function validate_data_source_vars() {
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-			),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-			),
-		'rfilter' => array(
-			'filter'  => FILTER_VALIDATE_IS_REGEX,
-			'pageset' => true,
-			'default' => '',
-			'options' => array('options' => 'sanitize_search_string')
-			),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'name_cache',
-			'options' => array('options' => 'sanitize_search_string')
-			),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-			),
-		'host_id' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-			),
-		'site_id' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-			),
-		'status' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-			),
-		'template_id' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-			),
-		'profile' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-			),
-		'orphans' => array(
-			'filter'  => FILTER_CALLBACK,
-			'pageset' => true,
-			'default' => '',
-			'options' => array('options' => 'sanitize_search_string')
-			)
-	);
-
-	validate_store_request_vars($filters, 'sess_ds');
-	/* ================= input validation ================= */
-}
-
-function ds() {
+function data_sources() {
 	global $actions, $item_rows, $sampling_intervals;
+
+	process_sanitize_draw_filter(true);
 
 	if (get_request_var('rows') == -1) {
 		$rows = read_config_option('num_rows_table');
@@ -1311,246 +1246,60 @@ function ds() {
 		$host = array();
 	}
 
-	?>
-	<script type='text/javascript'>
-	function applyFilter() {
-		strURL  = 'data_sources.php' +
-			'?host_id=' + $('#host_id').val() +
-			'&site_id=' + $('#site_id').val() +
-			'&rfilter=' + base64_encode($('#rfilter').val()) +
-			'&rows=' + $('#rows').val() +
-			'&status=' + $('#status').val() +
-			'&profile=' + $('#profile').val() +
-			'&orphans=' + $('#orphans').is(':checked') +
-			'&template_id=' + $('#template_id').val();
-		loadUrl({url:strURL})
-	}
-
-	function clearFilter() {
-		strURL = 'data_sources.php?clear=1';
-		loadUrl({url:strURL})
-	}
-
-	$(function() {
-		$('#refresh').click(function() {
-			applyFilter()
-		});
-
-		$('#clear').click(function() {
-			clearFilter()
-		});
-
-		$('#form_data_sources').submit(function(event) {
-			event.preventDefault();
-			applyFilter();
-		});
-	});
-	</script>
-	<?php
-
-	if (read_config_option('grds_creation_method') == 1) {
-		if (get_request_var('host_id') == '-1') {
-			$new_host_id = 0;
-		} else {
-			$new_host_id = get_request_var('host_id');
-		}
-
-		$add_url = html_escape('data_sources.php?action=ds_edit&host_id=' . $new_host_id);
-	} else {
-		$add_url = '';
-	}
-
-	if (get_request_var('site_id') > 0) {
-		$host_where = 'site_id = ' . get_request_var('site_id');
-	} else {
-		$host_where = '';
-	}
-
-	if (get_request_var('host_id') == -1) {
-		$header = __('Data Sources [ All Devices ]');
-	} elseif (get_request_var('host_id') == 0) {
-		$header = __('Data Sources [ Non Device Based ]');
-	} else {
-		$description = db_fetch_cell_prepared('SELECT description FROM host WHERE id = ?', array(get_request_var('host_id')));
-		$header      = __esc('Data Sources [ %s ]', $description);
-	}
-
-	html_filter_start_box($header, $add_url);
-
-	?>
-	<tr class='even noprint'>
-		<td>
-		<form id='form_data_sources' name='form_data_sources' action='data_sources.php'>
-			<table class='filterTable'>
-				<tr>
-					<?php print html_site_filter(get_request_var('site_id'));?>
-					<?php print html_host_filter(get_request_var('host_id'), 'applyFilter', $host_where);?>
-					<td>
-						<?php print __('Template');?>
-					</td>
-					<td>
-						<select id='template_id' name='template_id' onChange='applyFilter()' data-defaultLabel='<?php print __('Template');?>'>
-							<option value='-1'<?php if (get_request_var('template_id') == '-1') {?> selected<?php }?>><?php print __('Any');?></option>
-							<option value='0'<?php if (get_request_var('template_id') == '0') {?> selected<?php }?>><?php print __('None');?></option>
-							<?php
-
-							$templates = db_fetch_assoc('SELECT DISTINCT data_template.id, data_template.name
-								FROM data_template
-								INNER JOIN data_template_data
-								ON data_template.id = data_template_data.data_template_id
-								WHERE data_template_data.local_data_id > 0
-								ORDER BY data_template.name');
-
-							if (cacti_sizeof($templates)) {
-								foreach ($templates as $template) {
-									print "<option value='" . $template['id'] . "'";
-
-									if (get_request_var('template_id') == $template['id']) {
-										print ' selected';
-									} print '>' . html_escape($template['name']) . '</option>';
-								}
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc('Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-						</span>
-					</td>
-				</tr>
-			</table>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Profile');?>
-					</td>
-					<td>
-						<select id='profile' name='profile' onChange='applyFilter()' data-defaultLabel='<?php print __('Profile');?>'>
-							<option value='-1'<?php print(get_request_var('profile') == '-1' ? ' selected>':'>') . __('All');?></option>
-							<?php
-							$profiles = array_rekey(db_fetch_assoc('SELECT id, name FROM data_source_profiles ORDER BY name'), 'id', 'name');
-
-							if (cacti_sizeof($profiles)) {
-								foreach ($profiles as $key => $value) {
-									print "<option value='" . $key . "'";
-
-									if (get_request_var('profile') == $key) {
-										print ' selected';
-									}
-
-									print '>' . html_escape($value) . '</option>';
-								}
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<?php print __('Status');?>
-					</td>
-					<td>
-						<select id='status' name='status' onChange='applyFilter()' data-defaultLabel='<?php print __('Status');?>'>
-							<option value='-1'<?php if (get_request_var('status') == '-1') {?> selected<?php }?>><?php print __('All');?></option>
-							<option value='1'<?php if (get_request_var('status') == '1') {?> selected<?php }?>><?php print __('Enabled');?></option>
-							<option value='2'<?php if (get_request_var('status') == '2') {?> selected<?php }?>><?php print __('Disabled');?></option>
-							<option value='3'<?php if (get_request_var('status') == '3') {?> selected<?php }?>><?php print __('Bad Indexes');?></option>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='checkbox' id='orphans' onChange='applyFilter()' <?php print(get_request_var('orphans') == 'true' || get_request_var('orphans') == 'on' ? 'checked':'');?>>
-   	                    	<label for='orphans' title='<?php print __esc('Note that this query may take some time to run.');?>'><?php print __('Orphaned');?></label>
-						</span>
-					</td>
-				</tr>
-			</table>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='rfilter' size='55' value='<?php print html_escape_request_var('rfilter');?>' onChange='applyFilter()'>
-					</td>
-					<td>
-						<?php print __('Data Sources');?>
-					</td>
-					<td>
-						<select id='rows' name='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Data Sources');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-							if (cacti_sizeof($item_rows)) {
-								foreach ($item_rows as $key => $value) {
-									print "<option value='" . $key . "'";
-
-									if (get_request_var('rows') == $key) {
-										print ' selected';
-									}
-
-									print '>' . html_escape($value) . '</option>';
-								}
-							}
-							?>
-						</select>
-					</td>
-				</tr>
-			</table>
-		</form>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
+	$sql_where1  = '';
+	$sql_where2  = '';
+	$sql_params1 = array();
+	$sql_params2 = array();
 
 	/* form the 'where' clause for our main sql query */
 	if (get_request_var('rfilter') != '') {
-		$sql_where1 = "WHERE (dtd.name_cache RLIKE '" . get_request_var('rfilter') . "'" .
-			" OR dtd.local_data_id RLIKE '" . get_request_var('rfilter') . "'" .
-			" OR dt.name RLIKE '" . get_request_var('rfilter') . "'" .
-			" OR dl.id = '" . get_request_var('rfilter') . "')";
-	} else {
-		$sql_where1 = '';
-	}
-	$sql_where2 = '';
+		$sql_where1 = 'WHERE
+		(
+			dtd.name_cache RLIKE ? OR
+			dtd.local_data_id RLIKE ? OR
+			dt.name RLIKE ? OR
+			dl.id = ?
+		)';
 
-	if (get_request_var('host_id') == '-1') {
-		/* Show all items */
-	} elseif (isempty_request_var('host_id')) {
-		$sql_where1 .= ($sql_where1 != '' ? ' AND':'WHERE') . ' (dl.host_id=0 OR dl.host_id IS NULL)';
-		$sql_where2 .= ' AND (gl.host_id=0 OR gl.host_id IS NULL)';
-	} elseif (!isempty_request_var('host_id')) {
-		$sql_where1 .= ($sql_where1 != '' ? ' AND':'WHERE') . ' dl.host_id=' . get_request_var('host_id');
-		$sql_where2 .= ' AND gl.host_id=' . get_request_var('host_id');
+		$sql_params1[] = get_request_var('rfilter');
+		$sql_params1[] = get_request_var('rfilter');
+		$sql_params1[] = get_request_var('rfilter');
+		$sql_params1[] = get_request_var('rfilter');
 	}
 
-	if (get_request_var('site_id') == '-1') {
-		/* Show all items */
-	} elseif (isempty_request_var('site_id')) {
+	if (isempty_request_var('host_id')) {
+		$sql_where1 .= ($sql_where1 != '' ? ' AND':'WHERE') . ' (dl.host_id = 0 OR dl.host_id IS NULL)';
+		$sql_where2 .= ' AND (gl.host_id = 0 OR gl.host_id IS NULL)';
+	} elseif (get_request_var('host_id') > 0) {
+		$sql_where1   .= ($sql_where1 != '' ? ' AND':'WHERE') . ' dl.host_id = ?';
+		$sql_params1[] = get_request_var('host_id');
+		$sql_where2   .= ' AND gl.host_id = ?';
+		$sql_params2[] = get_request_var('host_id');
+	}
+
+	if (isempty_request_var('site_id')) {
 		$sql_where1 .= ($sql_where1 != '' ? ' AND':'WHERE') . ' (h.site_id=0 OR h.site_id IS NULL)';
 		$sql_where2 .= ' AND (h.site_id=0 OR h.site_id IS NULL)';
-	} elseif (!isempty_request_var('site_id')) {
-		$sql_where1 .= ($sql_where1 != '' ? ' AND':'WHERE') . ' h.site_id=' . get_request_var('site_id');
-		$sql_where2 .= ' AND h.site_id=' . get_request_var('site_id');
+	} elseif (get_request_var('site_id') > 0) {
+		$sql_where1   .= ($sql_where1 != '' ? ' AND':'WHERE') . ' h.site_id = ?';
+		$sql_params1[] = get_request_var('site_id');
+		$sql_where2   .= ' AND h.site_id = ?';
+		$sql_params2[] = get_request_var('site_id');
 	}
 
-	if (get_request_var('template_id') == '-1') {
-		/* Show all items */
-	} elseif (get_request_var('template_id') == '0') {
-		$sql_where1 .= ($sql_where1 != '' ? ' AND':'WHERE') . ' dtd.data_template_id=0';
-	} elseif (!isempty_request_var('template_id')) {
-		$sql_where1 .= ($sql_where1 != '' ? ' AND':'WHERE') . ' dtd.data_template_id=' . get_request_var('template_id');
+	if (get_request_var('template_id') == '0') {
+		$sql_where1 .= ($sql_where1 != '' ? ' AND':'WHERE') . ' dtd.data_template_id = 0';
+	} elseif (get_request_var('template_id') > 0) {
+		$sql_where1 .= ($sql_where1 != '' ? ' AND':'WHERE') . ' dtd.data_template_id = ?';
+		$sql_params1[] = get_request_var('template_id');
 	}
 
-	if (get_request_var('profile') == '-1') {
-		/* Show all items */
-	} else {
-		$sql_where1 .= ($sql_where1 != '' ? ' AND':'WHERE') . ' dtd.data_source_profile_id=' . get_request_var('profile');
+	if (get_request_var('profile') > 0) {
+		$sql_where1   .= ($sql_where1 != '' ? ' AND':'WHERE') . ' dtd.data_source_profile_id = ?';
+		$sql_params1[] = get_request_var('profile');
 	}
 
-	if (get_request_var('status') == '-1') {
-		/* Show all items */
-	} elseif (get_request_var('status') == '1') {
+	if (get_request_var('status') == '1') {
 		$sql_where1 .= ($sql_where1 != '' ? ' AND':'WHERE') . ' (dtd.active = "on" AND h.disabled = "")';
 	} elseif (get_request_var('status') == '2') {
 		$sql_where1 .= ($sql_where1 != '' ? ' AND':'WHERE') . ' (dtd.active = "" OR h.disabled != "")';
@@ -1590,9 +1339,15 @@ function ds() {
 			$orphan_join
 			$sql_where1";
 
-		$total_rows = get_total_row_data($_SESSION[SESS_USER_ID], $sql, array(), 'data_source');
+		if (cacti_sizeof($sql_params2)) {
+			$merged_params = array_merge($sql_params2, $sql_params1);
+		} else {
+			$merged_params = $sql_params1;
+		}
 
-		$data_sources = db_fetch_assoc("SELECT dtd.local_data_id,
+		$total_rows = get_total_row_data($_SESSION[SESS_USER_ID], $sql, $merged_params, 'data_source');
+
+		$data_sources = db_fetch_assoc_prepared("SELECT dtd.local_data_id,
 			dtd.name_cache, dtd.active, dtd.rrd_step, dt.name AS data_template_name,
 			dl.host_id, dtd.data_source_profile_id
 			FROM data_local AS dl
@@ -1605,7 +1360,8 @@ function ds() {
 			$orphan_join
 			$sql_where1
 			$sql_order
-			$sql_limit");
+			$sql_limit",
+			$merged_params);
 	} else {
 		$sql = "SELECT COUNT(*)
 			FROM data_local AS dl
@@ -1617,9 +1373,9 @@ function ds() {
 			ON h.id = dl.host_id
 			$sql_where1";
 
-		$total_rows = get_total_row_data($_SESSION[SESS_USER_ID], $sql, array(), 'data_source');
+		$total_rows = get_total_row_data($_SESSION[SESS_USER_ID], $sql, $sql_params1, 'data_source');
 
-		$data_sources = db_fetch_assoc("SELECT dtd.local_data_id, dtd.name_cache, dtd.active,
+		$data_sources = db_fetch_assoc_prepared("SELECT dtd.local_data_id, dtd.name_cache, dtd.active,
 			dtd.rrd_step, dt.name AS data_template_name, dl.host_id, dtd.data_source_profile_id
 			FROM data_local AS dl
 			INNER JOIN data_template_data AS dtd
@@ -1630,7 +1386,8 @@ function ds() {
 			ON h.id = dl.host_id
 			$sql_where1
 			$sql_order
-			$sql_limit");
+			$sql_limit",
+			$sql_params1);
 	}
 
 	$nav = html_nav_bar('data_sources.php', MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, 7, __('Data Sources'), 'page', 'main');
@@ -1730,6 +1487,7 @@ function ds() {
 			}
 
 			form_alternate_row('line' . $data_source['local_data_id'], true, $disabled);
+
 			form_selectable_cell(filter_value(title_trim($name, read_config_option('max_title_length')), get_request_var('rfilter'), 'data_sources.php?action=ds_edit&id=' . $data_source['local_data_id']), $data_source['local_data_id']);
 			form_selectable_cell($data_source['local_data_id'], $data_source['local_data_id'], '', 'right');
 
@@ -1741,10 +1499,11 @@ function ds() {
 			form_selectable_cell(($data_source['active'] == 'on' ? __('Yes'):__('No')), $data_source['local_data_id']);
 			form_selectable_cell($data_template_name, $data_source['local_data_id']);
 			form_checkbox_cell($name, $data_source['local_data_id'], $disabled);
+
 			form_end_row();
 		}
 	} else {
-		print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Data Sources Found') . '</em></td></tr>';
+		print "<tr class='tableRow odd'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Data Sources Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);
@@ -1803,3 +1562,227 @@ function get_graphs_aggregates_url($local_data_id) {
 
 	return $url;
 }
+
+function create_filter() {
+	global $item_rows, $page_refresh_interval;
+
+	$all     = array('-1' => __('All'));
+	$any     = array('-1' => __('Any'));
+	$none    = array('0'  => __('None'));
+	$deleted = array('-2' => __('Deleted/Invalid'));
+
+	$sites   = array_rekey(
+		db_fetch_assoc('SELECT id, name
+			FROM sites
+			ORDER BY name'),
+		'id', 'name'
+	);
+	$sites   = $any + $sites;
+
+	$profiles = array_rekey(
+		db_fetch_assoc('SELECT id, name
+			FROM data_source_profiles
+			ORDER BY name'),
+		'id', 'name'
+	);
+	$profiles = $all + $profiles;
+
+	$status = array(
+		'-1' => __('All'),
+		'1'  => __('Enabled'),
+		'2'  => __('Disabled'),
+		'3'  => __('Bad Indexes')
+	);
+
+	$sql_where  = '';
+	$sql_params = array();
+
+	$host_id = get_filter_request_var('host_id');
+	if (get_request_var('host_id') == '') {
+		$host_id = -1;
+	}
+
+	if ($host_id > 0) {
+		/* for the templates dropdown */
+		$sql_where    = 'AND h.id = ?';
+		$sql_params[] = $host_id;
+
+		$hostname = db_fetch_cell_prepared('SELECT description
+			FROM host
+			WHERE id = ?',
+			array($host_id));
+	} elseif ($host_id == 0) {
+		$host_id  = '0';
+		$hostname = __('None');
+	} else {
+		$host_id  = '-1';
+		$hostname = __('Any');
+	}
+
+	if (get_filter_request_var('site_id') > 0) {
+		$sql_where    = 'AND site_id = ?';
+		$sql_params[] = get_request_var('site_id');
+	}
+
+	$templates = array_rekey(
+		db_fetch_assoc_prepared("SELECT DISTINCT dt.id, dt.name
+			FROM data_template AS dt
+			INNER JOIN data_template_data AS dtd
+			ON dt.id = dtd.data_template_id
+			LEFT JOIN data_local AS dl
+			ON dtd.local_data_id = dl.id
+			LEFT JOIN host AS h
+			ON dl.host_id = h.id
+			WHERE dtd.local_data_id > 0
+			$sql_where
+			ORDER BY dt.name",
+			$sql_params),
+		'id', 'name'
+	);
+
+	$templates = $any + $templates;
+
+	return array(
+		'rows' => array(
+			array(
+				'site_id' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Site'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $sites,
+					'value'         => '-1'
+				),
+				'host_id' => array(
+					'method'        => 'drop_callback',
+					'friendly_name' => __('Device'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'sql'           => 'SELECT DISTINCT id, description AS name FROM host ORDER BY description',
+					'action'        => 'ajax_hosts',
+					'id'            => $host_id,
+					'value'         => $hostname,
+					'on_change'     => 'applyFilter()'
+				),
+				'template_id' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Template'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $templates,
+					'value'         => '-1'
+				)
+			),
+			array(
+				'profile' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Profile'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $profiles,
+					'value'         => '-1'
+				),
+				'status' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Status'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $status,
+					'value'         => '-1'
+				),
+                'orphans' => array(
+                    'method'         => 'filter_checkbox',
+                    'friendly_name'  => __('Orphaned'),
+                    'filter'         => FILTER_VALIDATE_REGEXP,
+                    'filter_options' => array('options' => array('regexp' => '(true|false)')),
+                    'default'        => '',
+                    'pageset'        => true,
+                    'value'          => get_nfilter_request_var('orphans')
+                )
+			),
+			array(
+				'rfilter' => array(
+					'method'        => 'textbox',
+					'friendly_name'  => __('Search'),
+					'filter'         => FILTER_VALIDATE_IS_REGEX,
+					'placeholder'    => __('Enter a search term'),
+					'size'           => '55',
+					'default'        => '',
+					'pageset'        => true,
+					'max_length'     => '120',
+					'value'          => ''
+				),
+				'rows' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Data Sources'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $item_rows,
+					'value'         => '-1'
+				)
+			)
+		),
+		'buttons' => array(
+			'go' => array(
+				'method'  => 'submit',
+				'display' => __('Go'),
+				'title'   => __('Apply filter to table'),
+			),
+			'clear' => array(
+				'method'  => 'button',
+				'display' => __('Clear'),
+				'title'   => __('Reset filter to default values'),
+			)
+		),
+		'sort' => array(
+			'sort_column'    => 'name_cache',
+			'sort_direction' => 'DESC'
+		)
+	);
+}
+
+function process_sanitize_draw_filter($render = false) {
+	$filters = create_filter();
+
+	if (read_config_option('grds_creation_method') == 1) {
+		if (get_request_var('host_id') == '-1') {
+			$new_host_id = 0;
+		} else {
+			$new_host_id = get_request_var('host_id');
+		}
+
+		$add_url = html_escape('data_sources.php?action=ds_edit&host_id=' . $new_host_id);
+	} else {
+		$add_url = '';
+	}
+
+	if (get_request_var('host_id') == -1) {
+		$header = __('Data Sources [ All Devices ]');
+	} elseif (get_request_var('host_id') == 0) {
+		$header = __('Data Sources [ Non Device Based ]');
+	} elseif (get_request_var('host_id') > 0) {
+		$description = db_fetch_cell_prepared('SELECT description FROM host WHERE id = ?', array(get_request_var('host_id')));
+		$header      = __esc('Data Sources [ %s ]', $description);
+	} else {
+		$header = __('Data Sources [ All Devices ]');
+	}
+
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter($header, 'data_sources.php', 'form_data_sources', 'sess_ds', $add_url);
+
+	$pageFilter->rows_label = __('Data Sources');
+	$pageFilter->set_filter_array($filters);
+
+	if ($render) {
+		$pageFilter->render();
+	} else {
+		$pageFilter->sanitize();
+	}
+}
+
