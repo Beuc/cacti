@@ -142,6 +142,7 @@ function manager() {
 		foreach ($managers as $item) {
 			$description = filter_value($item['description'], get_request_var('filter'));
 			$hostname    = filter_value($item['hostname'], get_request_var('filter'));
+
 			$url         = html_escape('managers.php?action=edit&id=' . $item['id']);
 			$url1        = html_escape('managers.php?action=edit&tab=notifications&id=' . $item['id']);
 			$url2        = html_escape('managers.php?action=edit&tab=logs&id=' . $item['id']);
