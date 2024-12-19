@@ -3068,7 +3068,7 @@ function create_filter() {
 					'friendly_name'  => __('Search'),
 					'filter'         => FILTER_VALIDATE_IS_REGEX,
 					'placeholder'    => __('Enter a search term'),
-					'size'           => '30',
+					'size'           => '55',
 					'default'        => '',
 					'pageset'        => true,
 					'max_length'     => '120',
