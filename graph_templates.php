@@ -1546,7 +1546,7 @@ function graph_templates() {
 		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . ' gt.graphs > 0';
 	}
 
-	$total_rows = db_fetch_cell_prepared("SELECT COUNT(*)
+	$total_rows = db_fetch_cell_prepared("SELECT COUNT(DISTINCT gt.id)
 		FROM graph_templates AS gt
 		INNER JOIN graph_templates_item AS gti
 		ON gti.graph_template_id = gt.id
@@ -1559,7 +1559,7 @@ function graph_templates() {
 	$sql_order = get_order_string();
 	$sql_limit = ' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows;
 
-	$template_list = db_fetch_assoc_prepared("SELECT gt.id, gt.name, gt.graphs,
+	$template_list = db_fetch_assoc_prepared("SELECT DISTINCT gt.id, gt.name, gt.graphs,
 		IF(gt.version = '', '$cacti_version', gt.version) AS version,
 		IF(gt.class = '', 'unassigned', gt.class) AS class, graph_items,
 		CONCAT(gtg.height, 'x', gtg.width) AS size, gtg.vertical_label, gtg.image_format_id
