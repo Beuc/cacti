@@ -1077,9 +1077,6 @@ function data_templates() {
 		$sql_order
 		$sql_limit";
 
-cacti_log($sql_order);
-cacti_log($template_list_sql);
-
 	$template_list = db_fetch_assoc_prepared($template_list_sql, $sql_params);
 
 	$display_text = array(
@@ -1208,8 +1205,6 @@ function create_filter() {
 	);
 
 	$methods = $all + $methods;
-
-cacti_log(get_nfilter_request_var('sort_column'));
 
 	return array(
 		'rows' => array(
