@@ -1822,35 +1822,57 @@ function create_filter() {
 	$any     = array('-1' => __('Any'));
 	$none    = array('0'  => __('None'));
 
-	$graph_template_classes = $all + $graph_template_classes;
-
-	$cdefs = array_rekey(
-		db_fetch_assoc('SELECT DISTINCT c.id, c.name
-			FROM cdef AS c
-			INNER JOIN (SELECT DISTINCT cdef_id FROM graph_templates_item WHERE cdef_id > 0 AND local_graph_id = 0) AS gti
-			ON c.id = gti.cdef_id
-			ORDER BY name'),
-		'id', 'name'
-	);
-
-	$cdefs = $all + $cdefs;
-
-	$vdefs = array_rekey(
-		db_fetch_assoc('SELECT DISTINCT v.id, v.name
-			FROM vdef AS v
-			INNER JOIN (SELECT DISTINCT vdef_id FROM graph_templates_item WHERE vdef_id > 0 AND local_graph_id = 0) AS gti
-			ON gti.vdef_id = v.id
-			ORDER BY name'),
-		'id', 'name'
-	);
-
-	$vdefs = $all + $vdefs;
-
 	if (isset_request_var('has_graphs')) {
 		$value = get_nfilter_request_var('has_graphs');
 	} else {
 		$value = read_config_option('default_has') == 'on' ? 'true':'false';
 	}
+
+	$graph_template_classes = $all + $graph_template_classes;
+
+	if ($value == 'false') {
+		$cdefs = array_rekey(
+			db_fetch_assoc('SELECT DISTINCT c.id, c.name
+				FROM cdef AS c
+				INNER JOIN (SELECT DISTINCT cdef_id FROM graph_templates_item WHERE cdef_id > 0 AND local_graph_id = 0) AS gti
+				ON c.id = gti.cdef_id
+				ORDER BY name'),
+			'id', 'name'
+		);
+	} else {
+		$cdefs = array_rekey(
+			db_fetch_assoc('SELECT DISTINCT c.id, c.name
+				FROM cdef AS c
+				INNER JOIN (SELECT DISTINCT cdef_id FROM graph_templates_item WHERE cdef_id > 0 AND local_graph_id > 0) AS gti
+				ON c.id = gti.cdef_id
+				ORDER BY name'),
+			'id', 'name'
+		);
+	}
+
+	$cdefs = $all + $cdefs;
+
+	if ($value == 'false') {
+		$vdefs = array_rekey(
+			db_fetch_assoc('SELECT DISTINCT v.id, v.name
+				FROM vdef AS v
+				INNER JOIN (SELECT DISTINCT vdef_id FROM graph_templates_item WHERE vdef_id > 0 AND local_graph_id = 0) AS gti
+				ON gti.vdef_id = v.id
+				ORDER BY name'),
+			'id', 'name'
+		);
+	} else {
+		$vdefs = array_rekey(
+			db_fetch_assoc('SELECT DISTINCT v.id, v.name
+				FROM vdef AS v
+				INNER JOIN (SELECT DISTINCT vdef_id FROM graph_templates_item WHERE vdef_id > 0 AND local_graph_id > 0) AS gti
+				ON gti.vdef_id = v.id
+				ORDER BY name'),
+			'id', 'name'
+		);
+	}
+
+	$vdefs = $all + $vdefs;
 
 	return array(
 		'rows' => array(
