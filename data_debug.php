@@ -531,7 +531,7 @@ function debug_wizard() {
 		$datefmt = 'Y-m-d H:i:s';
 	}
 
-	data_debug_filter();
+	process_sanitize_draw_filter(true);
 
 	$total_rows = 0;
 	$checks     = array();
@@ -1238,3 +1238,247 @@ function data_debug_filter() {
 
 	html_end_box();
 }
+
+function create_filter() {
+	global $item_rows, $page_refresh_interval;
+
+	$all     = array('-1' => __('All'));
+	$any     = array('-1' => __('Any'));
+	$none    = array('0'  => __('None'));
+	$deleted = array('-2' => __('Deleted/Invalid'));
+
+	$sites   = array_rekey(
+		db_fetch_assoc('SELECT id, name
+			FROM sites
+			ORDER BY name'),
+		'id', 'name'
+	);
+	$sites   = $any + $sites;
+
+	$profiles = array_rekey(
+		db_fetch_assoc('SELECT id, name
+			FROM data_source_profiles
+			ORDER BY name'),
+		'id', 'name'
+	);
+	$profiles = $all + $profiles;
+
+	$status = array(
+		'-1' => __('All'),
+		'0'  => __('Failed'),
+		'1'  => __('Enabled'),
+		'2'  => __('Disabled')
+	);
+
+	$debugging = array(
+		'-1' => __('All'),
+		'1'  => __('Debugging'),
+		'0'  => __('Not Debugging')
+	);
+
+	unset($page_refresh_interval[5]);
+	unset($page_refresh_interval[10]);
+	unset($page_refresh_interval[20]);
+
+	$sql_where  = '';
+	$sql_params = array();
+
+	if (get_request_var('host_id') != '-1') {
+		$host_id = get_request_var('host_id');
+
+		/* for the templates dropdown */
+		$sql_where    = 'AND h.id = ?';
+		$sql_params[] = get_request_var('host_id');
+
+		$hostname = db_fetch_cell_prepared('SELECT description
+			FROM host
+			WHERE id = ?',
+			array(get_request_var('host_id')));
+	} else {
+		$host_id  = '-1';
+		$hostname = __('Any');
+	}
+
+	if (get_request_var('site_id') > 0) {
+		$sql_where    = 'AND site_id = ?';
+		$sql_params[] = get_request_var('site_id');
+	}
+
+	$templates = array_rekey(
+		db_fetch_assoc_prepared("SELECT DISTINCT dt.id, dt.name
+			FROM data_template AS dt
+			INNER JOIN data_template_data AS dtd
+			ON dt.id = dtd.data_template_id
+			LEFT JOIN data_local AS dl
+			ON dtd.local_data_id = dl.id
+			LEFT JOIN host AS h
+			ON dl.host_id = h.id
+			WHERE dtd.local_data_id > 0
+			$sql_where
+			ORDER BY dt.name",
+			$sql_params),
+		'id', 'name'
+	);
+
+	$templates = $any + $templates;
+
+	return array(
+		'rows' => array(
+			array(
+				'site_id' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Site'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $sites,
+					'value'         => '-1'
+				),
+				'host_id' => array(
+					'method'        => 'drop_callback',
+					'friendly_name' => __('Device'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'sql'           => 'SELECT DISTINCT id, description AS name FROM host ORDER BY description',
+					'action'        => 'ajax_hosts',
+					'id'            => $host_id,
+					'value'         => $hostname,
+					'on_change'     => 'applyFilter()'
+				),
+				'template_id' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Template'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $templates,
+					'value'         => '-1'
+				)
+			),
+			array(
+				'profile' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Profile'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $profiles,
+					'value'         => '-1'
+				),
+				'status' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Status'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $status,
+					'value'         => '-1'
+				),
+				'debug' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Debug'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $debugging,
+					'value'         => '-1'
+				),
+				'refresh' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Refresh'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '30',
+					'pageset'       => true,
+					'array'         => $page_refresh_interval,
+					'value'         => '30'
+				)
+			),
+			array(
+				'rfilter' => array(
+					'method'        => 'textbox',
+					'friendly_name'  => __('Search'),
+					'filter'         => FILTER_DEFAULT,
+					'placeholder'    => __('Enter a search term'),
+					'size'           => '30',
+					'default'        => '',
+					'pageset'        => true,
+					'max_length'     => '120',
+					'value'          => ''
+				),
+				'rows' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Attempts'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $item_rows,
+					'value'         => '-1'
+				)
+			)
+		),
+		'buttons' => array(
+			'go' => array(
+				'method'  => 'submit',
+				'display' => __('Go'),
+				'title'   => __('Apply filter to table'),
+			),
+			'clear' => array(
+				'method'  => 'button',
+				'display' => __('Clear'),
+				'title'   => __('Reset filter to default values'),
+			),
+			'purge' => array(
+				'method'  => 'button',
+				'display' => __('Purge'),
+				'action'  => 'default',
+				'title'   => __('Purge User log of all but the last login attempt'),
+			),
+			'runall' => array(
+				'method'  => 'button',
+				'display' => __('Run All'),
+				'action'  => 'default',
+				'title'   => __('Run a Debug Check on all Data Sources'),
+			)
+		),
+		'sort' => array(
+			'sort_column'    => 'name_cache',
+			'sort_direction' => 'DESC'
+		)
+	);
+}
+
+function process_sanitize_draw_filter($render = false) {
+	$filters = create_filter();
+
+	if (get_request_var('host_id') > 0) {
+		$hostname = db_fetch_cell_prepared('SELECT CONCAT(description, " ( ", hostname, " )")
+			FROM host WHERE id = ?',
+			array(get_request_var('host_id')));
+	} else {
+		$hostname = '';
+	}
+
+	if (empty($hostname)) {
+		if (get_request_var('host_id') == -1) {
+			$header = __('All Devices');
+		} else {
+			$header = __('No Devices');
+		}
+	} else {
+		$header = html_escape($hostname);
+	}
+
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter($header, 'data_debug.php', 'form_data_debug', 'sess_data_debug');
+
+	$pageFilter->rows_label = __('Data Sources');
+	$pageFilter->set_filter_array($filters);
+
+	if ($render) {
+		$pageFilter->render();
+	} else {
+		$pageFilter->sanitize();
+	}
+}
+

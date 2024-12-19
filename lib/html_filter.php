@@ -387,7 +387,7 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 								print '<div class="filterColumn"><div class="filterFieldName"><label for="' . $field_name . '">' . $field_array['friendly_name'] . '</label></div></div>' . PHP_EOL;
 							}
 
-							if (isset_request_var($field_name)) {
+							if (isset_request_var($field_name) && strpos($field_array['method'], 'callback') === false) {
 								$field_array['value'] = get_nfilter_request_var($field_name);
 							}
 
@@ -495,6 +495,7 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 						case 'button':
 							switch($field_name) {
 								case 'go':
+								case 'clear':
 									break;
 								default:
 									$buttonAction = str_replace('noaction', $field_name, $defaultFilter);
@@ -546,7 +547,7 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 			$applyFilter .= ';';
 		}
 
-		if ($this->has_refresh && isset_request_var('refresh')) {
+		if ($this->has_refresh || isset_request_var('refresh')) {
 			$refreshMSeconds = get_request_var('refresh') * 1000;
 		}
 
@@ -572,6 +573,11 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 			loadUrl({ url: strURL });
 		}
 
+		function clearFilter() {
+			strURL = $clearFilter
+			loadUrl({ url: strURL });
+		}
+
 		function finishFinalize(options, data) {
 			$('#text').text('Finished').fadeOut(2000);
 		}
@@ -585,6 +591,10 @@ cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_arra
 			$('#" . $this->form_id . "').submit(function(event) {
 				event.preventDefault();
 				applyFilter();
+			});
+
+			$('#clear').click(function() {
+				clearFilter();
 			});
 			$changeReady
 			$clickReady
