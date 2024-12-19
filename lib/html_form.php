@@ -367,7 +367,8 @@ function draw_edit_control($field_name, &$field_array) {
 				((isset($field_array['none_value'])) ? $field_array['none_value'] : ''),
 				((isset($field_array['default'])) ? $field_array['default'] : ''),
 				((isset($field_array['class'])) ? $field_array['class'] : ''),
-				((isset($field_array['on_change'])) ? $field_array['on_change'] : '')
+				((isset($field_array['on_change'])) ? $field_array['on_change'] : ''),
+				((isset($field_array['friendly_name'])) ? $field_array['friendly_name'] : '')
 			);
 
 			break;
@@ -1006,10 +1007,11 @@ function form_droplanguage($form_name, $column_display, $column_id, $form_previo
  * @param string $default_value The default value for the form element.
  * @param string $class Optional. Additional CSS classes for the form element.
  * @param string $on_change Optional. JavaScript function to call on form element change.
+ * @param string $display_name Optional. The display name for the column.
  *
  * @return void
  */
-function form_callback($form_name, $classic_sql, $column_display, $column_id, $action, $previous_id, $previous_value, $none_entry, $default_value, $class = '', $on_change = '') {
+function form_callback($form_name, $classic_sql, $column_display, $column_id, $action, $previous_id, $previous_value, $none_entry, $default_value, $class = '', $on_change = '', $display_name = '') {
 	if ($previous_value == '') {
 		$previous_value = $default_value;
 	}
