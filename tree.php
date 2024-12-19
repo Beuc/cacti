@@ -43,41 +43,41 @@ if (get_request_var('action') != '') {
 		'tree_id' => array(
 			'filter'  => FILTER_VALIDATE_INT,
 			'default' => ''
-			),
+		),
 		'leaf_id' => array(
 			'filter'  => FILTER_VALIDATE_INT,
 			'default' => ''
-			),
+		),
 		'graph_tree_id' => array(
 			'filter'  => FILTER_VALIDATE_INT,
 			'default' => ''
-			),
+		),
 		'parent_item_id' => array(
 			'filter'  => FILTER_VALIDATE_INT,
 			'default' => ''
-			),
+		),
 		'parent' => array(
 			'filter'  => FILTER_VALIDATE_REGEXP,
 			'options' => array('options' => array('regexp' => '/([_\-a-z:0-9#]+)/')),
 			'pageset' => true,
 			'default' => ''
-			),
+		),
 		'position' => array(
 			'filter'  => FILTER_VALIDATE_INT,
 			'default' => ''
-			),
+		),
 		'nodeid' => array(
 			'filter'  => FILTER_VALIDATE_REGEXP,
 			'options' => array('options' => array('regexp' => '/([_\-a-z:0-9#]+)/')),
 			'pageset' => true,
 			'default' => ''
-			),
+		),
 		'id' => array(
 			'filter'  => FILTER_VALIDATE_REGEXP,
 			'options' => array('options' => array('regexp' => '/([_\-a-z:0-9#]+)/')),
 			'pageset' => true,
 			'default' => ''
-			)
+		)
 	);
 
 	validate_store_request_vars($filters);
@@ -2021,36 +2021,30 @@ function display_graphs() {
 function tree() {
 	global $actions, $item_rows;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'filter' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => '',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'sequence',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-		)
+	$button1 = array(
+		'method'   => 'button',
+		'href'     => 'tree.php?action=sortasc',
+		'callback' => true,
+		'title'    => __esc('Sort Trees Ascending'),
+		'class'    => 'fa fa-sort-alpha-down'
 	);
 
-	validate_store_request_vars($filters, 'sess_tree');
-	/* ================= input validation ================= */
+	$button2 = array(
+		'method'   => 'button',
+		'href'     => 'tree.php?action=sortdesc',
+		'callback' => true,
+		'title'    => __esc('Sort Trees Descending'),
+		'class'    => 'fa fa-sort-alpha-up'
+	);
+
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter(__('Trees'), 'tree.php', 'form_tree', 'sess_tree', 'tree.php?action=edit');
+	$pageFilter->rows_label = __('Trees');
+	$pageFilter->set_sort_array('sequence', 'ASC');
+	$pageFilter->add_button('sortasc', $button1);
+	$pageFilter->add_button('sortdesc', $button2);
+
+	$pageFilter->render();
 
 	/* if the number of rows is -1, set it to the default */
 	if (get_request_var('rows') == -1) {
@@ -2059,129 +2053,21 @@ function tree() {
 		$rows = get_request_var('rows');
 	}
 
-	?>
-	<script type='text/javascript'>
-	function applyFilter() {
-		strURL  = 'tree.php?rows=' + $('#rows').val();
-		strURL += '&filter=' + $('#filter').val();
-		loadUrl({url:strURL})
-	}
-
-	function clearFilter() {
-		strURL = 'tree.php?clear=1';
-		loadUrl({url:strURL})
-	}
-
-	$(function() {
-		$('#refresh').click(function() {
-			applyFilter();
-		});
-
-		$('#clear').click(function() {
-			clearFilter();
-		});
-
-		$('#sorta').click(function() {
-			loadUrl({url:'tree.php?action=sortasc'})
-		});
-
-		$('#sortd').click(function() {
-			loadUrl({url:'tree.php?action=sortdesc'})
-		});
-
-		$('#form_tree').submit(function(event) {
-			event.preventDefault();
-			applyFilter();
-		});
-	});
-	</script>
-
-	<?php
-
-	$buttons = array(
-		array(
-			'href'     => 'tree.php?action=edit',
-			'callback' => true,
-			'title'    => __esc('Add Tree'),
-			'class'    => 'fa fa-plus'
-		),
-		array(
-			'href'     => 'tree.php?action=sortasc',
-			'callback' => true,
-			'title'    => __esc('Sort Trees Ascending'),
-			'class'    => 'fa fa-sort-alpha-down'
-		),
-		array(
-			'href'     => 'tree.php?action=sortdesc',
-			'callback' => true,
-			'title'    => __esc('Sort Trees Descending'),
-			'class'    => 'fa fa-sort-alpha-up'
-		)
-	);
-
-	html_filter_start_box(__('Trees'), $buttons);
-
-	?>
-	<tr class='even noprint'>
-		<td>
-		<form id='form_tree' action='tree.php'>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search'); ?>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-					</td>
-					<td>
-						<?php print __('Trees'); ?>
-					</td>
-					<td>
-						<select id='rows' onChange='applyFilter()' data-defaultLabel='<?php print __('Trees');?>'>
-							<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-							<?php
-							if (cacti_sizeof($item_rows)) {
-								foreach ($item_rows as $key => $value) {
-									print "<option value='" . $key . "'";
-
-									if (get_request_var('rows') == $key) {
-										print ' selected';
-									} print '>' . html_escape($value) . "</option>\n";
-								}
-							}
-	?>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc('Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-							<button type='button' class='ui-button ui-corner-all ui-widget' id='sorta' title='<?php print __esc('Sort Trees Ascending');?>'><i class='fa fa-sort-alpha-down'></i></button>
-							<button type='button' class='ui-button ui-corner-all ui-widget' id='sortd' title='<?php print __esc('Sort Trees Descending');?>'><i class='fa fa-sort-alpha-up'></i></button>
-						</span>
-					</td>
-				</tr>
-			</table>
-		</form>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
+	$sql_where  = '';
+	$sql_params = array();
 
 	/* form the 'where' clause for our main sql query */
 	if (get_request_var('filter') != '') {
-		$sql_where = 'WHERE (
-			t.name LIKE '	  . db_qstr('%' . get_request_var('filter') . '%') . '
-			OR ti.title LIKE ' . db_qstr('%' . get_request_var('filter') . '%') . ')';
-	} else {
-		$sql_where = '';
+		$sql_where   .= 'WHERE (t.name LIKE ? OR ti.title LIKE ?)';
+
+		$sql_params[] = '%' . get_request_var('filter') . '%';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
 	}
 
 	$sql_order = get_order_string();
 	$sql_limit = ' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows;
 
-	$trees = db_fetch_assoc("SELECT t.*,
+	$trees = db_fetch_assoc_prepared("SELECT t.*,
 		SUM(CASE WHEN ti.host_id > 0 THEN 1 ELSE 0 END) AS hosts,
 		SUM(CASE WHEN ti.local_graph_id > 0 THEN 1 ELSE 0 END) AS graphs,
 		SUM(CASE WHEN ti.local_graph_id = 0 AND host_id = 0 AND site_id = 0 THEN 1 ELSE 0 END) AS branches,
@@ -2192,7 +2078,8 @@ function tree() {
 		$sql_where
 		GROUP BY t.id
 		$sql_order
-		$sql_limit");
+		$sql_limit",
+		$sql_params);
 
 	$sql = "SELECT COUNT(DISTINCT(t.id))
 		FROM graph_tree AS t
@@ -2200,7 +2087,7 @@ function tree() {
 		ON t.id=ti.graph_tree_id
 		$sql_where";
 
-	$total_rows = get_total_row_data($_SESSION[SESS_USER_ID], $sql, array(), 'tree');
+	$total_rows = get_total_row_data($_SESSION[SESS_USER_ID], $sql, $sql_params, 'tree');
 
 	$nav = html_nav_bar('tree.php?filter=' . get_request_var('filter'), MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, 11, __('Trees'), 'page', 'main');
 
@@ -2323,6 +2210,7 @@ function tree() {
 			form_selectable_cell($tree['branches'] > 0 ? number_format_i18n($tree['branches'], '-1'):'-', $tree['id'], '', 'right');
 			form_selectable_cell($tree['hosts'] > 0 ? number_format_i18n($tree['hosts'], '-1'):'-', $tree['id'], '', 'right');
 			form_selectable_cell($tree['graphs'] > 0 ? number_format_i18n($tree['graphs'], '-1'):'-', $tree['id'], '', 'right');
+
 			form_checkbox_cell($tree['name'], $tree['id']);
 
 			form_end_row();
@@ -2330,8 +2218,9 @@ function tree() {
 			$i++;
 		}
 	} else {
-		print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Trees Found') . '</em></td></tr>';
+		print "<tr class='tableRow odd'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Trees Found') . '</em></td></tr>';
 	}
+
 	html_end_box(false);
 
 	if (cacti_sizeof($trees)) {

@@ -54,7 +54,8 @@ class CactiTableFilter {
 	public $has_named      = false;
 	public $has_refresh    = false;
 
-	private $sort_array    = false;
+	private $sort_array    = array();
+	private $button_array  = array();
 	private $item_rows     = array();
 	private $filter_array  = array();
 	private $frequencies   = array();
@@ -187,6 +188,10 @@ class CactiTableFilter {
 		);
 	}
 
+	public function add_button($id, $button) {
+		$this->button_array[$id] = $button;
+	}
+
 	public function render() {
 		/* create the filter for the page */
 		$filter = $this->create_filter();
@@ -218,6 +223,10 @@ class CactiTableFilter {
 
 		if ($this->sort_array !== false) {
 			$this->filter_array['sort'] = $this->sort_array;
+		}
+
+		if ($this->button_array !== false) {
+			$this->filter_array['buttons'] += $this->button_array;
 		}
 
 		// Make common adjustements
@@ -360,7 +369,13 @@ class CactiTableFilter {
 					switch($field_array['method']) {
 						case 'button':
 							print '<div class="filterColumnButton">' . PHP_EOL;
-							print '<input type="button" class="ui-button ui-corner-all ui-widget" id="' . $field_name . '" value="' . $field_array['display'] . '"' . (isset($field_array['title']) ? ' title="' . $field_array['title']:'') . '">';
+
+							if (isset($field_array['display'])) {
+								print '<input type="button" class="ui-button ui-corner-all ui-widget" id="' . $field_name . '" value="' . $field_array['display'] . '"' . (isset($field_array['title']) ? ' title="' . $field_array['title']:'') . '">';
+							} else {
+								print '<button type="button" class="ui-button ui-corner-all ui-widget" id="' . $field_name . '"' . (isset($field_array['title']) ? ' title="' . $field_array['title']:'') . '"><i class="' . $field_array['class'] . '"></i></button>';
+							}
+
 							print '</div>' . PHP_EOL;
 
 							break;
