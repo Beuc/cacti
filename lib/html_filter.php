@@ -251,7 +251,7 @@ class CactiTableFilter {
 
 		if ($this->has_graphs) {
 			if (isset_request_var('has_graphs')) {
-				$value = get_request_var('has_graphs');
+				$value = get_nfilter_request_var('has_graphs');
 			} else {
 				$value = read_config_option('default_has') == 'on' ? 'true':'false';
 			}
@@ -271,7 +271,7 @@ class CactiTableFilter {
 
 		if ($this->has_data) {
 			if (isset_request_var('has_data')) {
-				$value = get_request_var('has_data');
+				$value = get_nfilter_request_var('has_data');
 			} else {
 				$value = read_config_option('default_has') == 'on' ? 'true':'false';
 			}
@@ -291,7 +291,7 @@ class CactiTableFilter {
 
 		if ($this->has_named) {
 			if (isset_request_var('named')) {
-				$value = get_request_var('named');
+				$value = get_nfilter_request_var('named');
 			} else {
 				$value = read_config_option('default_has') == 'on' ? 'true':'false';
 			}
