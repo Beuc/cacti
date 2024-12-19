@@ -221,11 +221,11 @@ class CactiTableFilter {
 			$this->filter_array = $this->create_default();
 		}
 
-		if ($this->sort_array !== false) {
+		if (cacti_sizeof($this->sort_array)) {
 			$this->filter_array['sort'] = $this->sort_array;
 		}
 
-		if ($this->button_array !== false) {
+		if (cacti_sizeof($this->button_array)) {
 			$this->filter_array['buttons'] += $this->button_array;
 		}
 
@@ -386,7 +386,6 @@ class CactiTableFilter {
 
 							break;
 						case 'filter_checkbox':
-cacti_log('FieldName: ' . $field_array['friendly_name'] . ', Value:'.$field_array['value']);
 							print '<div class="filterColumn"><span>' . PHP_EOL;
 							print '<input type="checkbox" class="ui-button ui-corner-all ui-widget" id="' . $field_name . '"' . (isset($field_array['title']) ? ' title="' . $field_array['title']:'') . '"' . ($field_array['value'] == 'on' || $field_array['value'] == 'true' ? ' checked':'') . '>';
 							print '&nbsp;<label for="' . $field_name . '">' . $field_array['friendly_name'] . '</label>';
