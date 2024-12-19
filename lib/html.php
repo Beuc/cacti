@@ -1397,7 +1397,7 @@ function html_escape($string) {
 	}
 
 	// Grave Accent character can lead to xss
-	if ($string !== null) {
+	if ($string !== null && $string != '') {
 		$string = str_replace('`', '&#96;', $string);
 
 		return htmlspecialchars($string, ENT_QUOTES | ENT_HTML5, $charset, false);
