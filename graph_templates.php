@@ -183,7 +183,7 @@ switch (get_request_var('action')) {
 	default:
 		top_header();
 
-		template();
+		graph_templates();
 
 		bottom_footer();
 
@@ -1507,7 +1507,7 @@ function template_edit() {
 	<?php
 }
 
-function template() {
+function graph_templates() {
 	global $actions, $item_rows, $image_types, $graph_template_classes;
 
 	process_sanitize_draw_filter(true);
@@ -1548,6 +1548,9 @@ function template() {
 
 	$total_rows = db_fetch_cell_prepared("SELECT COUNT(*)
 		FROM graph_templates AS gt
+		INNER JOIN graph_templates_item AS gti
+		ON gti.graph_template_id = gt.id
+		AND gti.local_graph_id = 0
 		$sql_where",
 		$sql_params);
 
@@ -1564,6 +1567,9 @@ function template() {
 		INNER JOIN graph_templates_graph AS gtg
 		ON gtg.graph_template_id = gt.id
 		AND gtg.local_graph_id = 0
+		INNER JOIN graph_templates_item AS gti
+		ON gti.graph_template_id = gt.id
+		AND gti.local_graph_id = 0
 		LEFT JOIN (
 			SELECT graph_template_id, COUNT(*) AS graph_items
 			FROM graph_templates_item
@@ -1821,7 +1827,7 @@ function create_filter() {
 	$cdefs = array_rekey(
 		db_fetch_assoc('SELECT DISTINCT c.id, c.name
 			FROM cdef AS c
-			INNER JOIN (SELECT DISTINCT cdef_id FROM graph_templates_item WHERE cdef_id > 0) AS gti
+			INNER JOIN (SELECT DISTINCT cdef_id FROM graph_templates_item WHERE cdef_id > 0 AND local_graph_id = 0) AS gti
 			ON c.id = gti.cdef_id
 			ORDER BY name'),
 		'id', 'name'
@@ -1830,9 +1836,9 @@ function create_filter() {
 	$cdefs = $all + $cdefs;
 
 	$vdefs = array_rekey(
-		db_fetch_assoc('SELECT v.id, v.name
+		db_fetch_assoc('SELECT DISTINCT v.id, v.name
 			FROM vdef AS v
-			INNER JOIN (SELECT DISTINCT vdef_id FROM graph_templates_item WHERE vdef_id > 0) AS gti
+			INNER JOIN (SELECT DISTINCT vdef_id FROM graph_templates_item WHERE vdef_id > 0 AND local_graph_id = 0) AS gti
 			ON gti.vdef_id = v.id
 			ORDER BY name'),
 		'id', 'name'
@@ -1841,7 +1847,7 @@ function create_filter() {
 	$vdefs = $all + $vdefs;
 
 	if (isset_request_var('has_graphs')) {
-		$value = get_request_var('has_graphs');
+		$value = get_nfilter_request_var('has_graphs');
 	} else {
 		$value = read_config_option('default_has') == 'on' ? 'true':'false';
 	}
@@ -1852,29 +1858,30 @@ function create_filter() {
 				'class' => array(
 					'method'         => 'drop_array',
 					'friendly_name'  => __('Class'),
-					'filter'         => FILTER_VALIDATE_INT,
+					'filter'         => FILTER_CALLBACK,
+					'filter_options' => array('options' => 'sanitize_search_string'),
 					'default'        => '-1',
 					'pageset'        => true,
 					'array'          => $graph_template_classes,
 					'value'          => '-1'
 				),
-				'cdefs' => array(
-					'method'        => 'drop_array',
-					'friendly_name' => __('CDEFs'),
-					'filter'        => FILTER_VALIDATE_INT,
-					'default'       => '-1',
-					'pageset'       => true,
-					'array'         => $cdefs,
-					'value'         => '-1'
+				'cdef_id' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('CDEFs'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'pageset'        => true,
+					'array'          => $cdefs,
+					'value'          => '-1'
 				),
-				'vdefs' => array(
-					'method'        => 'drop_array',
-					'friendly_name' => __('VDEFs'),
-					'filter'        => FILTER_VALIDATE_INT,
-					'default'       => '-1',
-					'pageset'       => true,
-					'array'         => $vdefs,
-					'value'         => '-1'
+				'vdef_id' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('VDEFs'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'pageset'        => true,
+					'array'          => $vdefs,
+					'value'          => '-1'
 				),
 				'has_graphs' => array(
 					'method'         => 'filter_checkbox',

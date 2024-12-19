@@ -3043,7 +3043,7 @@ function create_filter() {
 					'array'         => $sources,
 					'value'         => '-1'
 				),
-				'cdefs' => array(
+				'cdef_id' => array(
 					'method'        => 'drop_array',
 					'friendly_name' => __('CDEFs'),
 					'filter'        => FILTER_VALIDATE_INT,
@@ -3052,7 +3052,7 @@ function create_filter() {
 					'array'         => $cdefs,
 					'value'         => '-1'
 				),
-				'vdefs' => array(
+				'vdef_id' => array(
 					'method'        => 'drop_array',
 					'friendly_name' => __('VDEFs'),
 					'filter'        => FILTER_VALIDATE_INT,
