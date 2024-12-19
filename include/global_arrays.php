@@ -1274,6 +1274,7 @@ $log_tail_lines = array(
 );
 
 $item_rows = array(
+	-1    => __('Default'),
 	10    => '10',
 	15    => '15',
 	16    => '16',
