@@ -997,17 +997,20 @@ function create_filter() {
 	$sql_where  = '';
 	$sql_params = array();
 
-	if (get_request_var('host_id') != '-1') {
-		$host_id = get_request_var('host_id');
+	$host_id = get_request_var('host_id');
 
+	if ($host_id > 0) {
 		/* for the templates dropdown */
 		$sql_where    = 'AND h.id = ?';
-		$sql_params[] = get_request_var('host_id');
+		$sql_params[] = $host_id;
 
 		$hostname = db_fetch_cell_prepared('SELECT description
 			FROM host
 			WHERE id = ?',
-			array(get_request_var('host_id')));
+			array($host_id));
+	} elseif ($host_id == 0) {
+		$host_id  = '0';
+		$hostname = __('None');
 	} else {
 		$host_id  = '-1';
 		$hostname = __('Any');

@@ -163,7 +163,7 @@ function manager() {
 			form_end_row();
 		}
 	} else {
-		print '<tr class="tableRows odd"><td><em>' . __('No SNMP Notification Receivers') . '</em></td></tr>';
+		print '<tr class="tableRows odd"><td colspan="7"><em>' . __('No SNMP Notification Receivers') . '</em></td></tr>';
 	}
 
 	html_end_box(false);
