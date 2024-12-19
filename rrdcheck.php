@@ -60,42 +60,7 @@ function rrdcheck_display_problems() {
 	/* suppress warnings */
 	error_reporting(0);
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-			),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-			),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-			),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'test_date',
-			'options' => array('options' => 'sanitize_search_string')
-			),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-			),
-		'age' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '0'
-			)
-	);
-
-	validate_store_request_vars($filters, 'sess_rrdc');
-
-	/* ================= input validation and session storage ================= */
+	process_sanitize_draw_filter(true);
 
 	if (get_request_var('rows') == '-1') {
 		$rows = read_config_option('num_rows_table');
@@ -103,32 +68,45 @@ function rrdcheck_display_problems() {
 		$rows = get_request_var('rows');
 	}
 
-	filter();
-
-	$sql_where = 'WHERE ';
-	/* form the 'where' clause for our main sql query */
+	$sql_where  = '';
+	$sql_params = array();
 
 	$secsback = get_request_var('age');
 
 	if (get_request_var('age') == 0) {
-		$sql_where .= " test_date>='" . date('Y-m-d H:i:s', time() - (7200)) . "'";
+		$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . 'test_date >= ?';
+		$sql_params[] = date('Y-m-d H:i:s', time() - (7200));
 	} else {
-		$sql_where .= " test_date<='" . date('Y-m-d H:i:s', (time() - $secsback)) . "'";
+		$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . 'test_date <= ?';
+		$sql_params[] = date('Y-m-d H:i:s', (time() - $secsback));
 	}
 
 	if (get_request_var('filter') != '') {
-		$sql_where .= ' AND (
-			message LIKE '		  . db_qstr('%' . get_request_var('filter') . '%') . ')';
+		$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') .
+			'(message LIKE ? OR h.description LIKE ? OR dtd.name_cache LIKE ? OR dtd.local_data_id LIKE ?)';
+
+		$sql_params[] = '%' . get_request_var('filter') . '%';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
 	}
 
-	$total_rows = db_fetch_cell("SELECT COUNT(local_data_id)
-		FROM rrdcheck
-		$sql_where");
+	$total_rows = db_fetch_cell_prepared("SELECT COUNT(rc.local_data_id)
+		FROM rrdcheck AS rc
+		LEFT JOIN data_local AS dl
+		ON rc.local_data_id = dl.id
+		LEFT JOIN data_template_data AS dtd
+		ON rc.local_data_id = dtd.local_data_id
+		LEFT JOIN host AS h
+		ON dl.host_id = h.id
+		$sql_where",
+		$sql_params);
 
 	$sql_order = get_order_string();
 	$sql_limit = ' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows;
 
-	$problems = db_fetch_assoc("SELECT h.description, dtd.name_cache, rc.local_data_id, rc.test_date, rc.message
+	$problems = db_fetch_assoc_prepared("SELECT h.description, dtd.name_cache,
+		rc.local_data_id, rc.test_date, rc.message
 		FROM rrdcheck AS rc
 		LEFT JOIN data_local AS dl
 		ON rc.local_data_id = dl.id
@@ -138,7 +116,8 @@ function rrdcheck_display_problems() {
 		ON dl.host_id = h.id
 		$sql_where
 		$sql_order
-		$sql_limit");
+		$sql_limit",
+		$sql_params);
 
 	$nav = html_nav_bar(CACTI_PATH_URL . 'rrdcheck.php?filter'. get_request_var('filter'), MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, 8, __('RRDcheck Problems'), 'page', 'main');
 
@@ -176,27 +155,27 @@ function rrdcheck_display_problems() {
 	html_header_sort($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), false);
 
 	if (cacti_sizeof($problems)) {
-		foreach ($problems as $problem) {
-			form_alternate_row('line' . $problem['local_data_id'], true);
+		foreach ($problems as $p) {
+			form_alternate_row('line' . $p['local_data_id'], true);
 
-			if ($problem['description'] == '') {
-				$problem['description'] = __('Deleted');
+			if ($p['description'] == '') {
+				$p['description'] = __('Deleted');
 			}
 
-			if ($problem['name_cache'] == '') {
-				$problem['name_cache'] = __('Deleted');
+			if ($p['name_cache'] == '') {
+				$p['name_cache'] = __('Deleted');
 			}
 
-			form_selectable_cell(filter_value($problem['description'], get_request_var('filter')), $problem['local_data_id']);
-			form_selectable_cell(filter_value($problem['name_cache'], get_request_var('filter')), $problem['local_data_id']);
-			form_selectable_cell(filter_value($problem['local_data_id'], get_request_var('filter')), $problem['local_data_id'], '', 'center');
-			form_selectable_cell(filter_value($problem['message'], get_request_var('filter')), $problem['local_data_id']);
-			form_selectable_cell($problem['test_date'], $problem['local_data_id'], '', 'right');
+			form_selectable_cell(filter_value($p['description'], get_request_var('filter')), $p['local_data_id']);
+			form_selectable_cell(filter_value($p['name_cache'], get_request_var('filter')), $p['local_data_id']);
+			form_selectable_cell(filter_value($p['local_data_id'], get_request_var('filter')), $p['local_data_id'], '', 'center');
+			form_selectable_cell(filter_value($p['message'], get_request_var('filter')), $p['local_data_id']);
+			form_selectable_cell($p['test_date'], $p['local_data_id'], '', 'right');
 
 			form_end_row();
 		}
 	} else {
-		print "<tr><td colspan='5'><em>" . __('No RRDcheck Problems Found') . "</em></td></tr>\n";
+		print '<tr class="tableRow odd"><td colspan="5"><em>' . __('No RRDcheck Problems Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);
@@ -211,99 +190,94 @@ function rrdcheck_display_problems() {
 	restore_error_handler();
 }
 
-function filter() {
-	global $item_rows;
+function create_filter() {
+	global $item_rows, $page_refresh_interval;
 
-	html_filter_start_box(__('RRDfile Checker'));
+	$all     = array('-1' => __('All'));
+	$any     = array('-1' => __('Any'));
+	$none    = array('0'  => __('None'));
 
-	?>
-	<tr class='even'>
-		<td>
-			<form id='form_rrdcheck' method='get' action='rrdcheck.php'>
-				<table class='filterTable'>
-					<tr>
-						<td>
-							<?php print __('Search');?>
-						</td>
-						<td>
-							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-						</td>
-						<td>
-							<?php print __('Age');?>
-						</td>
-						<td>
-							<select id='age' onChange='refreshForm()' data-defaultLabel='<?php print __('Age');?>'>
-								<option value='0'   <?php print(get_request_var('age') == '0'   ? ' selected':'');?>>&lt; <?php print __('%d hours', 2);?></option>
-								<option value='14400'   <?php print(get_request_var('age') == '14400'   ? ' selected':'');?>>&gt; <?php print __('%d hours', 4);?></option>
-								<option value='43200'  <?php print(get_request_var('age') == '43200'  ? ' selected':'');?>>&gt;  <?php print __('%d hours',12);?></option>
-								<option value='86400'  <?php print(get_request_var('age') == '86400'  ? ' selected':'');?>>&gt;  <?php print __('%d day', 1);?></option>
-								<option value='259200'  <?php print(get_request_var('age') == '259200'  ? ' selected':'');?>>&gt; <?php print __('%d days', 3);?></option>
-								<option value='604800'  <?php print(get_request_var('age') == '604800'  ? ' selected':'');?>>&gt; <?php print __('%d days', 5);?></option>
-							</select>
-						</td>
-						<td>
-							<?php print __('Messages');?>
-						</td>
-						<td>
-							<select id='rows' data-defaultLabel='<?php print __('Messages');?>'>
-								<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-								<?php
-								if (cacti_sizeof($item_rows)) {
-									foreach ($item_rows as $key => $value) {
-										print '<option value="' . $key . '"';
+	$ages = array(
+		'0'      => '&lt; ' . __('%d hours', 2),
+		'14400'  => '&gt; ' . __('%d hours', 4),
+		'43200'  => '&gt; ' . __('%d hours',12),
+		'86400'  => '&gt; ' . __('%d day', 1),
+		'259200' => '&gt; ' . __('%d days', 3),
+		'604800' => '&gt; ' . __('%d days', 5)
+	);
 
-										if (get_request_var('rows') == $key) {
-											print ' selected';
-										} print '>' . $value . "</option>\n";
-									}
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<span>
-								<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __x('filter: use', 'Go');?>'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __x('filter: reset', 'Clear');?>'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='purge' value='<?php print __x('filter: purge', 'Purge');?>'>
-							</span>
-						</td>
-						<td id='text'></td>
-					</tr>
-				</table>
-			</form>
-			<script type="text/javascript">
-			function refreshForm() {
-				strURL = 'rrdcheck.php?'+
-					'&filter='+$('#filter').val()+
-					'&age='+$('#age').val()+
-					'&rows='+$('#rows').val();
-				loadUrl({url:strURL});
-			}
-
-			$(function() {
-				$('#form_rrdcheck').submit(function() {
-					refreshForm();
-					return false;
-				});
-
-				$('#rows').change(function() {
-					refreshForm();
-				});
-
-				$('#clear').click(function() {
-					strURL = 'rrdcheck.php?&clear=1';
-					loadUrl({url:strURL});
-				});
-
-				$('#purge').click(function() {
-					strURL = 'rrdcheck.php?action=purge';
-					loadUrl({url:strURL});
-				});
-			});
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
+	return array(
+		'rows' => array(
+			array(
+				'filter' => array(
+					'method'        => 'textbox',
+					'friendly_name'  => __('Search'),
+					'filter'         => FILTER_DEFAULT,
+					'placeholder'    => __('Enter a search term'),
+					'size'           => '30',
+					'default'        => '',
+					'pageset'        => true,
+					'max_length'     => '120',
+					'value'          => ''
+				),
+				'age' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Age'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '0',
+					'pageset'       => true,
+					'array'         => $ages,
+					'value'         => '0'
+				),
+				'rows' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Attempts'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $item_rows,
+					'value'         => '-1'
+				)
+			)
+		),
+		'buttons' => array(
+			'go' => array(
+				'method'  => 'submit',
+				'display' => __('Go'),
+				'title'   => __('Apply filter to table'),
+			),
+			'clear' => array(
+				'method'  => 'button',
+				'display' => __('Clear'),
+				'title'   => __('Reset filter to default values'),
+			),
+			'purge' => array(
+				'method'  => 'button',
+				'display' => __('Purge'),
+				'action'  => 'default',
+				'title'   => __('Purge Data Source Checks from the Database'),
+			)
+		),
+		'sort' => array(
+			'sort_column'    => 'test_date',
+			'sort_direction' => 'DESC'
+		)
+	);
 }
+
+function process_sanitize_draw_filter($render = false) {
+	$filters = create_filter();
+
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter(__('RRDfile Checker'), 'rrdcheck.php', 'form_rrdcheck', 'sess_rrdc');
+
+	$pageFilter->rows_label = __('Data Sources');
+	$pageFilter->set_filter_array($filters);
+
+	if ($render) {
+		$pageFilter->render();
+	} else {
+		$pageFilter->sanitize();
+	}
+}
+

@@ -138,24 +138,31 @@ function manager() {
 
 	html_header_sort_checkbox($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), false);
 
-	$i = 0;
-
 	if (cacti_sizeof($managers)) {
 		foreach ($managers as $item) {
 			$description = filter_value($item['description'], get_request_var('filter'));
 			$hostname    = filter_value($item['hostname'], get_request_var('filter'));
+			$url         = html_escape('managers.php?action=edit&id=' . $item['id']);
+			$url1        = html_escape('managers.php?action=edit&tab=notifications&id=' . $item['id']);
+			$url2        = html_escape('managers.php?action=edit&tab=logs&id=' . $item['id']);
+
 			form_alternate_row('line' . $item['id'], false);
-			form_selectable_cell('<a class="linkEditMain" href="' . html_escape(CACTI_PATH_URL . 'managers.php?action=edit&id=' . $item['id']) . '">' . html_escape($description) . '</a>', $item['id']);
+
+			form_selectable_cell(filter_valie($description, '', $url), $item['id']);
 			form_selectable_cell($item['id'], $item['id']);
+
 			form_selectable_cell($item['disabled'] ? '<span class="deviceDown">' . __('Disabled') . '</span>' : '<span class="deviceUp">' . __('Enabled') . '</span>', $item['id']);
+
 			form_selectable_ecell($hostname, $item['id']);
-			form_selectable_cell('<a class="linkEditMain" href="' . html_escape(CACTI_PATH_URL . 'managers.php?action=edit&tab=notifications&id=' . $item['id']) . '">' . ($item['count_notify'] ? $item['count_notify'] : 0) . '</a>' , $item['id']);
-			form_selectable_cell('<a class="linkEditMain" href="' . html_escape(CACTI_PATH_URL . 'managers.php?action=edit&tab=logs&id=' . $item['id']) . '">' . ($item['count_log'] ? $item['count_log'] : 0) . '</a>', $item['id']);
+			form_selectable_cell(filter_value($item['count_notify'] ? $item['count_notify'] : 0, '', $url1), $item['id']);
+			form_selectable_cell(filter_value($item['count_log'] ? $item['count_log'] : 0, '', $url2), $item['id']);
+
 			form_checkbox_cell($item['description'], $item['id']);
+
 			form_end_row();
 		}
 	} else {
-		print '<tr><td><em>' . __('No SNMP Notification Receivers') . '</em></td></tr>';
+		print '<tr class="tableRows odd"><td><em>' . __('No SNMP Notification Receivers') . '</em></td></tr>';
 	}
 
 	html_end_box(false);
