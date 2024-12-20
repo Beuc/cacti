@@ -128,36 +128,12 @@ function package_key_remove($id) {
 function public_keys() {
 	global $actions, $item_rows, $types;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter' => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-			),
-		'page' => array(
-			'filter' => FILTER_VALIDATE_INT,
-			'default' => '1'
-			),
-		'filter' => array(
-			'filter' => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-			),
-		'sort_column' => array(
-			'filter' => FILTER_CALLBACK,
-			'default' => 'author',
-			'options' => array('options' => 'sanitize_search_string')
-			),
-		'sort_direction' => array(
-			'filter' => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-			)
-	);
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter(__('Public Keys'), 'package_keys.php', 'fors', 'sess_package_keys');
 
-	validate_store_request_vars($filters, 'sess_package_keys');
-	/* ================= input validation ================= */
+	$pageFilter->rows_label = __('Keys');
+	$pageFilter->set_sort_array('author', 'ASC');
+	$pageFilter->render();
 
 	if (get_request_var('rows') == '-1') {
 		$rows = read_config_option('num_rows_table');
@@ -165,101 +141,33 @@ function public_keys() {
 		$rows = get_request_var('rows');
 	}
 
-	html_filter_start_box(__('Package Repositories'));
-
-	?>
-	<tr class='even' class='noprint'>
-		<td class='noprint'>
-			<form id='form_repos' method='get' action='package_keys.php'>
-				<table class='filterTable'>
-					<tr class='noprint'>
-						<td>
-							<?php print __('Search');?>
-						</td>
-						<td>
-							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-						</td>
-						<td>
-							<?php print __('Repositories');?>
-						</td>
-						<td>
-							<select id='rows' onChange="applyFilter()">
-								<option value='-1'<?php print (get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-								<?php
-								if (cacti_sizeof($item_rows)) {
-									foreach ($item_rows as $key => $value) {
-										print "<option value='" . $key . "'" . (get_request_var('rows') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
-									}
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<span>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __x('filter: use', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-							</span>
-						</td>
-					</tr>
-				</table>
-			</form>
-			<script type='text/javascript'>
-			function applyFilter() {
-				strURL  = 'package_keys.php?rows=' + $('#rows').val();
-				strURL += '&filter=' + $('#filter').val();
-				strURL += '&header=false';
-				loadPageNoHeader(strURL);
-			}
-
-			function clearFilter() {
-				strURL = 'package_keys.php?clear=1&header=false';
-				loadPageNoHeader(strURL);
-			}
-
-			$(function() {
-				$('#refresh').click(function() {
-					applyFilter();
-				});
-
-				$('#clear').click(function() {
-					clearFilter();
-				});
-
-				$('#form_repos').submit(function(event) {
-					event.preventDefault();
-					applyFilter();
-				});
-			});
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
+	$sql_where  = '';
+	$sql_params = array();
 
 	/* form the 'where' clause for our main sql query */
 	if (get_request_var('filter') != '') {
-		$sql_where = 'WHERE
-			author LIKE ' . db_qstr('%' . get_request_var('filter') . '%') . '
-			OR homepage LIKE '     . db_qstr('%' . get_request_var('filter') . '%') . '
-			OR email_address LIKE '     . db_qstr('%' . get_request_var('filter') . '%');
-	} else {
-		$sql_where = '';
+		$sql_where = ($sql_where != '' ? ' AND ':'WHERE ') .
+			'(author LIKE ? OR homepage LIKE ? OR email_address LIKE ?)';
+
+		$sql_params[] = '%' . get_request_var('filter') . '%';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
 	}
 
 	$sql_order = get_order_string();
 	$sql_limit = ' LIMIT ' . ($rows*(get_request_var('page')-1)) . ',' . $rows;
 
-	$total_rows = db_fetch_cell("SELECT
-		COUNT(*)
+	$total_rows = db_fetch_cell_prepared("SELECT COUNT(*)
 		FROM package_public_keys
-		$sql_where");
+		$sql_where",
+		$sql_params);
 
-	$keys = db_fetch_assoc("SELECT *
+	$keys = db_fetch_assoc_prepared("SELECT *
 		FROM package_public_keys
 		$sql_where
 		$sql_order
-		$sql_limit");
+		$sql_limit",
+		$sql_params);
 
 	$display_text = array(
 		'author' => array(
@@ -306,12 +214,13 @@ function public_keys() {
 			form_selectable_cell(filter_value($key['homepage'], get_request_var('filter')), $key['id']);
 			form_selectable_cell(filter_value($key['email_address'], get_request_var('filter')), $key['id']);
 			form_selectable_cell(strlen($pkey) < 200 ? 'SHA1':'SHA256', $key['id']);
+
 			form_checkbox_cell($key['author'], $key['id']);
 
 			form_end_row();
 		}
 	} else {
-		print '<tr><td colspan="' . (cacti_sizeof($display_text)+1) . '"><em>' . __('No Package Public Keys Found') . '</em></td></tr>';
+		print '<tr class="tableRow odd"><td colspan="' . (cacti_sizeof($display_text)+1) . '"><em>' . __('No Package Public Keys Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);
@@ -325,3 +234,4 @@ function public_keys() {
 
 	form_end();
 }
+
