@@ -1695,15 +1695,15 @@ function create_filter() {
 					'array'         => $status,
 					'value'         => '-1'
 				),
-                'orphans' => array(
-                    'method'         => 'filter_checkbox',
-                    'friendly_name'  => __('Orphaned'),
-                    'filter'         => FILTER_VALIDATE_REGEXP,
-                    'filter_options' => array('options' => array('regexp' => '(true|false)')),
-                    'default'        => '',
-                    'pageset'        => true,
-                    'value'          => get_nfilter_request_var('orphans')
-                )
+				'orphans' => array(
+					'method'         => 'filter_checkbox',
+					'friendly_name'  => __('Orphaned'),
+					'filter'         => FILTER_VALIDATE_REGEXP,
+					'filter_options' => array('options' => array('regexp' => '(true|false)')),
+					'default'        => '',
+					'pageset'        => true,
+					'value'          => get_nfilter_request_var('orphans')
+				)
 			),
 			array(
 				'rfilter' => array(
