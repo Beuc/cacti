@@ -288,43 +288,170 @@ function host_new_graphs_save($host_id) {
 	}
 }
 
+function create_filter($host) {
+	global $item_rows;
+
+	$all = array('-2' => __('All'));
+	$gt  = array('-1' => __('Graph Template Based'));
+
+	$graph_types = array_rekey(
+		db_fetch_assoc_prepared('SELECT sq.id, sq.name
+			FROM snmp_query AS sq
+			INNER JOIN host_snmp_query AS hsq
+			ON hsq.snmp_query_id = sq.id
+			WHERE hsq.host_id = ?
+			ORDER BY sq.name',
+			array($host['id'])),
+		'id', 'name'
+	);
+
+	$graph_types = $all + $gt + $graph_types;
+
+	$filters = array(
+		'rows' => array(
+			array(
+				'host_id' => array(
+					'method'         => 'drop_callback',
+					'friendly_name'  => __('Device'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'pageset'        => true,
+					'sql'            => 'SELECT DISTINCT id, description AS name FROM host ORDER BY description',
+					'action'         => 'ajax_hosts',
+					'id'             => $host['id'],
+					'value'          => $host['description'],
+					'on_change'      => 'applyFilter()'
+				),
+				'graph_type' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Graph Type'),
+					'filter'         => FILTER_CALLBACK,
+					'filter_options' => array('options' => 'sanitize_search_string'),
+					'default'        => read_user_setting('graph_type', read_config_option('default_graphs_new_dropdown'), true),
+					'pageset'        => true,
+					'array'          => $graph_types,
+					'value'          => '-1'
+				)
+			),
+			array(
+				'filter' => array(
+					'method'         => 'textbox',
+					'friendly_name'  => __('Search'),
+					'filter'         => FILTER_DEFAULT,
+					'placeholder'    => __('Enter a search term'),
+					'size'           => '30',
+					'default'        => '',
+					'pageset'        => true,
+					'max_length'     => '120',
+					'value'          => ''
+				),
+				'rows' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Rows'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'pageset'        => true,
+					'array'          => $item_rows,
+					'value'          => '-1'
+				)
+			)
+		),
+		'buttons' => array(
+			'go' => array(
+				'method'  => 'submit',
+				'display' => __('Go'),
+				'title'   => __('Apply Filter to Table'),
+			),
+			'clear' => array(
+				'method'  => 'button',
+				'display' => __('Clear'),
+				'title'   => __('Reset Filter to Default Values'),
+			),
+			'save' => array(
+				'method'  => 'button',
+				'display' => __('Save'),
+				'title'   => __('Save the Filter for the User'),
+				'url'     => 'graphs_new.php?action=ajax_save_filter',
+				'status'  => __('Filter Settings Saved')
+			)
+		),
+		'links' => array(
+			array(
+				'display' => __('Edit this Device'),
+				'url'     => 'host.php?action=edit&id=' . get_request_var('host_id'),
+				'class'   => 'fa fa-wrench'
+			),
+			array(
+				'display' => __('Create New Device'),
+				'url'     => 'host.php?action=edit',
+				'class'   => 'fa fa-server'
+			),
+		)
+	);
+
+	/* process plugin links */
+	ob_start();
+
+	/**
+	 * Prototype - We will convert links into nice glyphs potentially
+	 *
+	 * <span class="linkMarker">*</span>
+	 * <a
+	 *   class="autocreate linkEditMain"
+	 *   href="plugins/thold/thold.php?action=autocreate&host_id=99"
+	 * >Auto-create Thresholds</a>
+	 * <br>';
+	 */
+	api_plugin_hook('graphs_new_top_links');
+
+	$new_links = ob_get_clean();
+
+	/**
+	 * Now that we have anchors, let's add them to the
+	 * filter array.
+	 */
+	if ($new_links != '') {
+		$links = new DOMDocument();
+		$links->loadHTML($new_links);
+		$anchors = $links->getElementsByTagName('a');
+
+		if (cacti_sizeof($anchors)) {
+			foreach($anchors as $a) {
+				$name = $a->textContent;
+				$href = $a->getAttribute('href');
+
+				$filters['links'][] = array(
+					'display' => $name,
+					'url'     => $href,
+					'class'   => 'fa fa-funny'
+				);
+			}
+		}
+	}
+
+	return $filters;
+}
+
+function process_sanitize_draw_filter($render = false, $header_label = '', $host = array()) {
+	$filters = create_filter($host);
+
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter($header_label, 'graph_new.php', 'form_gn', 'sess_gn', '', '', false);
+
+	$pageFilter->set_filter_array($filters);
+
+	if ($render) {
+		$pageFilter->render();
+	} else {
+		$pageFilter->sanitize();
+	}
+}
+
 function graphs() {
 	global $config, $item_rows;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-			),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-			),
-		'host_id' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => db_fetch_cell('SELECT id FROM host ORDER BY description, hostname LIMIT 1')
-			),
-		'graph_type' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => read_user_setting('graph_type', read_config_option('default_graphs_new_dropdown'), true)
-			)
-	);
-
-	validate_store_request_vars($filters, 'sess_grn');
-	/* ================= input validation ================= */
-
-	if (get_request_var('rows') == '-1') {
-		$rows = read_user_setting('num_rows_table', read_config_option('num_rows_table'), true);
-	} else {
-		$rows = get_request_var('rows');
-	}
-
 	if (!isempty_request_var('host_id')) {
-		$host   = db_fetch_row_prepared('SELECT id, description, hostname, host_template_id
+		$host = db_fetch_row_prepared('SELECT id, description, hostname, host_template_id
 			FROM host
 			WHERE id = ?',
 			array(get_request_var('host_id')));
@@ -335,107 +462,34 @@ function graphs() {
 				WHERE id = ?',
 				array($host['host_template_id']));
 
-			$header =  __esc('New Graphs for [ %s ] (%s %s)', $host['description'], $host['hostname'], (!empty($host['host_template_id']) ? $name:''));
+			$header_label = __esc('New Graphs for [ %s ] (%s %s)', $host['description'], $host['hostname'], (!empty($host['host_template_id']) ? $name:''));
 		} else {
-			$header                   =  __('New Graphs for [ All Devices ]');
-			$host['id']               = -1;
+			$header_label = __('New Graphs for [ All Devices ]');
+
+			$host['id'] = -1;
+
 			$host['host_template_id'] = 0;
+			$host['description']      = __('All Devices');
 		}
 	} else {
-		$host['id']               = 0;
-		$host['host_template_id'] = 0;
-		$header                   = __('New Graphs for None Host Type');
+		$host = db_fetch_row('SELECT id, description FROM host ORDER BY description ASC LIMIT 1');
 	}
 
-	html_start_box($header, '100%', '', '3', 'center', '');
+	process_sanitize_draw_filter(true, $header_label, $host);
 
-	?>
-	<tr class='even'>
-		<td>
-			<form id='filter_form' action='graphs_new.php'>
-				<table class='cactiTable'>
-					<tr>
-						<td style='width:70%;'>
-							<table class='filterTable'>
-								<tr>
-									<?php print html_host_filter(get_request_var('host_id'), 'applyFilter', '', true, true);?>
-									<td>
-										<?php print __('Graph Types');?>
-									</td>
-									<td>
-										<select id='graph_type' name='graph_type' onChange='applyFilter()'>
-											<option value='-2'<?php if (get_request_var('graph_type') == '-2') {?> selected<?php }?>><?php print __('All');?></option>
-											<option value='-1'<?php if (get_request_var('graph_type') == '-1') {?> selected<?php }?>><?php print __('Graph Template Based');?></option>
-											<?php
+	if (get_request_var('rows') == '-1') {
+		$rows = read_user_setting('num_rows_table', read_config_option('num_rows_table'), true);
+	} else {
+		$rows = get_request_var('rows');
+	}
 
-											$snmp_queries = db_fetch_assoc_prepared('SELECT sq.id, sq.name
-												FROM snmp_query AS sq
-												INNER JOIN host_snmp_query AS hsq
-												ON hsq.snmp_query_id = sq.id
-												WHERE hsq.host_id = ?
-												ORDER BY sq.name',
-												array($host['id']));
+	html_start_box($header_label, '100%', '', '3', 'center', '');
 
-											if (cacti_sizeof($snmp_queries)) {
-												foreach ($snmp_queries as $query) {
-													print "<option value='" . $query['id'] . "'";
-
-													if (get_request_var('graph_type') == $query['id']) {
-														print ' selected';
-													}
-
-													print '>' . html_escape($query['name']) . '</option>';
-												}
-											}
-											?>
-										</select>
-									</td>
-									<td>
-										<span>
-											<input type='submit' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __esc('Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-											<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-											<input type='button' class='ui-button ui-corner-all ui-widget' id='save' value='<?php print __esc('Save');?>' title='<?php print __esc('Save Filters');?>'>
-										</span>
-									</td>
-									<td id='text'></td>
-								</tr>
-							</table>
-							<table class='filterTable'>
-								<tr>
-									<td>
-										<?php print __('Search');?>
-									</td>
-									<td>
-										<input type='text' class='ui-state-default ui-corner-all' id='filter' name='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-									</td>
-									<td>
-										<?php print __('Rows');?>
-									</td>
-									<td>
-										<select id='rows' name='rows' onChange='applyFilter()'>
-											<option value='-1'<?php print(get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-											<?php
-											if (cacti_sizeof($item_rows)) {
-												foreach ($item_rows as $key => $value) {
-													print "<option value='" . $key . "'";
-
-													if (get_request_var('rows') == $key) {
-														print ' selected';
-													}
-
-													print '>' . html_escape($value) . '</option>';
-												}
-											}
 											?>
 										</select>
 									</td>
 								</tr>
 							</table>
-						</td>
-						<td class='textInfo right'>
-							<span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('host.php?action=edit&id=' . get_request_var('host_id'));?>'><?php print __('Edit this Device');?></a><br>
-							<span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('host.php?action=edit');?>'><?php print __('Create New Device');?></a><br>
-							<?php api_plugin_hook('graphs_new_top_links'); ?>
 						</td>
 					</tr>
 				</table>
@@ -531,7 +585,7 @@ function graphs() {
 	$script = "<script type='text/javascript'>\nvar created_graphs = new Array();\n";
 
 	if (get_request_var('graph_type') < 0) {
-		html_start_box(__('New Graph Template'), '', '100%', '', '3', 'center', '');
+		html_start_box(__('New Graph Template'), '100%', '', '3', 'center', '');
 
 		$available_graph_templates = db_fetch_assoc_prepared('SELECT gt.id, gt.name
 			FROM graph_templates AS gt
