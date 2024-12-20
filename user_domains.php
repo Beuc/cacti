@@ -549,36 +549,12 @@ function domain_edit() {
 function domains() {
 	global $domain_types, $actions, $item_rows;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-		),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'domain_name',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-		)
-	);
+    /* create the page filter */
+    $pageFilter = new CactiTableFilter(__('User Domains'), 'user_domains.php', 'form_domain', 'sess_domain', 'user_domains.php?action=edit');
 
-	validate_store_request_vars($filters, 'sess_domains');
-	/* ================= input validation ================= */
+    $pageFilter->rows_label = __('Domains');
+	$pageFilter->set_sort_array('domain_name', 'ASC');
+    $pageFilter->render();
 
 	if (get_request_var('rows') == '-1') {
 		$rows = read_config_option('num_rows_table');
@@ -586,106 +562,59 @@ function domains() {
 		$rows = get_request_var('rows');
 	}
 
-	html_filter_start_box(__('User Domains'), 'user_domains.php?action=edit');
-
-	?>
-	<tr class='even' class='noprint'>
-		<td class='noprint'>
-			<form id='form_domains' method='get' action='user_domains.php'>
-				<table class='filterTable'>
-					<tr class='noprint'>
-						<td>
-							<?php print __('Search'); ?>
-						</td>
-						<td>
-							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter'); ?>'>
-						</td>
-						<td>
-							<?php print __('Domains'); ?>
-						</td>
-						<td>
-							<select id='rows' onChange="applyFilter()" data-defaultLabel='<?php print __('Domains');?>'>
-								<option value='-1' <?php print(get_request_var('rows') == '-1' ? ' selected>' : '>') . __('Default'); ?></option>
-								<?php
-								if (cacti_sizeof($item_rows)) {
-									foreach ($item_rows as $key => $value) {
-										print "<option value='" . $key . "'";
-
-										if (get_request_var('rows') == $key) {
-											print ' selected';
-										}
-
-										print '>' . html_escape($value) . "</option>\n";
-									}
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<span>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __x('filter: use', 'Go'); ?>' title='<?php print __esc('Set/Refresh Filters'); ?>'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear'); ?>' title='<?php print __esc('Clear Filters'); ?>'>
-							</span>
-						</td>
-					</tr>
-				</table>
-			</form>
-			<script type='text/javascript'>
-			function applyFilter() {
-				strURL = 'user_domains.php?rows=' + $('#rows').val();
-				strURL += '&filter=' + $('#filter').val();
-				loadUrl({
-					url: strURL
-				})
-			}
-
-			function clearFilter() {
-				strURL = 'user_domains.php?clear=1';
-				loadUrl({
-					url: strURL
-				})
-			}
-
-			$(function() {
-				$('#refresh').click(function() {
-					applyFilter();
-				});
-
-				$('#clear').click(function() {
-					clearFilter();
-				});
-
-				$('#form_domains').submit(function(event) {
-					event.preventDefault();
-					applyFilter();
-				});
-			});
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
+	$sql_where  = '';
+	$sql_params = array();
 
 	/* form the 'where' clause for our main sql query */
 	if (get_request_var('filter') != '') {
-		$sql_where = 'WHERE
-			domain_name LIKE ' . db_qstr('%' . get_request_var('filter') . '%') . '
-			OR type LIKE '	 . db_qstr('%' . get_request_var('filter') . '%');
-	} else {
-		$sql_where = '';
+		$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . '(domain_name LIKE ? OR type LIKE ?)';
+
+		$sql_params[] = '%' . get_request_var('filter') . '%';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
 	}
 
-	$total_rows = db_fetch_cell("SELECT
-		count(*)
+	$total_rows = db_fetch_cell_prepared("SELECT COUNT(*)
 		FROM user_domains
-		$sql_where");
+		$sql_where",
+		$sql_params);
 
-	$domains = db_fetch_assoc("SELECT *
+	$domains = db_fetch_assoc_prepared("SELECT *
 		FROM user_domains
 		$sql_where
 		ORDER BY " . get_request_var('sort_column') . ' ' . get_request_var('sort_direction') . '
-		LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows);
+		LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows,
+		$sql_params);
+
+	$display_text = array(
+		'domain_name'  => array(
+			'display' => __('Domain Name'),
+			'sort'    => 'ASC'
+		),
+		'type'         => array(
+			'display' => __('Domain Type'),
+			'sort'    => 'ASC'
+		),
+		'defdomain'    => array(
+			'display' => __('Default'),
+			'sort'    => 'ASC'
+		),
+		'user_id'      => array(
+			'display' => __('Effective User'),
+			'sort'    => 'ASC'
+		),
+		'cn_full_name' => array(
+			'display' => __('CN FullName'),
+			'sort'    => 'ASC'
+		),
+		'cn_email'     => array(
+			'display' => __('CN eMail'),
+			'sort'    => 'ASC'
+		),
+		'enabled'      => array(
+			'display' => __('Enabled'),
+			'sort'    => 'ASC'
+		)
+	);
 
 	$nav = html_nav_bar('user_user_domains.php?filter=' . get_request_var('filter'), MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, 8, __('User Domains'), 'page', 'main');
 
@@ -695,16 +624,6 @@ function domains() {
 
 	html_start_box('', '100%', '', '3', 'center', '');
 
-	$display_text = array(
-		'domain_name'  => array(__('Domain Name'), 'ASC'),
-		'type'         => array(__('Domain Type'), 'ASC'),
-		'defdomain'    => array(__('Default'), 'ASC'),
-		'user_id'      => array(__('Effective User'), 'ASC'),
-		'cn_full_name' => array(__('CN FullName'), 'ASC'),
-		'cn_email'     => array(__('CN eMail'), 'ASC'),
-		'enabled'      => array(__('Enabled'), 'ASC')
-	);
-
 	html_header_sort_checkbox($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), false);
 
 	$i = 0;
@@ -713,18 +632,35 @@ function domains() {
 		foreach ($domains as $domain) {
 			/* hide system types */
 			form_alternate_row('line' . $domain['domain_id'], true);
+
+			$effective_id = db_fetch_cell_prepared('SELECT username
+				FROM user_auth
+				WHERE id = ?',
+				array($domain['user_id']));
+
+			$full_name_cn = db_fetch_cell_prepared('SELECT cn_full_name
+				FROM user_domains_ldap
+				WHERE domain_id = ?',
+				array($domain['domain_id']));
+
+			$email_cn = db_fetch_cell_prepared('SELECT cn_email
+				FROM user_domains_ldap
+				WHERE domain_id = ?',
+				array($domain['domain_id']));
+
 			form_selectable_cell(filter_value($domain['domain_name'], get_request_var('filter'), 'user_domains.php?action=edit&domain_id=' . $domain['domain_id']), $domain['domain_id']);
 			form_selectable_cell($domain_types[$domain['type']], $domain['domain_id']);
 			form_selectable_cell(($domain['defdomain'] == '0' ? '--' : __('Yes')), $domain['domain_id']);
-			form_selectable_ecell(($domain['user_id'] == '0' ? __('None Selected') : db_fetch_cell_prepared('SELECT username FROM user_auth WHERE id = ?', array($domain['user_id']))), $domain['domain_id']);
-			form_selectable_ecell(db_fetch_cell_prepared('SELECT cn_full_name FROM user_domains_ldap WHERE domain_id = ?', array($domain['domain_id'])), $domain['domain_id']);
-			form_selectable_ecell(db_fetch_cell_prepared('SELECT cn_email FROM user_domains_ldap WHERE domain_id = ?', array($domain['domain_id'])), $domain['domain_id']);
+			form_selectable_ecell(($domain['user_id'] == '0' ? __('None Selected') : $effective_id), $domain['domain_id']);
+			form_selectable_ecell($full_name_cn, $domain['domain_id']);
+			form_selectable_ecell($email_cn, $domain['domain_id']);
 			form_selectable_cell($domain['enabled'] == 'on' ? __('Yes') : __('No'), $domain['domain_id']);
 			form_checkbox_cell($domain['domain_name'], $domain['domain_id']);
+
 			form_end_row();
 		}
 	} else {
-		print '<tr><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No User Domains Found') . '</em></td></tr>';
+		print '<tr class="tableRow odd"><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No User Domains Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);
@@ -738,3 +674,4 @@ function domains() {
 
 	form_end();
 }
+
