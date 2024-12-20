@@ -28,18 +28,19 @@
 
 class CactiTableFilter {
 	/* constructor variables */
-	public $form_header    = '';
-	public $form_action    = '';
-	public $form_id        = '';
-	public $session_var    = 'sess_';
-	public $action_url     = '';
-	public $action_label   = '';
-	public $show_columns   = true;
-	public $default_filter = array();
-	public $rows_label     = '';
-	public $js_extra       = '';
-	public $dynamic        = true;
-	public $def_refresh    = 300;
+	public $form_header      = '';
+	public $form_action      = '';
+	public $form_id          = '';
+	public $session_var      = 'sess_';
+	public $action_url       = '';
+	public $action_label     = '';
+	public $show_columns     = true;
+	public $default_filter   = array();
+	public $rows_label       = '';
+	public $associated_label = '';
+	public $js_extra         = '';
+	public $dynamic          = true;
+	public $def_refresh      = 300;
 
 	/**
 	 * Custom hooks for common functionality.
@@ -54,6 +55,7 @@ class CactiTableFilter {
 	public $has_export     = false;
 	public $has_purge      = false;
 	public $has_named      = false;
+	public $has_associated = false;
 	public $has_refresh    = false;
 
 	private $sort_array    = array();
@@ -317,6 +319,26 @@ class CactiTableFilter {
 				'named' => array(
 					'method'         => 'filter_checkbox',
 					'friendly_name'  => __('Named Colors'),
+					'filter'         => FILTER_VALIDATE_REGEXP,
+					'filter_options' => array('options' => array('regexp' => '(true|false)')),
+					'default'        => '',
+					'pageset'        => true,
+					'value'          => $value
+				)
+			);
+		}
+
+		if ($this->has_associated) {
+			if (isset_request_var('associated')) {
+				$value = get_nfilter_request_var('associated');
+			} else {
+				$value = read_config_option('default_has') == 'on' ? 'true':'false';
+			}
+
+			$this->filter_array['rows'][0] += array(
+				'associated' => array(
+					'method'         => 'filter_checkbox',
+					'friendly_name'  => ($this->associated_label != '' ? $this->associated_label : __('Associated')),
 					'filter'         => FILTER_VALIDATE_REGEXP,
 					'filter_options' => array('options' => array('regexp' => '(true|false)')),
 					'default'        => '',
