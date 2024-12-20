@@ -407,36 +407,11 @@ function repo_edit() {
 function repos() {
 	global $actions, $item_rows, $types;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter' => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-			),
-		'page' => array(
-			'filter' => FILTER_VALIDATE_INT,
-			'default' => '1'
-			),
-		'filter' => array(
-			'filter' => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-			),
-		'sort_column' => array(
-			'filter' => FILTER_CALLBACK,
-			'default' => 'name',
-			'options' => array('options' => 'sanitize_search_string')
-			),
-		'sort_direction' => array(
-			'filter' => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-			)
-	);
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter(__('Package Repositorites'), 'package_repos.php', 'fors', 'sess_package_repos', 'package_repos.php?action=edit');
 
-	validate_store_request_vars($filters, 'sess_packages');
-	/* ================= input validation ================= */
+	$pageFilter->rows_label = __('Repos');
+	$pageFilter->render();
 
 	if (get_request_var('rows') == '-1') {
 		$rows = read_config_option('num_rows_table');
@@ -444,101 +419,33 @@ function repos() {
 		$rows = get_request_var('rows');
 	}
 
-	html_filter_start_box(__('Package Repositories'), 'package_repos.php?action=edit');
-
-	?>
-	<tr class='even' class='noprint'>
-		<td class='noprint'>
-			<form id='form_repos' method='get' action='package_repos.php'>
-				<table class='filterTable'>
-					<tr class='noprint'>
-						<td>
-							<?php print __('Search');?>
-						</td>
-						<td>
-							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter');?>'>
-						</td>
-						<td>
-							<?php print __('Repositories');?>
-						</td>
-						<td>
-							<select id='rows' onChange="applyFilter()">
-								<option value='-1'<?php print (get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-								<?php
-								if (cacti_sizeof($item_rows)) {
-									foreach ($item_rows as $key => $value) {
-										print "<option value='" . $key . "'" . (get_request_var('rows') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
-									}
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<span>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='refresh' value='<?php print __x('filter: use', 'Go');?>' title='<?php print __esc('Set/Refresh Filters');?>'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Clear Filters');?>'>
-							</span>
-						</td>
-					</tr>
-				</table>
-			</form>
-			<script type='text/javascript'>
-			function applyFilter() {
-				strURL  = 'package_repos.php?rows=' + $('#rows').val();
-				strURL += '&filter=' + $('#filter').val();
-				strURL += '&header=false';
-				loadPageNoHeader(strURL);
-			}
-
-			function clearFilter() {
-				strURL = 'package_repos.php?clear=1&header=false';
-				loadPageNoHeader(strURL);
-			}
-
-			$(function() {
-				$('#refresh').click(function() {
-					applyFilter();
-				});
-
-				$('#clear').click(function() {
-					clearFilter();
-				});
-
-				$('#form_repos').submit(function(event) {
-					event.preventDefault();
-					applyFilter();
-				});
-			});
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
+	$sql_where  = '';
+	$sql_params = array();
 
 	/* form the 'where' clause for our main sql query */
 	if (get_request_var('filter') != '') {
-		$sql_where = 'WHERE
-			name LIKE ' . db_qstr('%' . get_request_var('filter') . '%') . '
-			OR repo_branch LIKE '     . db_qstr('%' . get_request_var('filter') . '%') . '
-			OR repo_location LIKE '     . db_qstr('%' . get_request_var('filter') . '%');
-	} else {
-		$sql_where = '';
+		$sql_where = ($sql_where != '' ? ' AND ':'WHERE ') .
+			'(name LIKE ? OR repo_branch LIKE ? OR repo_location LIKE ?)';
+
+		$sql_params[] = '%' . get_request_var('filter') . '%';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
 	}
 
 	$sql_order = get_order_string();
 	$sql_limit = ' LIMIT ' . ($rows*(get_request_var('page')-1)) . ',' . $rows;
 
-	$total_rows = db_fetch_cell("SELECT
-		COUNT(*)
+	$total_rows = db_fetch_cell_prepared("SELECT COUNT(*)
 		FROM package_repositories
-		$sql_where");
+		$sql_where",
+		$sql_params);
 
-	$repos = db_fetch_assoc("SELECT *
+	$repos = db_fetch_assoc_prepared("SELECT *
 		FROM package_repositories
 		$sql_where
 		$sql_order
-		$sql_limit");
+		$sql_limit",
+		$sql_params);
 
 	$display_text = array(
 		'name' => array(
@@ -580,7 +487,6 @@ function repos() {
 
 	html_header_sort_checkbox($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), false);
 
-	$i = 0;
 	if (cacti_sizeof($repos)) {
 		foreach ($repos as $repo) {
 			form_alternate_row('line' . $repo['id'], true);
@@ -591,12 +497,13 @@ function repos() {
 			form_selectable_cell($repo['repo_type'] == 0 ? ($repo['repo_branch'] != '' ? $repo['repo_branch']:__('default')):__('N/A'), $repo['id'], '', 'center');
 			form_selectable_cell($repo['enabled'] == 'on' ? __('Yes'):__('No'), $repo['id'], '', 'center');
 			form_selectable_cell($repo['default'] == 'on' ? __('Yes'):__('No'), $repo['id'], '', 'center');
+
 			form_checkbox_cell($repo['name'], $repo['id']);
 
 			form_end_row();
 		}
 	} else {
-		print '<tr><td colspan="' . (cacti_sizeof($display_text)+1) . '"><em>' . __('No Package Repositories Found') . '</em></td></tr>';
+		print '<tr class="tableRow odd"><td colspan="' . (cacti_sizeof($display_text)+1) . '"><em>' . __('No Package Repositories Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);
