@@ -484,6 +484,10 @@ function manager_notifications($id, $header_label) {
 function create_manager_log_filter($severity_levels) {
 	global $item_rows;
 
+	$all = array('-1' => __('All'));
+
+	$severity_levels = $all + $severity_levels;
+
 	return array(
 		'rows' => array(
 			array(
