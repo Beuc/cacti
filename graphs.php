@@ -765,29 +765,97 @@ function validate_item_vars() {
 	/* ================= input validation ================= */
 }
 
-function item_edit() {
-	global $struct_graph_item, $graph_item_types, $consolidation_functions;
+function create_item_filter() {
+	global $item_rows;
 
-	/* ================= input validation ================= */
-	get_filter_request_var('id');
-	get_filter_request_var('host_id');
-	get_filter_request_var('local_graph_id');
-	get_filter_request_var('data_template_id');
-	/* ==================================================== */
+	$all     = array('-1' => __('All'));
+	$any     = array('-1' => __('Any'));
+	$none    = array('0'  => __('None'));
 
-	// This column is for Graph Templates
-	unset($struct_graph_item['data_template_id']);
+	$host_id = get_request_var('host_id');
 
-	validate_item_vars();
+	if ($host_id > 0) {
+		/* for the templates dropdown */
+		$sql_where    = 'AND h.id = ?';
+		$sql_params[] = $host_id;
 
-	$id = (!isempty_request_var('id') ? '&id=' . get_request_var('id') : '');
+		$hostname = db_fetch_cell_prepared('SELECT description
+			FROM host
+			WHERE id = ?',
+			array($host_id));
+	} elseif ($host_id == 0) {
+		$host_id  = '0';
+		$hostname = __('None');
+	} else {
+		$host_id  = '-1';
+		$hostname = __('Any');
+	}
 
-	$host = db_fetch_row_prepared(
-		'SELECT hostname
-		FROM host
-		WHERE id = ?',
-		array(get_request_var('host_id'))
+	if (get_request_var('host_id') <= 0) {
+		$data_templates = array_rekey(
+			db_fetch_assoc('SELECT id, name
+				FROM data_template
+				ORDER BY name'),
+			'id', 'name'
+		);
+	} else {
+		$data_templates = array_rekey(
+			db_fetch_assoc_prepared('SELECT DISTINCT dt.id, dt.name
+				FROM data_template AS dt
+				INNER JOIN data_local AS dl
+				ON dl.data_template_id=dt.id
+				WHERE dl.host_id = ?
+				ORDER BY name',
+				array(get_request_var('host_id'))),
+			'id', 'name'
+		);
+	}
+
+	$data_templates = $any + $none + $data_templates;
+
+	return array(
+		'rows' => array(
+			array(
+				'host_id' => array(
+					'method'         => 'drop_callback',
+					'friendly_name'  => __('Device'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'sql'            => 'SELECT DISTINCT id, description AS name FROM host ORDER BY description',
+					'action'         => 'ajax_hosts',
+					'id'             => $host_id,
+					'value'          => $hostname,
+					'on_change'      => 'applyFilter()'
+				),
+			),
+			array(
+				'data_template_id' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Template'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'array'          => $data_templates,
+					'value'          => '-1'
+				),
+				'id' => array(
+					'method'         => 'validate',
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '',
+					'value'          => get_filter_request_var('id')
+				),
+				'local_graph_id' => array(
+					'method'         => 'validate',
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '',
+					'value'          => get_filter_request_var('host_id')
+				)
+			)
+		)
 	);
+}
+
+function process_sanitize_draw_item_filter($render = false, $host) {
+	$filters = create_item_filter();
 
 	if (empty($host['hostname'])) {
 		$header = __('Data Sources [No Device]');
@@ -795,75 +863,57 @@ function item_edit() {
 		$header = __esc('Data Sources [%s]', $host['hostname']);
 	}
 
-	html_filter_start_box($header);
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter($header, 'graphs.php?action=item_edit&local_graph_id=' . get_request_var('local_graph_id'), 'form_graphs', 'sess_graphs', '', '', false);
 
-	?>
-	<tr class='even noprint'>
-		<td>
-			<form name='form_graph_items' action='graphs.php'>
-				<table class='filterTable'>
-					<tr>
-						<?php print html_host_filter(get_request_var('host_id')); ?>
-					</tr>
-					<tr>
-						<td>
-							<?php print __('Data Template'); ?>
-						</td>
-						<td>
-							<select id='data_template_id' onChange='applyFilter()'>
-								<option value='-1' <?php if (get_request_var('data_template_id') == '-1') { ?> selected<?php } ?>><?php print __('Any'); ?></option>
-								<option value='0' <?php if (get_request_var('data_template_id') == '0') { ?> selected<?php } ?>><?php print __('None'); ?></option>
-								<?php
-									if (get_request_var('host_id') <= 0) {
-										$data_templates = db_fetch_assoc('SELECT id, name
-									FROM data_template
-									ORDER BY name');
-									} else {
-										$data_templates = db_fetch_assoc_prepared(
-											'SELECT DISTINCT dt.id, dt.name
-									FROM data_template AS dt
-									INNER JOIN data_local AS dl
-									ON dl.data_template_id=dt.id
-									WHERE dl.host_id = ?
-									ORDER BY name',
-											array(get_request_var('host_id'))
-										);
-									}
+	$pageFilter->set_filter_array($filters);
 
-									if (cacti_sizeof($data_templates)) {
-										foreach ($data_templates as $data_template) {
-											print "<option value='" . $data_template['id'] . "'" . (get_request_var('data_template_id') == $data_template['id'] ? ' selected' : '') . '>' . html_escape($data_template['name']) . "</option>";
-										}
-									}
-	?>
-							</select>
-						</td>
-					</tr>
-				</table>
-			</form>
-		</td>
-	</tr>
-	<?php
+	if ($render) {
+		$pageFilter->render();
+	} else {
+		$pageFilter->sanitize();
+	}
+}
 
-	html_end_box();
+function item_edit() {
+	global $struct_graph_item, $graph_item_types, $consolidation_functions;
+
+	$id = (!isempty_request_var('id') ? '&id=' . get_request_var('id') : '');
+
+	$host = db_fetch_row_prepared('SELECT hostname
+		FROM host
+		WHERE id = ?',
+		array(get_request_var('host_id'))
+	);
+
+	process_sanitize_draw_item_filter(true, $host);
+
+	// This column is for Graph Templates
+	unset($struct_graph_item['data_template_id']);
+
+	validate_item_vars();
+
+	if (empty($host['hostname'])) {
+		$header = __('Data Sources [No Device]');
+	} else {
+		$header = __esc('Data Sources [%s]', $host['hostname']);
+	}
 
 	load_current_session_value('host_id', 'sess_graph_items_hi', '-1');
 	load_current_session_value('data_template_id', 'sess_graph_items_dti', '-1');
 
+	$sql_where = '';
+
 	if (get_request_var('host_id') > 0) {
-		$sql_where = 'h.id=' . get_request_var('host_id');
+		$sql_where = 'h.id = ' . get_request_var('host_id');
 	} elseif (get_request_var('host_id') == 0) {
 		$sql_where = 'h.id IS NULL';
-	} else {
-		$sql_where = '';
 	}
 
-	if (get_request_var('data_template_id') == '-1') {
-		$sql_where .= '';
-	} elseif (get_request_var('data_template_id') == '0') {
+	if (get_request_var('data_template_id') == '0') {
 		$sql_where .= ($sql_where != '' ? ' AND ' : '') . 'dl.data_template_id=0';
-	} elseif (!isempty_request_var('data_template_id')) {
-		$sql_where .= ($sql_where != '' ? ' AND ' : '') . 'dl.data_template_id=' . get_request_var('data_template_id');
+	} elseif (get_request_var('data_template_id') > 0) {
+		$sql_where .= ($sql_where != '' ? ' AND ' : '') . 'dl.data_template_id = ' . get_request_var('data_template_id');
 	}
 
 	if (!isempty_request_var('id')) {
@@ -897,9 +947,8 @@ function item_edit() {
 
 		if (isset($template_item['task_item_id'])) {
 			$task_item_id = $template_item['task_item_id'];
-			$value        = db_fetch_cell_prepared(
-				"SELECT
-				CONCAT_WS('', dtd.name_cache,' (', dtr.data_source_name, ')') as name
+
+			$value = db_fetch_cell_prepared("SELECT CONCAT_WS('', dtd.name_cache,' (', dtr.data_source_name, ')') as name
 				FROM data_local AS dl
 				INNER JOIN data_template_data AS dtd
 				ON dtd.local_data_id=dl.id
@@ -912,7 +961,8 @@ function item_edit() {
 			);
 		} else {
 			$task_item_id = 0;
-			$value        = '';
+
+			$value = '';
 		}
 
 		if (read_config_option('autocomplete_enabled') > 0) {
@@ -2936,7 +2986,7 @@ function create_filter() {
 		}
 	}
 
-	$normalized_templates = $any + $normalized_templates;
+	$normalized_templates = $any + $none + $normalized_templates;
 
 	$sources = array(
 		'-1' => __('All'),
