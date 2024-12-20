@@ -127,59 +127,8 @@ function clog_view_logfile() {
 
 	$clogAdmin = clog_admin();
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'tail_lines' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => read_config_option('num_rows_log'),
-			'pageset' => true
-		),
-		'message_type' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '-1',
-			'pageset' => true
-		),
-		'filename' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => read_config_option('path_cactilog'),
-			'pageset' => true,
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'refresh' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => read_config_option('log_refresh_interval')
-		),
-		'expand' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '0'
-		),
-		'reverse' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'matches' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'rfilter' => array(
-			'filter'  => FILTER_VALIDATE_IS_REGEX,
-			'default' => '',
-			'pageset' => true
-		)
-	);
-
-	validate_store_request_vars($filters, 'sess_clog');
-	/* ================= input validation ================= */
-
 	/* enable page refreshes */
 	kill_session_var('custom');
-
-	set_request_var('page_referrer', 'view_logfile');
-	load_current_session_value('page_referrer', 'page_referrer', 'view_logfile');
 
 	$logfile = basename(get_nfilter_request_var('filename'));
 	$logname = '';
@@ -195,25 +144,11 @@ function clog_view_logfile() {
 		$logfile = read_config_option('path_cactilog');
 	}
 
-	$page_nr = get_request_var('page');
-
-	$current_page = get_current_page();
-
-	if ($current_page == 'utilities.php') {
-		$base_page  = 'utilities.php?action=view_logfile';
-		$page = $base_page . '?filename=' . basename($logfile) . '&page=' . $page_nr;
-	} else {
-		$base_page  = 'clog' . (!$clogAdmin ? '_user' : '') . '.php';
-		$page = $base_page . '?filename=' . basename($logfile) . '&page=' . $page_nr;
+	$page_nr = get_nfilter_request_var('page');
+	if ($page_nr == '') {
+		$page_nr = 1;
+		set_request_var('page', 1);
 	}
-
-	$refresh = array(
-		'seconds' => get_request_var('refresh'),
-		'page'    => $page,
-		'logout'  => 'false'
-	);
-
-	set_page_refresh($refresh);
 
 	if (get_current_page() == 'clog.php' || get_current_page() == 'clog_user.php') {
 		general_header(true);
@@ -221,7 +156,7 @@ function clog_view_logfile() {
 		top_header(true);
 	}
 
-	if ($clogAdmin && isset_request_var('purge')) {
+	if ($clogAdmin && get_nfilter_request_var('action') == 'purge') {
 		form_start($current_page);
 
 		html_start_box(__('Purge'), '50%', '', '3', 'center', '');
@@ -258,9 +193,7 @@ function clog_view_logfile() {
 		return;
 	}
 
-	html_start_box(__('Log Filters'), '100%', '', '3', 'center', '');
-	filter($clogAdmin, basename($logfile));
-	html_end_box();
+	process_sanitize_draw_filter(true, $logfile, $clogAdmin);
 
 	/* read logfile into an array and display */
 	$total_rows      = 0;
@@ -509,192 +442,195 @@ function clog_get_logfiles() {
 	return array_unique(array_merge($stdFileArray, $stdLogFileArray, $stdErrFileArray, $boostFileArray));
 }
 
-function filter($clogAdmin, $selectedFile) {
-	global $page_refresh_interval, $base_page, $log_tail_lines, $config;
+function create_filter($logfile, $clogAdmin) {
+	global $log_tail_lines, $page_refresh_interval;
 
-	?>
-	<tr class='even'>
-		<td>
-		<form id='logfile'>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('File');?>
-					</td>
-					<td>
-						<select id='filename' data-defaultLabel='<?php print __('File');?>'>
-							<?php
-							$logFileArray = clog_get_logfiles();
+	$all     = array('-1' => __('All'));
+	$any     = array('-1' => __('Any'));
+	$none    = array('0'  => __('None'));
+	$deleted = array('-2' => __('Deleted/Invalid'));
 
-							if (cacti_sizeof($logFileArray)) {
-								foreach ($logFileArray as $logFile) {
-									print "<option value='" . $logFile . "'";
+	/* transform the log directory as required */
+	$logFileArray = clog_get_logfiles();
+	$newLogArray  = array();
 
-									if ($selectedFile == $logFile) {
-										print ' selected';
-									}
-
-									$logParts = explode('-', $logFile);
-
-									$logDate = cacti_count($logParts) < 2 ? '' : $logParts[1] . (isset($logParts[2]) ? '-' . $logParts[2]:'');
-									$logName = $logParts[0];
-
-									print '>' . $logName . ($logDate != '' ? ' [' . substr($logDate,4) . ']':'') . "</option>\n";
-								}
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<?php print(get_request_var('reverse') == 1 ? __('Tail Lines'):__('Head Lines'));?>
-					</td>
-					<td>
-						<select id='tail_lines' data-defaultLabel='<?php print(get_request_var('reverse') == 1 ? __('Tail Lines'):__('Head Lines'));?>'>
-							<?php
-							foreach ($log_tail_lines as $tail_lines => $display_text) {
-								print "<option value='" . $tail_lines . "'" . (get_request_var('tail_lines') == $tail_lines ? ' selected':'') . '>' . $display_text . '</option>';
-							}
-						?>
-						</select>
-					</td>
-					<td>
-						<?php print __('Expand Log');?>
-					</td>
-					<td>
-						<select id='expand' data-defaultLabel='<?php print __('Expand');?>'>
-							<option value='0'<?php if (get_request_var('expand') == '0') {?> selected<?php }?>><?php print __('System Default');?></option>
-							<option value='1'<?php if (get_request_var('expand') == '1') {?> selected<?php }?>><?php print __('Expand Log');?></option>
-							<option value='2'<?php if (get_request_var('expand') == '2') {?> selected<?php }?>><?php print __('Raw Log');?></option>
-						</select>
-					</td>
-					<td>
-						<span>
-							<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __esc('Go');?>'>
-							<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear');?>'>
-							<?php if ($clogAdmin) {?><input type='button' class='ui-button ui-corner-all ui-widget' id='purge' value='<?php print __esc('Purge');?>'><?php }?>
-						</span>
-					</td>
-				</tr>
-			</table>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Type');?>
-					</td>
-					<td>
-						<select id='message_type' data-defaultLabel='<?php print __('Type');?>'>
-							<?php
-							$message_types = array(
-								'-1' => __('All'),
-								'1'  => __('Stats'),
-								'2'  => __('Warnings'),
-								'3'  => __('Warnings++'),
-								'4'  => __('Errors'),
-								'5'  => __('Errors++'),
-								'6'  => __('Debug'),
-								'7'  => __('SQL Calls'),
-								'8'  => __('AutoM8'),
-								'9'  => __('Non Stats'),
-								'10' => __('Boost'),
-								'11' => __('Device Up/Down'),
-								'12' => __('Recaches'),
-								'13' => __('Security Issues'),
-							);
-
-							if (api_plugin_is_enabled('thold')) {
-								$message_types['99'] = __('Threshold');
-							}
-
-							foreach ($message_types as $index => $type) {
-								print "<option value='" . $index . "'" . (get_request_var('message_type') == $index ? ' selected':'') . '>' . $type . '</option>';
-							}
-							?>
-						</select>
-					</td>
-					<td>
-						<?php print __('Display');?>
-					</td>
-					<td>
-						<select id='reverse' data-defaultLabel='<?php print __('Display');?>'>
-							<option value='1'<?php if (get_request_var('reverse') == '1') {?> selected<?php }?>><?php print __('Newest First');?></option>
-							<option value='2'<?php if (get_request_var('reverse') == '2') {?> selected<?php }?>><?php print __('Oldest First');?></option>
-						</select>
-					</td>
-					<td>
-						<?php print __('Refresh');?>
-					</td>
-					<td>
-						<select id='refresh' data-defaultLabel='<?php print __('Refresh');?>'>
-							<?php
-							foreach ($page_refresh_interval as $seconds => $display_text) {
-								print "<option value='" . $seconds . "'" . (get_request_var('refresh') == $seconds ? ' selected':'') . '>' . $display_text . '</option>';
-							}
-							?>
-						</select>
-					</td>
-				</tr>
-			</table>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						<?php print __('Search');?>
-					</td>
-					<td>
-						<select id='matches' data-defaultLabel='<?php print __('Search');?>'>
-							<option value='1'<?php if (get_request_var('matches') == '1') {?> selected<?php }?>><?php print __('Matches');?></option>
-							<option value='0'<?php if (get_request_var('matches') == '0') {?> selected<?php }?>><?php print __('Does Not Match');?></option>
-						</select>
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='rfilter' size='75' value='<?php print html_escape_request_var('rfilter');?>'>
-					</td>
-				</tr>
-			</table>
-		</form>
-		<script type='text/javascript'>
-		var currentPage = '<?php print $base_page;?>';
-		var delimiter = currentPage.indexOf('?') >= 0 ? '&':'?';
-
-		$(function() {
-			$('#rfilter, #reverse, #refresh, #message_type, #filename, #tail_lines, #expand, #matches').unbind().change(function() {
-				applyFilter();
-			});
-
-			$('#clear').unbind().click(function() {
-				strURL = currentPage + delimiter + 'clear=true';
-				loadUrl({url:strURL});
-			});
-
-			$('#purge').unbind().click(function() {
-				strURL = currentPage + delimiter + 'purge=true&filename=' + $('#filename').val();
-				loadUrl({url:strURL});
-			});
-
-			$('#logfile').submit(function(event) {
-				event.preventDefault();
-				applyFilter();
-			});
-		});
-
-		function applyFilter() {
-			refreshMSeconds=$('#refresh').val()*1000;
-
-			var strURL = currentPage + delimiter
-				'rfilter=' + base64_encode($('#rfilter').val())+
-				'&reverse='+$('#reverse').val()+
-				'&refresh='+$('#refresh').val()+
-				'&expand='+$('#expand').val()+
-				'&matches='+$('#matches').val()+
-				'&message_type='+$('#message_type').val()+
-				'&tail_lines='+$('#tail_lines').val()+
-				'&filename='+$('#filename').val();
-
-			loadUrl({url:strURL})
+	if (cacti_sizeof($logFileArray)) {
+		foreach ($logFileArray as $index => $logFile) {
+			$logParts = explode('-', $logFile);
+			$logDate  = cacti_count($logParts) < 2 ? '' : $logParts[1] . (isset($logParts[2]) ? '-' . $logParts[2]:'');
+			$logName  = $logParts[0];
+			$newLogArray[$logFile] = $logName . ($logDate != '' ? ' [' . substr($logDate,4) . ']':'');
 		}
-		</script>
-		</td>
-	</tr>
-	<?php
+	}
+
+	$expands = array(
+		'0' => __('System Default'),
+		'1' => __('Expand Log'),
+		'2' => __('Raw Log'),
+	);
+
+	$message_types = array(
+		'-1' => __('All'),
+		'1'  => __('Stats'),
+		'2'  => __('Warnings'),
+		'3'  => __('Warnings++'),
+		'4'  => __('Errors'),
+		'5'  => __('Errors++'),
+		'6'  => __('Debug'),
+		'7'  => __('SQL Calls'),
+		'8'  => __('AutoM8'),
+		'9'  => __('Non Stats'),
+		'10' => __('Boost'),
+		'11' => __('Device Up/Down'),
+		'12' => __('Recaches'),
+		'13' => __('Security Issues'),
+	);
+
+	if (api_plugin_is_enabled('thold')) {
+		$message_types['99'] = __('Threshold');
+	}
+
+	$reverse = array(
+		'1' => __('Newest First'),
+		'2' => __('Oldest First')
+	);
+
+	$matches = array(
+		'1' => __('Matches'),
+		'0' => __('Does Not Match')
+	);
+
+	return array(
+		'rows' => array(
+			array(
+				'filename' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('File'),
+					'filter'        => FILTER_DEFAULT,
+					'default'       => 'cacti.log',
+					'array'         => $newLogArray,
+					'value'         => $logfile
+				),
+				'tail_lines' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Tail Lines'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $log_tail_lines,
+					'value'         => '-1'
+				),
+				'expand' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Expand Log'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $expands,
+					'value'         => '-1'
+				)
+			),
+			array(
+				'message_type' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Type'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '-1',
+					'pageset'       => true,
+					'array'         => $message_types,
+					'value'         => '-1'
+				),
+				'reverse' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Display'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '1',
+					'pageset'       => true,
+					'array'         => $reverse,
+					'value'         => '1'
+				),
+				'refresh' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Refresh'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '300',
+					'pageset'       => true,
+					'array'         => $page_refresh_interval,
+					'value'         => '300'
+				)
+			),
+			array(
+				'matches' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Search'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '1',
+					'dynamic'       => false,
+					'pageset'       => true,
+					'array'         => $matches,
+					'value'         => '1'
+				),
+				'rfilter' => array(
+					'method'        => 'textbox',
+					'filter'         => FILTER_VALIDATE_IS_REGEX,
+					'placeholder'    => __('Enter a search term'),
+					'size'           => '55',
+					'default'        => '',
+					'pageset'        => true,
+					'max_length'     => '120',
+					'value'          => ''
+				)
+			)
+		),
+		'buttons' => array(
+			'go' => array(
+				'method'  => 'submit',
+				'display' => __('Go'),
+				'title'   => __('Apply filter to table'),
+			),
+			'clear' => array(
+				'method'  => 'button',
+				'display' => __('Clear'),
+				'title'   => __('Reset filter to default values'),
+			),
+			'purge' => array(
+				'method'  => 'button',
+				'display' => __('Purge'),
+				'action'  => 'default',
+				'title'   => __('Purge User log of all but the last login attempt'),
+			),
+		)
+	);
+
+	if (!$clogAdmin) {
+		unset($filter['buttons']['purge']);
+	}
+}
+
+function process_sanitize_draw_filter($render = false, $logfile = false, $clogAdmin = false) {
+	$filters = create_filter($logfile, $clogAdmin);
+
+	$page_nr = get_nfilter_request_var('page');
+
+	$current_page = get_current_page();
+
+	if ($current_page == 'utilities.php') {
+		$base_page  = 'utilities.php?action=view_logfile';
+		$page = $base_page . '&page=' . $page_nr;
+	} else {
+		$base_page  = 'clog' . (!$clogAdmin ? '_user' : '') . '.php';
+		$page = $base_page . '?page=' . $page_nr;
+	}
+
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter(__('Log Filters'), $page, 'logfile', 'sess_clog');
+	$pageFilter->set_filter_array($filters);
+
+	if ($render) {
+		$pageFilter->render();
+	} else {
+		$pageFilter->sanitize();
+	}
 }
 
 function clog_get_regex_array() {
