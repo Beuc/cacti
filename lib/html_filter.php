@@ -56,6 +56,7 @@ class CactiTableFilter {
 
 	private $sort_array    = array();
 	private $button_array  = array();
+	private $append_array  = array();
 	private $item_rows     = array();
 	private $filter_array  = array();
 	private $frequencies   = array();
@@ -192,6 +193,10 @@ class CactiTableFilter {
 		$this->button_array[$id] = $button;
 	}
 
+	public function add_row_element($row, $id, $filter) {
+		$this->append_array[$row][$id] = $filter;
+	}
+
 	public function render() {
 		/* create the filter for the page */
 		$filter = $this->create_filter();
@@ -227,6 +232,14 @@ class CactiTableFilter {
 
 		if (cacti_sizeof($this->button_array)) {
 			$this->filter_array['buttons'] += $this->button_array;
+		}
+
+		if (cacti_sizeof($this->append_array)) {
+			foreach($this->append_array as $row => $data) {
+				foreach($data as $id => $filter) {
+					$this->filter_array['rows'][$row][$id] = $filter;
+				}
+			}
 		}
 
 		// Make common adjustements
@@ -367,6 +380,10 @@ class CactiTableFilter {
 
 				foreach ($row as $field_name => $field_array) {
 					switch($field_array['method']) {
+						case 'validate':
+							// Just for validating other request variables
+
+							break;
 						case 'button':
 							print '<div class="filterColumnButton">' . PHP_EOL;
 
@@ -506,6 +523,10 @@ class CactiTableFilter {
 			foreach($this->filter_array['rows'] as $index => $row) {
 				foreach($row as $field_name => $field_array) {
 					switch($field_array['method']) {
+						case 'validate':
+							// Just for validating other request variables
+
+							break;
 						case 'button':
 							switch($field_name) {
 								case 'go':
