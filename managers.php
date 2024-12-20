@@ -149,7 +149,7 @@ function manager() {
 
 			form_alternate_row('line' . $item['id'], false);
 
-			form_selectable_cell(filter_valie($description, '', $url), $item['id']);
+			form_selectable_cell(filter_value($description, '', $url), $item['id']);
 			form_selectable_cell($item['id'], $item['id']);
 
 			form_selectable_cell($item['disabled'] ? '<span class="deviceDown">' . __('Disabled') . '</span>' : '<span class="deviceUp">' . __('Enabled') . '</span>', $item['id']);
