@@ -1890,49 +1890,107 @@ function aggregate_format_text($text, $filter) {
 	return $text;
 }
 
+function create_filter() {
+	global $item_rows;
+
+	$any  = array('-1' => __('Any'));
+	$none = array('0'  => __('None'));
+
+	$templates = array_rekey(
+		db_fetch_assoc('SELECT DISTINCT at.id, at.name
+			FROM aggregate_graph_templates AS at
+			INNER JOIN aggregate_graphs AS ag
+			ON ag.aggregate_template_id=at.id
+			ORDER BY name'),
+		'id', 'name'
+	);
+
+	$templates = $any + $none + $templates;
+
+	return array(
+		'rows' => array(
+			array(
+				'filter' => array(
+					'method'         => 'textbox',
+					'friendly_name'  => __('Search'),
+					'filter'         => FILTER_DEFAULT,
+					'placeholder'    => __('Enter a search term'),
+					'size'           => '30',
+					'default'        => '',
+					'pageset'        => true,
+					'max_length'     => '120',
+					'value'          => ''
+				),
+				'template_id' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Template'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'pageset'        => true,
+					'array'          => $templates,
+					'value'          => '-1'
+				),
+				'rows' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Graphs'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'pageset'        => true,
+					'array'          => $item_rows,
+					'value'          => '-1'
+				),
+				'local_graph_ids' => array(
+					'method'         => 'validate',
+					'filter'         => FILTER_VALIDATE_IS_NUMERIC_LIST,
+					'pageset'        => true,
+					'default'        => ''
+				)
+			)
+		),
+		'buttons' => array(
+			'go' => array(
+				'method'  => 'submit',
+				'display' => __('Go'),
+				'title'   => __('Apply Filter to Table'),
+			),
+			'clear' => array(
+				'method'  => 'button',
+				'display' => __('Clear'),
+				'title'   => __('Reset Filter to Default Values'),
+			)
+		),
+		'sort' => array(
+			'sort_column' => 'title_cache',
+			'sort_direction' => 'ASC'
+		),
+		'javascript' => array(
+			'global' => '',
+			'ready'  => ''
+		)
+	);
+}
+
+function process_sanitize_draw_filter($render = false) {
+	$filters = create_filter();
+
+	$header = __('Aggregate Graphs') . (get_request_var('local_graph_ids') != '' ? __(' [ Custom Graphs List Applied - Clear to Reset ]') : '');
+
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter($header, 'aggregate_graphs.php', 'forms', 'sess_agraph');
+
+	$pageFilter->set_filter_array($filters);
+
+	if ($render) {
+		$pageFilter->render();
+	} else {
+		$pageFilter->sanitize();
+	}
+}
+
 function aggregate_graph() {
 	global $actions, $item_rows;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'template_id' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => '',
-		),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'title_cache',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'local_graph_ids' => array(
-			'filter'  => FILTER_VALIDATE_IS_NUMERIC_LIST,
-			'pageset' => true,
-			'default' => ''
-		)
-	);
-
-	validate_store_request_vars($filters, 'sess_agraph');
-	/* ================= input validation ================= */
+	process_sanitize_draw_filter(true);
 
 	if (get_request_var('rows') == -1) {
 		$rows = read_config_option('num_rows_table');
@@ -1940,131 +1998,22 @@ function aggregate_graph() {
 		$rows = get_request_var('rows');
 	}
 
-	?>
-	<script type='text/javascript'>
-		function applyFilter() {
-			strURL = 'aggregate_graphs.php';
-			strURL += '?rows=' + $('#rows').val();
-			strURL += '&filter=' + $('#filter').val();
-			strURL += '&template_id=' + $('#template_id').val();
-			loadUrl({
-				url: strURL
-			})
-		}
+	$sql_where  = 'WHERE (gtg.graph_template_id = 0 AND gl.host_id = 0)';
+	$sql_params = array();
 
-		function clearFilter() {
-			strURL = 'aggregate_graphs.php?clear=1';
-			loadUrl({
-				url: strURL
-			})
-		}
-
-		$(function() {
-			if (!$('input[id^="agg_total"]').is(':checked') && !$('#template_propogation').is(':checked')) {
-				$('#agg_preview').hide();
-			}
-
-			$('#clear').click(function() {
-				clearFilter();
-			});
-
-			$('#forms').submit(function(event) {
-				event.preventDefault();
-				applyFilter();
-			});
-		});
-	</script>
-	<?php
-
-	html_start_box(__('Aggregate Graphs') . (get_request_var('local_graph_ids') != '' ? __(' [ Custom Graphs List Applied - Clear to Reset ]') : ''), '100%', '', '3', 'center', '');
-
-	?>
-	<tr class='even'>
-		<td>
-			<form id='forms' action='aggregate_graphs.php'>
-				<table class='filterTable'>
-					<tr>
-						<td>
-							<?php print __('Search'); ?>
-						</td>
-						<td>
-							<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='<?php print html_escape_request_var('filter'); ?>'>
-						</td>
-						<td>
-							<?php print __('Template'); ?>
-						</td>
-						<td>
-							<select id='template_id' name='template_id' onChange='applyFilter()'  data-defaultLabel='<?php print __('Template');?>'>
-								<option value='-1' <?php if (get_request_var('template_id') == '-1') { ?> selected<?php } ?>><?php print __('Any'); ?></option>
-								<option value='0' <?php if (get_request_var('template_id') == '0') { ?> selected<?php } ?>><?php print __('None'); ?></option>
-								<?php
-								$templates = db_fetch_assoc('SELECT DISTINCT at.id, at.name
-									FROM aggregate_graph_templates AS at
-									INNER JOIN aggregate_graphs AS ag
-									ON ag.aggregate_template_id=at.id
-									ORDER BY name');
-
-								if (cacti_sizeof($templates) > 0) {
-									foreach ($templates as $template) {
-										print "<option value='" . $template['id'] . "'";
-
-										if (get_request_var('template_id') == $template['id']) {
-											print ' selected';
-										}
-										print '>' . html_escape($template['name']) . '</option>';
-									}
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<?php print __('Graphs'); ?>
-						</td>
-						<td>
-							<select id='rows' onChange='applyFilter()'  data-defaultLabel='<?php print __('Graphs');?>'>
-								<option value='-1' <?php print(get_request_var('rows') == '-1' ? ' selected>' : '>') . __('Default'); ?></option>
-									<?php
-									if (cacti_sizeof($item_rows) > 0) {
-										foreach ($item_rows as $key => $value) {
-											print "<option value='" . $key . "'";
-
-											if (get_request_var('rows') == $key) {
-												print ' selected';
-											}
-											print '>' . html_escape($value) . '</option>';
-										}
-									}
-								?>
-							</select>
-						</td>
-						<td>
-							<span>
-								<input type='submit' class='ui-button ui-corner-all ui-widget' id='go' value='<?php print __esc('Go'); ?>' title='<?php print __esc('Set/Refresh Filters'); ?>'>
-								<input type='button' class='ui-button ui-corner-all ui-widget' id='clear' value='<?php print __esc('Clear'); ?>' title='<?php print __esc('Clear Filters'); ?>'>
-							</span>
-						</td>
-					</tr>
-				</table>
-			</form>
-		</td>
-	</tr>
-<?php
-
-	html_end_box();
-
-	$sql_where = 'WHERE (gtg.graph_template_id=0 AND gl.host_id=0)';
 	/* form the 'where' clause for our main sql query */
 	if (get_request_var('filter') != '') {
-		$sql_where .= ' AND (gtg.title_cache LIKE ' . db_qstr('%' . get_request_var('filter') . '%') .
-			' OR ag.title_format LIKE ' . db_qstr('%' . get_request_var('filter') . '%') . ')';
+		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . '(gtg.title_cache LIKE ? OR ag.title_format LIKE ?)';
+
+		$sql_params[] = '%' . get_request_var('filter') . '%';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
 	}
 
-	if (get_request_var('template_id') == '-1') {
-		/* Show all items */
-	} elseif (get_request_var('template_id') == '0') {
-		$sql_where .= ' AND (ag.aggregate_template_id=0 OR ag.aggregate_template_id IS NULL)';
-	} elseif (!isempty_request_var('template_id')) {
-		$sql_where .= ' AND ag.aggregate_template_id=' . get_request_var('template_id');
+	if (get_request_var('template_id') == '0') {
+		$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . '(ag.aggregate_template_id = 0 OR ag.aggregate_template_id IS NULL)';
+	} elseif (get_request_var('template_id') > 0) {
+		$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . 'ag.aggregate_template_id= ?';
+		$sql_params[] = get_request_var('template_id');
 	}
 
 	$sql = "SELECT COUNT(DISTINCT gl.id) AS total
@@ -2072,37 +2021,30 @@ function aggregate_graph() {
 		INNER JOIN graph_local AS gl
 		ON gtg.local_graph_id=gl.id
 		INNER JOIN aggregate_graphs AS ag
-		ON gtg.local_graph_id=ag.local_graph_id
+		ON gtg.local_graph_id = ag.local_graph_id
 		LEFT JOIN aggregate_graph_templates AS agt
-		ON agt.id=ag.aggregate_template_id
+		ON agt.id = ag.aggregate_template_id
 		$sql_where";
 
-	$total_rows = get_total_row_data($_SESSION[SESS_USER_ID], $sql, array(), 'aggregate_graph');
+	$total_rows = get_total_row_data($_SESSION[SESS_USER_ID], $sql, $sql_params, 'aggregate_graph');
 
 	$sql_order = get_order_string();
 	$sql_limit = ' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows;
 
-	$graph_list = db_fetch_assoc("SELECT
+	$graph_list = db_fetch_assoc_prepared("SELECT
 		gtg.id, gtg.local_graph_id, gtg.height, gtg.width, gtg.title_cache, agt.name
 		FROM graph_templates_graph AS gtg
 		INNER JOIN graph_local AS gl
-		ON gtg.local_graph_id=gl.id
+		ON gtg.local_graph_id = gl.id
 		INNER JOIN aggregate_graphs AS ag
-		ON gl.id=ag.local_graph_id
+		ON gl.id = ag.local_graph_id
 		LEFT JOIN aggregate_graph_templates AS agt
-		ON agt.id=ag.aggregate_template_id
+		ON agt.id = ag.aggregate_template_id
 		$sql_where
 		AND ag.id IS NOT NULL
 		$sql_order
-		$sql_limit");
-
-	$nav = html_nav_bar('aggregate_graphs.php', MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, 5, __('Aggregate Graphs'), 'page', 'main');
-
-	form_start('aggregate_graphs.php', 'chk');
-
-	print $nav;
-
-	html_start_box('', '100%', '', '3', 'center', '');
+		$sql_limit",
+		$sql_params);
 
 	$display_text = array(
 		'title_cache' => array(
@@ -2130,6 +2072,14 @@ function aggregate_graph() {
 		)
 	);
 
+	$nav = html_nav_bar('aggregate_graphs.php', MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, 5, __('Aggregate Graphs'), 'page', 'main');
+
+	form_start('aggregate_graphs.php', 'chk');
+
+	print $nav;
+
+	html_start_box('', '100%', '', '3', 'center', '');
+
 	html_header_sort_checkbox($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), false, 'aggregate_graphs.php?filter=' . get_request_var('filter'));
 
 	if (cacti_sizeof($graph_list)) {
@@ -2143,12 +2093,13 @@ function aggregate_graph() {
 			form_selectable_cell($graph['local_graph_id'], $graph['local_graph_id'], '', 'right');
 			form_selectable_cell((empty($graph['name']) ? '<em>' . __('None') . '</em>' : filter_value($template_name, get_request_var('filter'))), $graph['local_graph_id']);
 			form_selectable_ecell($graph['height'] . 'x' . $graph['width'], $graph['local_graph_id'], '', 'right');
+
 			form_checkbox_cell($graph['title_cache'], $graph['local_graph_id']);
 
 			form_end_row();
 		}
 	} else {
-		print '<tr class="tableRow"><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No Aggregate Graphs Found') . '</em></td></tr>';
+		print '<tr class="tableRow odd"><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No Aggregate Graphs Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);
@@ -2173,8 +2124,10 @@ function purge_old_graphs() {
 	/* workaround to handle purged graphs */
 	$old_graphs = array_rekey(db_fetch_assoc('SELECT DISTINCT local_graph_id
 		FROM aggregate_graphs_items AS pagi
-		LEFT JOIN graph_local AS gl ON pagi.local_graph_id=gl.id
-		WHERE gl.id IS NULL AND local_graph_id>0'), 'local_graph_id',  'local_graph_id');
+		LEFT JOIN graph_local AS gl
+		ON pagi.local_graph_id = gl.id
+		WHERE gl.id IS NULL
+		AND local_graph_id > 0'), 'local_graph_id',  'local_graph_id');
 
 	if (cacti_sizeof($old_graphs)) {
 		db_execute('DELETE FROM aggregate_graphs_items
@@ -2184,13 +2137,14 @@ function purge_old_graphs() {
 	$old_aggregates = array_rekey(db_fetch_assoc('SELECT DISTINCT local_graph_id
 		FROM aggregate_graphs AS pag
 		LEFT JOIN graph_local AS gl
-		ON pag.local_graph_id=gl.id
-		WHERE gl.id IS NULL AND local_graph_id>0'), 'local_graph_id', 'local_graph_id');
+		ON pag.local_graph_id = gl.id
+		WHERE gl.id IS NULL
+		AND local_graph_id>0'), 'local_graph_id', 'local_graph_id');
 
 	$old_agg_ids = array_rekey(db_fetch_assoc('SELECT DISTINCT pag.id
 		FROM aggregate_graphs AS pag
 		LEFT JOIN graph_local AS gl
-		ON pag.local_graph_id=gl.id
+		ON pag.local_graph_id = gl.id
 		WHERE gl.id IS NULL'), 'id', 'id');
 
 	if (cacti_sizeof($old_aggregates)) {
@@ -2211,3 +2165,4 @@ function purge_old_graphs() {
 			WHERE aggregate_graph_id IN (' . implode(',', $old_agg_ids) . ')');
 	}
 }
+
