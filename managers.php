@@ -343,14 +343,13 @@ function create_manager_notification_filter() {
 			)
 		)
 	);
-	get_filter_request_var('mib', FILTER_CALLBACK, array('options' => 'sanitize_search_string'));
 }
 
-function process_sanitize_draw_manager_notification_filter($render = false) {
+function process_sanitize_draw_manager_notification_filter($render = false, $header_label = '') {
 	$filters = create_manager_notification_filter();
 
 	/* create the page filter */
-	$pageFilter = new CactiTableFilter(__('SNMP Notification Receiver'), 'managers.php?action=edit&tab=notifications&id=' . get_filter_request_var('id'), 'form_snmpagent_managers', 'sess_snmp_cache');
+	$pageFilter = new CactiTableFilter($header_label, 'managers.php?action=edit&tab=notifications&id=' . get_filter_request_var('id'), 'form_snmpagent_managers', 'sess_snmp_cache');
 
 	$pageFilter->rows_label = __('OIDs');
 	$pageFilter->set_filter_array($filters);
@@ -365,7 +364,7 @@ function process_sanitize_draw_manager_notification_filter($render = false) {
 function manager_notifications($id, $header_label) {
 	global $item_rows, $mactions;
 
-	process_sanitize_draw_manager_notification_filter(true);
+	process_sanitize_draw_manager_notification_filter(true, $header_label);
 
 	if (get_request_var('rows') == '-1') {
 		$rows = read_config_option('num_rows_table');
@@ -379,13 +378,13 @@ function manager_notifications($id, $header_label) {
 	$sql_params = array();
 
 	/* filter by host */
-	if (get_request_var('mib') > 0) {
+	if (get_request_var('mib') != 'any' && get_request_var('mib') != '-1') {
 		$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . ' snmpagent_cache.mib = ?';
 		$sql_params[] = get_request_var('mib');
 	}
 
 	/* filter by search string */
-	if (get_request_var('filter') != '') {
+	if (get_request_var('filter') != 'any') {
 		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . ' (`oid` LIKE ? OR `name` LIKE ? OR `mib` LIKE ?)';
 
 		$sql_params[] = '%' . get_request_var('filter') . '%';
