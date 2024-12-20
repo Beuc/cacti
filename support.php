@@ -44,22 +44,53 @@ function support_view_tech() {
 
 	/* present a tabbed interface */
 	$tabs = array(
-		'summary'    => __('Summary'),
-		'database'   => __('Database Tables'),
-		'dbsettings' => __('Database Settings'),
-		'dbstatus'   => __('Database Status'),
-		'dbperms'    => __('Database Permissions'),
-		'processes'  => __('Database Queries'),
-		'background' => __('Background Processes'),
-		'poller'     => __('Poller Stats'),
-		'phpinfo'    => __('PHP Info'),
-		'changelog'  => __('ChangeLog'),
+		'summary' => array(
+			'display' => __('Summary'),
+			'header'  => true
+		),
+		'database' => array(
+			'display' => __('Database Tables'),
+			'header'  => true
+		),
+		'dbsettings' => array(
+			'display' => __('Database Settings'),
+			'header'  => true
+		),
+		'dbstatus' => array(
+			'display' => __('Database Status'),
+			'header'  => true
+		),
+		'dbperms' => array(
+			'display' => __('Database Permissions'),
+			'header'  => true
+		),
+		'processes' => array(
+			'display' => __('Database Queries'),
+			'header'  => false
+		),
+		'background' => array(
+			'display' => __('Background Processes'),
+			'header'  => false
+		),
+		'poller' => array(
+			'display' => __('Poller Stats'),
+			'header'  => true
+		),
+		'phpinfo' => array(
+			'display' => __('PHP Info'),
+			'header'  => true
+		),
+		'changelog' => array(
+			'display' => __('ChangeLog'),
+			'header'  => true
+		),
 	);
 
 	/* set the default tab */
 	load_current_session_value('tab', 'sess_ts_tabs', 'summary');
 	$current_tab = get_nfilter_request_var('tab');
 
+	/* the processes and background will set their own timeouts */
 	$page = 'support.php?tab=' . $current_tab;
 
 	if ($current_tab != 'processes' && $current_tab != 'background') {
@@ -68,34 +99,24 @@ function support_view_tech() {
 			'page'    => $page,
 			'logout'  => 'false'
 		);
-	} else {
-        $refresh = array(
-			'seconds' => get_filter_request_var('refresh'),
-			'page'    => $page,
-			'logout'  => 'false'
-		);
+
+		set_page_refresh($refresh);
 	}
 
-	set_page_refresh($refresh);
-
-	$header_label = __esc('Technical Support [%s]', $tabs[get_request_var('tab')]);
+	$header_label = __esc('Technical Support [ %s ]', $tabs[$current_tab]['display']);
 
 	top_header();
 
 	if (cacti_sizeof($tabs)) {
-		$i = 0;
-
 		/* draw the tabs */
 		print "<div class='tabs'><nav><ul role='tablist'>";
 
-		foreach (array_keys($tabs) as $tab_short_name) {
-			print "<li class='subTab'><a class='tab pic " . (($tab_short_name == $current_tab) ? " selected'" : "'") .
+		foreach ($tabs as $id => $name) {
+			print "<li class='subTab'><a class='tab pic " . ($id == $current_tab ? " selected'" : "'") .
 				" href='" . html_escape(CACTI_PATH_URL .
 				'support.php?' .
-				'tab=' . $tab_short_name) .
-				"'>" . $tabs[$tab_short_name] . '</a></li>';
-
-			$i++;
+				'tab=' . $id) .
+				"'>" . $name['display'] . '</a></li>';
 		}
 
 		api_plugin_hook('utilities_tab');
@@ -104,7 +125,9 @@ function support_view_tech() {
 	}
 
 	/* Display tech information */
-	html_start_box($header_label, '100%', '', '3', 'center', '');
+	if (!isset($tabs[$current_tab]['header']) || $tabs[$current_tab]['header'] === true) {
+		html_start_box($header_label, '100%', '', '3', 'center', '');
+	}
 
 	switch (get_request_var('tab')) {
 		case 'summary':
@@ -139,7 +162,9 @@ function support_view_tech() {
 			break;
 	}
 
-	html_end_box();
+	if (!isset($tabs[$current_tab]['header']) || $tabs[$current_tab]['header'] === true) {
+		html_end_box();
+	}
 
 	?>
 	<script type='text/javascript'>
@@ -160,56 +185,129 @@ function support_view_tech() {
 	bottom_footer();
 }
 
+function create_database_process_filter() {
+	global $item_rows;
+
+	$any  = array('-1' => __('Any'));
+	$none = array('0'  => __('None'));
+
+	$refresh = array(
+		1  => __esc('%d Seconds', 1),
+		3  => __esc('%d Seconds', 3),
+		5  => __esc('%d Seconds', 5),
+		10 => __esc('%d Seconds', 10),
+		15 => __esc('%d Seconds', 15),
+		20 => __esc('%d Seconds', 20)
+	);
+
+	$pollers = array(
+		'0' => __('No'),
+		'1' => __('Yes')
+	);
+
+	$chars = array(
+		150  => __esc('%d Chars', 150),
+		180  => __esc('%d Chars', 180),
+		300  => __esc('%d Chars', 300),
+		500  => __esc('%d Chars', 500),
+		1000 => __esc('%d Chars', 1000),
+	);
+
+	return array(
+		'rows' => array(
+			array(
+				'filter' => array(
+					'method'        => 'textbox',
+					'friendly_name'  => __('Search'),
+					'filter'         => FILTER_DEFAULT,
+					'placeholder'    => __('Enter a search term'),
+					'size'           => '30',
+					'default'        => '',
+					'pageset'        => true,
+					'max_length'     => '120',
+					'value'          => ''
+				),
+				'refresh' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Refresh'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '5',
+					'pageset'       => true,
+					'array'         => $refresh,
+					'value'         => '5'
+				),
+				'poller' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Include Poller'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '0',
+					'pageset'        => true,
+					'array'          => $pollers,
+					'value'          => '0'
+				),
+				'length' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Template'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '180',
+					'pageset'        => true,
+					'array'          => $chars,
+					'value'          => '180'
+				),
+				'rows' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Queries'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'pageset'        => true,
+					'array'          => $item_rows,
+					'value'          => '-1'
+				)
+			)
+		),
+		'buttons' => array(
+			'go' => array(
+				'method'  => 'submit',
+				'display' => __('Go'),
+				'title'   => __('Apply Filter to Table'),
+			),
+			'clear' => array(
+				'method'  => 'button',
+				'display' => __('Clear'),
+				'title'   => __('Reset Filter to Default Values'),
+			)
+		),
+		'sort' => array(
+			'sort_column'    => 'runtime',
+			'sort_direction' => 'DESC'
+		),
+		'javascript' => array(
+			'ready' => "$('#refresh').click(function() { clearTimeout(myRefresh); });"
+		)
+	);
+}
+
+function process_sanitize_draw_database_process_filter($render = false) {
+	$filters = create_database_process_filter();
+
+	$header = __('Technical Support [ Database Queries ]');
+
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter($header, 'support.php?tab=processes', 'form_db_stats', 'sess_ts_proc');
+
+	$pageFilter->set_filter_array($filters);
+
+	if ($render) {
+		$pageFilter->render();
+	} else {
+		$pageFilter->sanitize();
+	}
+}
+
 function show_database_processes() {
 	global $item_rows;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter' => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'refresh' => array(
-			'filter' => FILTER_VALIDATE_INT,
-			'default' => '5'
-		),
-		'poller' => array(
-			'filter' => FILTER_VALIDATE_INT,
-			'default' => '0'
-		),
-		'length' => array(
-			'filter' => FILTER_VALIDATE_INT,
-			'default' => '180'
-		),
-		'tasks' => array(
-			'filter' => FILTER_CALLBACK,
-			'default' => '-1',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'page' => array(
-			'filter' => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'filter' => array(
-			'filter' => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-		),
-		'sort_column' => array(
-			'filter' => FILTER_CALLBACK,
-			'default' => 'runtime',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'sort_direction' => array(
-			'filter' => FILTER_CALLBACK,
-			'default' => 'DESC',
-			'options' => array('options' => 'sanitize_search_string')
-		)
-	);
-
-	validate_store_request_vars($filters, 'sess_ts_processes');
-	/* ================= input validation ================= */
+	process_sanitize_draw_database_process_filter(true);
 
 	if (get_request_var('rows') == '-1') {
 		$rows = read_config_option('num_rows_table');
@@ -217,140 +315,16 @@ function show_database_processes() {
 		$rows = get_request_var('rows');
 	}
 
-	?>
-	<tr class='odd'>
-		<td>
-			<form name='form_db_stats'>
-				<table class='filterTable'>
-					<tr>
-						<td>
-							<?php print __('Refresh');?>
-						</td>
-						<td>
-							<select id='refresh'>
-								<?php
-								$refresh_intervals = array(
-									1  => __esc('%d Seconds', 1),
-									3  => __esc('%d Seconds', 3),
-									5  => __esc('%d Seconds', 5),
-									10 => __esc('%d Seconds', 10),
-									15 => __esc('%d Seconds', 15),
-									20 => __esc('%d Seconds', 20)
-								);
-
-								foreach ($refresh_intervals as $key => $interval) {
-									print '<option value="' . $key . '"' . (get_filter_request_var('refresh') == $key ? ' selected':'') . '>' . $interval . '</option>';
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<?php print __('Include Poller');?>
-						</td>
-						<td>
-							<select id='poller'>
-								<?php
-								print '<option value="0"' . (get_filter_request_var('poller') == '0' ? ' selected':'') . '>' . __('No') . '</option>';
-								print '<option value="1"' . (get_filter_request_var('poller') == '1' ? ' selected':'') . '>' . __('Yes') . '</option>';
-								?>
-							</select>
-						</td>
-						<td>
-							<?php print __('Info Length');?>
-						</td>
-						<td>
-							<select id='length'>
-								<?php
-								$chars = array(
-									150  => __esc('%d Chars', 150),
-									180  => __esc('%d Chars', 180),
-									300  => __esc('%d Chars', 300),
-									500  => __esc('%d Chars', 500),
-									1000 => __esc('%d Chars', 1000),
-								);
-
-								foreach ($chars as $key => $interval) {
-									print '<option value="' . $key . '"' . (get_filter_request_var('length') == $key ? ' selected':'') . '>' . $interval . '</option>';
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<?php print __('Queries');?>
-						</td>
-						<td>
-							<select id='rows' name='rows'>
-								<option value='-1'<?php print (get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-								<?php
-								if (cacti_sizeof($item_rows)) {
-									foreach ($item_rows as $key => $value) {
-										print '<option value="' . $key . '"' . (get_request_var('rows') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
-									}
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<span>
-								<input class='ui-button ui-corner-all ui-widget' type='button' id='refreshbtn' value='<?php print __esc('Refresh');?>' title='<?php print __esc('Refresh Values');?>'>
-								<input class='ui-button ui-corner-all ui-widget' type='button' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Reset Refresh');?>'>
-							</span>
-						</td>
-					</tr>
-				</table>
-			</form>
-			<script type='text/javascript'>
-			$(function() {
-				refreshMSeconds=$('#refresh').val()*1000;
-				refreshPage='support.php?tab=processes';
-				setupPageTimeout();
-
-				$('#refresh, #poller, #length, #rows').change(function() {
-					applyFilter();
-				});
-
-				$('#clear').click(function() {
-					var strURL  = 'support.php';
-					strURL += '?tab=processes&clear=1';
-					loadUrl({url: strURL});
-				});
-
-				$('#refresh').click(function() {
-					clearTimeout(myRefresh);
-				});
-
-				$('#refreshbtn').click(function() {
-					applyFilter();
-				});
-			});
-
-			function applyFilter() {
-				refreshMSeconds=$('#refresh').val()*1000;
-				refreshPage='support.php?tab=processes';
-				setupPageTimeout();
-
-				var strURL  = 'support.php';
-				strURL += '?tab=processes';
-				strURL += '&refresh=' + $('#refresh').val();
-				strURL += '&poller=' + $('#poller').val();
-				strURL += '&length=' + $('#length').val();
-				strURL += '&rows=' + $('#rows').val();
-				strURL += '&page=' + $('#page').val();
-				loadUrl({url: strURL});
-			}
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
-
-	$sql_where = 'WHERE info NOT LIKE "%FROM processlist%" AND info != "NULL"';
+	$sql_where  = 'WHERE info NOT LIKE "%FROM processlist%" AND info != "NULL"';
+	$sql_params = array();
 
 	/* form the 'where' clause for our main sql query */
 	if (get_request_var('filter') != '') {
-		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . '(command LIKE ' . db_qstr('%' . get_request_var('filter') . '%') . '
-			OR info LIKE ' . db_qstr('%' . get_request_var('filter') . '%') . ')';
+		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') .
+			'(command LIKE ? OR info LIKE ?';
+
+		$sql_params[] = '%' . get_request_var('filter') . '%';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
 	}
 
 	if (get_request_var('poller') == '0') {
@@ -358,27 +332,22 @@ function show_database_processes() {
 			'info NOT LIKE "%poller_item%" AND info NOT LIKE "%SQL_NO_CACHE%"';
 	}
 
-	$total_rows = db_fetch_cell("SELECT
-		COUNT(*)
+	$total_rows = db_fetch_cell_prepared("SELECT COUNT(*)
 		FROM information_schema.processlist
-		$sql_where");
+		$sql_where",
+		$sql_params);
 
 	$sql_order = get_order_string();
 	$sql_limit = ' LIMIT ' . ($rows*(get_request_var('page')-1)) . ',' . $rows;
 	$info_len  = get_request_var('length');
 
-	$processes = db_fetch_assoc("SELECT id, query_id, user, state, ROUND(time_ms/1000,2) AS runtime, LENGTH(info) AS query_len,
+	$processes = db_fetch_assoc_prepared("SELECT id, query_id, user, state, ROUND(time_ms/1000,2) AS runtime, LENGTH(info) AS query_len,
 		SUBSTRING(REPLACE(REPLACE(REPLACE(info, '\n', ' '), ',', ', '), '\t', ' '), 1, $info_len) AS info
 		FROM information_schema.processlist
 		$sql_where
 		$sql_order
-		$sql_limit");
-
-	$nav = html_nav_bar('support.php?tab=processes', MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, 5, __('Queries'), 'page', 'main');
-
-	print $nav;
-
-	html_start_box('', '100%', '', '3', 'center', '');
+		$sql_limit",
+		$sql_params);
 
 	$display_text = array(
 		'id' => array(
@@ -422,6 +391,12 @@ function show_database_processes() {
 		)
 	);
 
+	$nav = html_nav_bar('support.php?tab=processes', MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, 7, __('Queries'), 'page', 'main');
+
+	print $nav;
+
+	html_start_box('', '100%', '', '3', 'center', '');
+
 	html_header_sort($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), 1, 'support.php?tab=processes', 'main');
 
 	if (cacti_sizeof($processes)) {
@@ -439,7 +414,7 @@ function show_database_processes() {
 			form_end_row();
 		}
 	} else {
-		print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text)+1) . "'><em>" . __('No Database Queries Found') . '</em></td></tr>';
+		print "<tr class='tableRow odd'><td colspan='" . (cacti_sizeof($display_text)+1) . "'><em>" . __('No Database Queries Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);
@@ -449,54 +424,107 @@ function show_database_processes() {
 	}
 }
 
-function show_cacti_processes() {
+function create_cacti_process_filter($tables) {
 	global $item_rows;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter' => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'refresh' => array(
-			'filter' => FILTER_VALIDATE_INT,
-			'default' => '5'
-		),
-		'tasks' => array(
-			'filter' => FILTER_CALLBACK,
-			'default' => '-1',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'page' => array(
-			'filter' => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'filter' => array(
-			'filter' => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-		),
-		'sort_column' => array(
-			'filter' => FILTER_CALLBACK,
-			'default' => 'runtime',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'sort_direction' => array(
-			'filter' => FILTER_CALLBACK,
-			'default' => 'DESC',
-			'options' => array('options' => 'sanitize_search_string')
-		)
+	$all  = array('all' => __('All'));
+
+	$refresh = array(
+		1  => __esc('%d Seconds', 1),
+		3  => __esc('%d Seconds', 3),
+		5  => __esc('%d Seconds', 5),
+		10 => __esc('%d Seconds', 10),
+		15 => __esc('%d Seconds', 15),
+		20 => __esc('%d Seconds', 20)
 	);
 
-	validate_store_request_vars($filters, 'sess_ts_processes');
-	/* ================= input validation ================= */
+	$tables = $all + $tables;
 
-	if (get_request_var('rows') == '-1') {
-		$rows = read_config_option('num_rows_table');
+	return array(
+		'rows' => array(
+			array(
+				'filter' => array(
+					'method'        => 'textbox',
+					'friendly_name'  => __('Search'),
+					'filter'         => FILTER_DEFAULT,
+					'placeholder'    => __('Enter a search term'),
+					'size'           => '30',
+					'default'        => '',
+					'pageset'        => true,
+					'max_length'     => '120',
+					'value'          => ''
+				),
+				'tasks' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Task Type'),
+					'filter'         => FILTER_CALLBACK,
+					'filter_options' => array('options' => 'sanitize_search_string'),
+					'default'        => 'all',
+					'pageset'        => true,
+					'array'          => $tables,
+					'value'          => 'all'
+				),
+				'refresh' => array(
+					'method'        => 'drop_array',
+					'friendly_name' => __('Refresh'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'default'       => '5',
+					'pageset'       => true,
+					'array'         => $refresh,
+					'value'         => '5'
+				),
+				'rows' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Processes'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'pageset'        => true,
+					'array'          => $item_rows,
+					'value'          => '-1'
+				)
+			)
+		),
+		'buttons' => array(
+			'go' => array(
+				'method'  => 'submit',
+				'display' => __('Go'),
+				'title'   => __('Apply Filter to Table'),
+			),
+			'clear' => array(
+				'method'  => 'button',
+				'display' => __('Clear'),
+				'title'   => __('Reset Filter to Default Values'),
+			)
+		),
+		'sort' => array(
+			'sort_column'    => 'runtime',
+			'sort_direction' => 'DESC'
+		),
+		'javascript' => array(
+			'ready' => "$('#refresh').click(function() { clearTimeout(myRefresh); });"
+		)
+	);
+}
+
+function process_sanitize_draw_cacti_process_filter($render = false, $tables = array()) {
+	$filters = create_cacti_process_filter($tables);
+
+	$header = __('Technical Support [ Background Processes ]');
+
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter($header, 'support.php?tab=background', 'form_cacti_procs', 'sess_ts_bg');
+
+	$pageFilter->set_filter_array($filters);
+
+	if ($render) {
+		$pageFilter->render();
 	} else {
-		$rows = get_request_var('rows');
+		$pageFilter->sanitize();
 	}
+}
+
+function show_cacti_processes() {
+	global $item_rows;
 
 	/* the full set of process tables known to Cacti */
 	$tables = array(
@@ -518,126 +546,32 @@ function show_cacti_processes() {
 		}
 	}
 
-	?>
-	<tr class='odd'>
-		<td>
-			<form name='form_processes'>
-				<table class='filterTable'>
-					<tr>
-						<td>
-							<?php print __('Task Type');?>
-						</td>
-						<td>
-							<select id='tasks'>
-								<option value='-1'<?php print (get_request_var('tasks') == '-1' ? ' selected>':'>') . __('All');?></option>
-								<?php
+	process_sanitize_draw_cacti_process_filter(true, $tables);
 
-								foreach ($tables as $table => $name) {
-									print '<option value="' . $table . '"' . (get_request_var('tasks') == $table ? ' selected':'') . '>' . $name . '</option>';
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<?php print __('Refresh');?>
-						</td>
-						<td>
-							<select id='refresh'>
-								<?php
-								$refresh_intervals = array(
-									1  => __esc('%d Seconds', 1),
-									3  => __esc('%d Seconds', 3),
-									5  => __esc('%d Seconds', 5),
-									10 => __esc('%d Seconds', 10),
-									15 => __esc('%d Seconds', 15),
-									20 => __esc('%d Seconds', 20)
-								);
-
-								foreach ($refresh_intervals as $key => $interval) {
-									print '<option value="' . $key . '"' . (get_filter_request_var('refresh') == $key ? ' selected':'') . '>' . $interval . '</option>';
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<?php print __('Processes');?>
-						</td>
-						<td>
-							<select id='rows' name='rows'>
-								<option value='-1'<?php print (get_request_var('rows') == '-1' ? ' selected>':'>') . __('Default');?></option>
-								<?php
-								if (cacti_sizeof($item_rows)) {
-									foreach ($item_rows as $key => $value) {
-										print '<option value="' . $key . '"' . (get_request_var('rows') == $key ? ' selected':'') . '>' . html_escape($value) . '</option>';
-									}
-								}
-								?>
-							</select>
-						</td>
-						<td>
-							<span>
-								<input class='ui-button ui-corner-all ui-widget' type='button' id='refreshbtn' value='<?php print __esc('Refresh');?>' title='<?php print __esc('Refresh Values');?>'>
-								<input class='ui-button ui-corner-all ui-widget' type='button' id='clear' value='<?php print __esc('Clear');?>' title='<?php print __esc('Reset Refresh');?>'>
-							</span>
-						</td>
-					</tr>
-				</table>
-			</form>
-			<script type='text/javascript'>
-			$(function() {
-				refreshMSeconds=$('#refresh').val()*1000;
-				refreshPage='support.php?tab=background';
-				setupPageTimeout();
-
-				$('#refresh, #rows, #tasks').change(function() {
-					applyFilter();
-				});
-
-				$('#clear').click(function() {
-					var strURL  = 'support.php';
-					strURL += '?tab=background&clear=1';
-					loadUrl({url: strURL});
-				});
-
-				$('#refresh').click(function() {
-					clearTimeout(myRefresh);
-				});
-
-				$('#refreshbtn').click(function() {
-					applyFilter();
-				});
-			});
-
-			function applyFilter() {
-				refreshMSeconds=$('#refresh').val()*1000;
-				refreshPage='support.php?tab=background';
-				setupPageTimeout();
-
-				var strURL  = 'support.php?tab=background';
-				strURL += '&refresh=' + $('#refresh').val();
-				strURL += '&tasks='   + $('#tasks').val();
-				strURL += '&rows='    + $('#rows').val();
-				loadUrl({url: strURL});
-			}
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
+	if (get_request_var('rows') == '-1') {
+		$rows = read_config_option('num_rows_table');
+	} else {
+		$rows = get_request_var('rows');
+	}
 
 	$poller_interval = read_config_option('poller_interval');
 
-	$sql_where = '';
+	$sql_where  = '';
+	$sql_params = array();
 
 	/* form the 'where' clause for our main sql query */
 	if (get_request_var('filter') != '') {
-		$sql_where = 'WHERE (taskname LIKE ' . db_qstr('%' . get_request_var('filter') . '%') . '
-			OR tasktype LIKE ' . db_qstr('%' . get_request_var('filter') . '%') . ')';
+		$sql_where = ($sql_where != '' ? ' AND ':'WHERE ') .
+			'(taskname LIKE ? OR tasktype LIKE ?)';
+
+		$sql_params[] = '%' . get_request_var('filter') . '%';
+		$sql_params[] = '%' . get_request_var('filter') . '%';
 	}
 
-	if (get_request_var('tasks') != '-1') {
-		$tables = array(get_request_var('tasks'));
+	if (get_request_var('tasks') != 'all') {
+		$tables = array(
+			get_request_var('tasks') => $tables[get_request_var('tasks')]
+		);
 	}
 
 	$total_rows_sql = 'SELECT COUNT(*) FROM (';
@@ -731,29 +665,20 @@ function show_cacti_processes() {
 		}
 	}
 
-	$total_rows = db_fetch_cell("SELECT
-		COUNT(*)
-		FROM (
-			$sql_inner
-		) AS rs
-		$sql_where");
+	$total_rows = db_fetch_cell_prepared("SELECT COUNT(*)
+		FROM ($sql_inner) AS rs
+		$sql_where",
+		$sql_params);
 
 	$sql_order = get_order_string();
 	$sql_limit = ' LIMIT ' . ($rows*(get_request_var('page')-1)) . ',' . $rows;
 
-	$processes = db_fetch_assoc("SELECT *
-		FROM (
-			$sql_inner
-		) AS rs
+	$processes = db_fetch_assoc_prepared("SELECT *
+		FROM ($sql_inner) AS rs
 		$sql_where
 		$sql_order
-		$sql_limit");
-
-	$nav = html_nav_bar('support.php?tab=background', MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, 5, __('Processes'), 'page', 'main');
-
-	print $nav;
-
-	html_start_box('', '100%', '', '3', 'center', '');
+		$sql_limit",
+		$sql_params);
 
 	$display_text = array(
 		'tasktype' => array(
@@ -804,6 +729,12 @@ function show_cacti_processes() {
 		)
 	);
 
+	$nav = html_nav_bar('support.php?tab=background', MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, 8, __('Processes'), 'page', 'main');
+
+	print $nav;
+
+	html_start_box('', '100%', '', '3', 'center', '');
+
 	html_header_sort($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), 1, 'support.php?tab=background', 'main');
 
 	if (cacti_sizeof($processes)) {
@@ -826,7 +757,9 @@ function show_cacti_processes() {
 			form_selectable_cell($p['taskid'], $p['pid'], '', 'right');
 			form_selectable_cell($p['runtime'], $p['pid'], '', 'right');
 			form_selectable_cell($p['pid'], $p['pid'], '', 'right');
+
 			//form_selectable_cell($p['timeout'], $p['pid'], '', 'right');
+
 			form_selectable_cell($timeout_date, $p['pid'], '', 'right');
 			form_selectable_cell($p['started'], $p['pid'], '', 'right');
 			form_selectable_cell($p['last_update'], $p['pid'], '', 'right');
@@ -834,7 +767,7 @@ function show_cacti_processes() {
 			form_end_row();
 		}
 	} else {
-		print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text)+1) . "'><em>" . __('No Cacti or Plugin Background Processes Found') . '</em></td></tr>';
+		print "<tr class='tableRow odd'><td colspan='" . (cacti_sizeof($display_text)) . "'><em>" . __('No Cacti or Plugin Background Processes Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);
