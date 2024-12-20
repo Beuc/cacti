@@ -518,6 +518,8 @@ class CactiTableFilter {
 		$refreshMSeconds = 9999999;
 		$buttonFunctions = '';
 		$buttonReady     = '';
+		$readyAdd        = '';
+		$globalAdd       = '';
 
 		if (isset($this->filter_array['rows'])) {
 			foreach($this->filter_array['rows'] as $index => $row) {
@@ -582,6 +584,14 @@ class CactiTableFilter {
 			$applyFilter .= ';';
 		}
 
+		if (isset($this->filter_array['javascript']['ready']) && $this->filter_array['javascript']['ready'] != '') {
+			$readyAdd = "\t\t" . trim($this->filter_array['javascript']['ready']) . PHP_EOL;;
+		}
+
+		if (isset($this->filter_array['javascript']['global']) && $this->filter_array['javascript']['global'] != '') {
+			$globalAdd = "\t\t" . trim($this->filter_array['javascript']['global']) . PHP_EOL;
+		}
+
 		if ($this->has_refresh || isset_request_var('refresh')) {
 			$refreshMSeconds = get_request_var('refresh') * 1000;
 		}
@@ -603,6 +613,7 @@ class CactiTableFilter {
 		}
 
 		return PHP_EOL . "<script type='text/javascript'>
+		$globalAdd
 		function applyFilter() {
 			strURL = $applyFilter
 			loadUrl({ url: strURL });
@@ -631,6 +642,7 @@ class CactiTableFilter {
 			$('#clear').click(function() {
 				clearFilter();
 			});
+			$readyAdd
 			$changeReady
 			$clickReady
 			$buttonReady
