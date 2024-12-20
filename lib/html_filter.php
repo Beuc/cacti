@@ -27,12 +27,14 @@
  */
 
 class CactiTableFilter {
+	/* constructor variables */
 	public $form_header    = '';
 	public $form_action    = '';
 	public $form_id        = '';
+	public $session_var    = 'sess_';
 	public $action_url     = '';
 	public $action_label   = '';
-	public $session_var    = 'sess_';
+	public $show_columns   = true;
 	public $default_filter = array();
 	public $rows_label     = '';
 	public $js_extra       = '';
@@ -62,16 +64,18 @@ class CactiTableFilter {
 	private $frequencies   = array();
 
 	public function __construct($form_header = '', $form_action = '', $form_id = '',
-		$session_var = '', $action_url = '', $action_label = false) {
+		$session_var = '', $action_url = '', $action_label = false, $show_columns = true) {
 
 		global $item_rows;
 
 		$this->form_header   = $form_header;
 		$this->form_action   = $form_action;
 		$this->form_id       = $form_id;
+		$this->session_var   = $session_var;
 		$this->action_url    = $action_url;
 		$this->action_label  = $action_label;
-		$this->session_var   = $session_var;
+		$this->show_columns  = $show_columns;
+
 		$this->item_rows     = $item_rows;
 		$this->rows_label    = __('Rows');
 
@@ -364,7 +368,33 @@ class CactiTableFilter {
 
 		$text_appended = false;
 
-		html_filter_start_box($this->form_header, $this->action_url, true, true, $this->action_label);
+		if (isset($this->filter_array['links']) && cacti_sizeof($this->filter_array['links'])) {
+			$linkButtons = array();
+
+			if ($this->action_url != '') {
+				$linkButtons[] = array(
+					'id'       => 'add',
+					'href'     => $this->action_url,
+					'title'    => $this->action_label,
+					'callback' => true,
+					'class'    => 'fa fa-plus'
+				);
+			}
+
+			foreach($this->filter_array['links'] as $index => $link) {
+				$linkButtons[] = array(
+					'id'       => 'dynamic' . $index,
+					'href'     => $link['url'],
+					'title'    => $link['display'],
+					'callback' => true,
+					'class'    => $link['class']
+				);
+			}
+
+			html_filter_start_box($this->form_header, $linkButtons, true, $this->show_columns, $this->action_label);
+		} else {
+			html_filter_start_box($this->form_header, $this->action_url, true, $this->show_columns, $this->action_label);
+		}
 
 		if (isset($this->filter_array['rows'])) {
 			print "<form id='" . $this->form_id . "' action='" . $this->form_action . "'>";
