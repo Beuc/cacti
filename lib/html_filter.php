@@ -360,8 +360,9 @@ class CactiTableFilter {
 			);
 		}
 
-		$this->filter_array['rows'][0] += $this->filter_array['buttons'];
-		$this->filter_array['rows'][0] += $this->filter_array['buttons'];
+		if (isset($this->filter_array['buttons']) && cacti_sizeof($this->filter_array['buttons'])) {
+			$this->filter_array['rows'][0] += $this->filter_array['buttons'];
+		}
 
 		// Buffer output
 		ob_start();
