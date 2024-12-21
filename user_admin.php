@@ -889,14 +889,17 @@ function graph_perms_edit($tab, $header_label) {
 			if (cacti_sizeof($graphs)) {
 				foreach ($graphs as $g) {
 					form_alternate_row('line' . $g['local_graph_id'], true);
+
 					form_selectable_cell(filter_value($g['title_cache'], get_request_var('filter')), $g['local_graph_id']);
 					form_selectable_cell($g['local_graph_id'], $g['local_graph_id']);
 					form_selectable_cell(get_permission_string($g, $policies), $g['local_graph_id']);
+
 					form_checkbox_cell($g['title_cache'], $g['local_graph_id']);
+
 					form_end_row();
 				}
 			} else {
-				print '<tr><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No Matching Graphs Found') . '</em></td></tr>';
+				print '<tr class="tableRow odd"><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No Matching Graphs Found') . '</em></td></tr>';
 			}
 
 			html_end_box(false);
@@ -1333,6 +1336,7 @@ function graph_perms_edit($tab, $header_label) {
 							form_selectable_cell('<span class="accessGranted">' . __('Access Granted') . '</span>', $g['id']);
 						}
 					}
+
 					form_selectable_cell($g['totals'], $g['id']);
 
 					form_checkbox_cell($g['name'], $g['id']);
@@ -2295,12 +2299,13 @@ function user() {
 			form_selectable_cell(($user['policy_hosts'] == 1 ? __('ALLOW'):__('DENY')), $user['id']);
 			form_selectable_cell(($user['policy_graph_templates'] == 1 ? __('ALLOW'):__('DENY')), $user['id']);
 			form_selectable_cell($last_login, $user['id']);
+
 			form_checkbox_cell($user['username'], $user['id'], $disabled);
 
 			form_end_row();
 		}
 	} else {
-		print '<tr><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No Users Found') . '</em></td></tr>';
+		print '<tr class="tableRow odd"><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No Users Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);
@@ -2381,9 +2386,7 @@ function create_graphs_filter() {
 }
 
 function graph_filter($header_label) {
-	global $config, $item_rows;
-
-	$filters = create_device_filter();
+	$filters = create_graphs_filter();
 
 	/* create the page filter */
 	$pageFilter = new CactiTableFilter(__('Graph Permissions %s', $header_label), 'user_admin.php?action=user_edit&tab=permsd&id=' . get_request_var('id'), 'form_template', 'sess_ua_d');
@@ -2401,8 +2404,6 @@ function graph_filter($header_label) {
 }
 
 function group_filter($header_label) {
-	global $config, $item_rows;
-
 	/* create the page filter */
 	$pageFilter = new CactiTableFilter(__('Group Membership %s', $header_label), 'user_admin.php?action=user_edit&tab=permsgr&id=' . get_request_var('id'), 'form_group', 'sess_ua_g');
 
@@ -2449,10 +2450,10 @@ function create_device_filter() {
 					'method'        => 'drop_array',
 					'friendly_name' => __('Template'),
 					'filter'        => FILTER_VALIDATE_INT,
-					'default'       => '0',
+					'default'       => '-1',
 					'pageset'       => true,
 					'array'         => $host_templates,
-					'value'         => '0'
+					'value'         => '-1'
 				),
 				'rows' => array(
 					'method'        => 'drop_array',
@@ -2481,8 +2482,6 @@ function create_device_filter() {
 }
 
 function device_filter($header_label) {
-	global $config, $item_rows;
-
 	$filters = create_device_filter();
 
 	/* create the page filter */
@@ -2501,8 +2500,6 @@ function device_filter($header_label) {
 }
 
 function template_filter($header_label) {
-	global $config, $item_rows;
-
 	/* create the page filter */
 	$pageFilter = new CactiTableFilter(__('Template Permissions %s', $header_label), 'user_admin.php?action=user_edit&tab=permste&id=' . get_request_var('id'), 'form_template', 'sess_ua_te');
 
@@ -2517,8 +2514,6 @@ function template_filter($header_label) {
 }
 
 function tree_filter($header_label) {
-	global $config, $item_rows;
-
 	/* create the page filter */
 	$pageFilter = new CactiTableFilter(__('Tree Permissions %s', $header_label), 'user_admin.php?action=user_edit&tab=permstr&id=' . get_request_var('id'), 'form_tree', 'sess_ua_tr');
 
