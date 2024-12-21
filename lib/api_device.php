@@ -1706,7 +1706,7 @@ function api_device_ping_device($device_id, $from_remote = false) {
 						$snmp_location   = cacti_snmp_session_get($session, '.1.3.6.1.2.1.1.6.0');
 						$snmp_contact    = cacti_snmp_session_get($session, '.1.3.6.1.2.1.1.4.0');
 
-						print '<strong>' . __('System:') . '</strong> ' . html_split_string($snmp_system) . '<br>';
+						print '<strong>' . __('System:') . '</strong> ' . html_split_string($snmp_system, 150) . '<br>';
 						$snmp_uptime_ticks = intval($snmp_uptime);
 						$days              = intval($snmp_uptime_ticks / (60 * 60 * 24 * 100));
 						$remainder         = $snmp_uptime_ticks % (60 * 60 * 24 * 100);
