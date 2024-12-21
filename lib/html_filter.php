@@ -634,7 +634,11 @@ class CactiTableFilter {
 				}
 			}
 
-			$applyFilter .= ';';
+			if ($filterLength == 0) {
+				$applyFilter .= "';";
+			} else {
+				$applyFilter .= ";";
+			}
 		}
 
 		if (isset($this->filter_array['javascript']['ready']) && $this->filter_array['javascript']['ready'] != '') {
