@@ -108,7 +108,7 @@ function html_start_box($title, $width, $div, $cell_padding, $align, $add_url_or
 
 	if ($title != '') {
 		print "<div id='$table_id' class='cactiTable' style='width:$width;text-align:$align;'>";
-		print '<div>';
+		print '<div class="cactiTableTitleRow">';
 		print "<div class='cactiTableTitle'><span>" . ($title != '' ? $title:'') . '</span></div>';
 		print "<div class='cactiTableButton'>";
 

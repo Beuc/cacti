@@ -1207,7 +1207,6 @@ legend {
 	padding-left: 3px;
 	text-align: left;
 	display: block;
-	width: calc(50%);
 	height: 28px;
 	line-height: 28px;
 	font-size: 1em;
@@ -1220,7 +1219,6 @@ legend {
 	padding: 0px;
 	display: block;
 	text-align: right;
-	width: calc(50% - 3px);
 	height: 28px;
 	line-height: 28px;
 	background: rgba(0,0,0,0.9);

@@ -1192,7 +1192,6 @@ legend {
 	text-align: left;
 	line-height: 22px;
 	display: table-column;
-	width: calc(50%);
 	font-size: 1em;
 	font-weight: 700;
 	background: rgba(102,0,102,0.7);
@@ -1203,7 +1202,6 @@ legend {
 	line-height: 22px;
 	display: table-column;
 	text-align: right;
-	width: calc(50%);
 	background: rgba(102,0,102,0.7);
 	white-space: nowrap;
 }

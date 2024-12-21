@@ -1373,7 +1373,6 @@ tr>td.textInfo.right {
 	padding-left: 3px;
 	vertical-align: middle;
 	display: block;
-	width: calc(50%);
 	height: 28px;
 	line-height: 28px;
 	font-size: 13px;
@@ -1391,7 +1390,6 @@ tr>td.textInfo.right {
 	vertical-align: middle;
 	font-size: 13px;
 	color: #FFF;
-	width: calc(50% - 3px);
 	height: 28px;
 	line-height: 28px;
 	border-color: #222;
