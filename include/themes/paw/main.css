@@ -1207,7 +1207,7 @@ legend {
 	padding-left: 3px;
 	text-align: left;
 	display: block;
-	width: 70%;
+	width: calc(50%);
 	height: 28px;
 	line-height: 28px;
 	font-size: 1em;
@@ -1220,7 +1220,7 @@ legend {
 	padding: 0px;
 	display: block;
 	text-align: right;
-	width: calc(30% - 3px);
+	width: calc(50% - 3px);
 	height: 28px;
 	line-height: 28px;
 	background: rgba(0,0,0,0.9);
@@ -1304,6 +1304,14 @@ legend {
 	display: table-cell;
 	padding: 5px 0px 5px 5px;
 	vertical-align: middle;
+}
+
+.pingRow {
+	padding-left: 5px;
+	min-height: 50px;
+	vertical-align: text-top;
+	display: table-cell;
+	margin: 0px;
 }
 
 .formRow {
