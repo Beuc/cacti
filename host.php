@@ -825,6 +825,9 @@ function host_edit() {
 		if (cacti_sizeof($host)) {
 			$header_label = __esc('Device [edit: %s]', $host['description']);
 		}
+	} else {
+		$host['id']          = 0;
+		$host['description'] = __('New Device');
 	}
 
 	if (cacti_sizeof($host)) {
@@ -836,7 +839,8 @@ function host_edit() {
 
 		$_SESSION['cur_device_id'] = get_request_var('id');
 	} else {
-		$filters = array();
+		$content = '';
+		$filters = create_host_edit_filter($host, $content);
 
 		$_SESSION['cur_device_id'] = 0;
 	}
@@ -845,7 +849,6 @@ function host_edit() {
 	$pageFilter = new CactiTableFilter($header_label, 'host.php', 'form_host', 'sess_host_edit', '', '', false);
 	$pageFilter->set_filter_array($filters);
 	$pageFilter->render();
-
 
 	form_start('host.php', 'host_form');
 
@@ -1398,17 +1401,14 @@ function device_javascript(bool $hasHost = true) {
 
 			//ToDo: Load URL breaks dropdown's on the host page
 
-			//loadUrl({
-			//	url: urlPath + 'host.php?action=ping_host&id=' + $('#id').val(),
-			//	elementId: 'ping_results',
-			//	noState: true,
-			//	funcEnd: 'ping_results_finalize',
-			//});
-
-			$.get(urlPath + 'host.php?action=ping_host&id=' + $('#id').val(), function(data) {
-				$('#ping_results').html(data);
-				hostInfoHeight = $('.hostInfoHeader').height();
-			});
+			if ($('#id').val() > 0) {
+				$.get(urlPath + 'host.php?action=ping_host&id=' + $('#id').val(), function(data) {
+					$('#ping_results').html(data);
+					hostInfoHeight = $('.hostInfoHeader').height();
+				});
+			} else {
+					$('#ping_results').html('<?php print __('Device Status will appear once created');?>');
+			}
 		});
 
 		function ping_results_finalize(options, html) {
