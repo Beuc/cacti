@@ -793,7 +793,26 @@ function poller_edit() {
 
 	html_end_box(true, true);
 
-	$form_buttons = array(
+	$form_buttons = array();
+
+	if ($poller['id'] > 1) {
+		$form_buttons[] = array(
+			'id'     => 'delete',
+			'value'  => __esc('Delete'),
+			'method' => 'post',
+			'url'    => 'pollers.php',
+			'data'   => json_encode(
+				array(
+					'action' => 'actions',
+					'drp_action' => POLLER_DELETE,
+					'chk_' . $poller['id'] => 'on',
+					'__csrf_magic' => csrf_get_tokens(),
+				)
+			),
+		);
+	}
+
+	$form_buttons = array_merge($form_buttons, array(
 		array(
 			'id'     => 'return',
 			'value'  => __esc('Return'),
@@ -805,7 +824,7 @@ function poller_edit() {
 			'value'  => __esc('Save'),
 			'type'   => 'submit'
 		)
-	);
+	));
 
 	form_save_buttons($form_buttons);
 }
