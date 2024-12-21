@@ -384,7 +384,7 @@ function create_filter($host) {
 			array(
 				'display' => __('Create New Device'),
 				'url'     => 'host.php?action=edit',
-				'class'   => 'fa fa-server'
+				'class'   => 'fa fa-server deviceUp'
 			),
 		)
 	);
