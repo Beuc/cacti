@@ -6670,19 +6670,24 @@ function CactiShutdownHandler() {
  *
  * @param  int $host_id - the device id to search for
  *
- * @return string
+ * @return bool
  */
-function enable_device_debug(int $host_id): string {
+function enable_device_debug(int $host_id): bool {
 	$device_debug = read_config_option('selective_device_debug', true);
-	$devices      = explode(',', $device_debug ?? '');
 
-	if (array_search($host_id, $devices, true) === false) {
+	$devices = array();
+
+	if ($device_debug != '') {
+		$devices = explode(',', $device_debug);
+	}
+
+	if (!in_array($host_id, $devices, true)) {
 		$devices[]    = $host_id;
 		$device_debug = implode(',', $devices);
 		set_config_option('selective_device_debug', $device_debug, true);
 	}
 
-	return $device_debug ?? '';
+	return true;
 }
 
 /**
@@ -6691,20 +6696,19 @@ function enable_device_debug(int $host_id): string {
  *
  * @param  int $host_id - the device id to search for
  *
- * @return string
+ * @return bool
  */
-function disable_device_debug(int $host_id): string {
+function disable_device_debug(int $host_id): bool {
 	$device_debug = read_config_option('selective_device_debug', true);
-	$devices      = explode(',', $device_debug ?? '');
-	$device_index = array_search($host_id, $devices, true);
 
-	if ($device_index !== false) {
-		unset($devices[$device_index]);
+	if ($device_debug != '') {
+		$devices = explode(',', $device_debug);
+		$devices = array_diff($devices, array($host_id));
 		$device_debug = implode(',', $devices);
 		set_config_option('selective_device_debug', $device_debug, true);
 	}
 
-	return $device_debug ?? '';
+	return true;
 }
 
 /**
@@ -6719,7 +6723,11 @@ function is_device_debug_enabled(int $host_id): bool {
 	$device_debug = read_config_option('selective_device_debug', true);
 	$devices      = explode(',', $device_debug);
 
-	return (array_search($host_id, $devices, true) !== false);
+	if (in_array($host_id, $devices)) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 /**
