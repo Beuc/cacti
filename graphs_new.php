@@ -314,7 +314,7 @@ function create_filter($host) {
 					'method'         => 'drop_callback',
 					'friendly_name'  => __('Device'),
 					'filter'         => FILTER_VALIDATE_INT,
-					'default'        => '-1',
+					'default'        => '',
 					'pageset'        => true,
 					'sql'            => 'SELECT DISTINCT id, description AS name FROM host ORDER BY description',
 					'action'         => 'ajax_hosts',
@@ -436,7 +436,7 @@ function process_sanitize_draw_filter($render = false, $header_label = '', $host
 	$filters = create_filter($host);
 
 	/* create the page filter */
-	$pageFilter = new CactiTableFilter($header_label, 'graph_new.php', 'form_gn', 'sess_gn', '', '', false);
+	$pageFilter = new CactiTableFilter($header_label, 'graphs_new.php', 'form_gn', 'sess_gn', '', '', false);
 
 	$pageFilter->set_filter_array($filters);
 
@@ -450,29 +450,29 @@ function process_sanitize_draw_filter($render = false, $header_label = '', $host
 function graphs() {
 	global $config, $item_rows;
 
-	if (!isempty_request_var('host_id')) {
+	if (isempty_request_var('host_id')) {
+		$host = db_fetch_row('SELECT id, description, hostname, host_template
+			FROM host
+			ORDER BY description ASC
+			LIMIT 1');
+
+		set_request_var('host_id', $host['id']);
+	} else {
 		$host = db_fetch_row_prepared('SELECT id, description, hostname, host_template_id
 			FROM host
 			WHERE id = ?',
 			array(get_request_var('host_id')));
+	}
 
-		if (cacti_sizeof($host)) {
-			$name = db_fetch_cell_prepared('SELECT name
-				FROM host_template
-				WHERE id = ?',
-				array($host['host_template_id']));
+	if (cacti_sizeof($host)) {
+		$name = db_fetch_cell_prepared('SELECT name
+			FROM host_template
+			WHERE id = ?',
+			array($host['host_template_id']));
 
-			$header_label = __esc('New Graphs for [ %s ] (%s %s)', $host['description'], $host['hostname'], (!empty($host['host_template_id']) ? $name:''));
-		} else {
-			$header_label = __('New Graphs for [ All Devices ]');
-
-			$host['id'] = -1;
-
-			$host['host_template_id'] = 0;
-			$host['description']      = __('All Devices');
-		}
+		$header_label = __esc('New Graphs [ %s - %s ] [ %s ]', $host['description'], $host['hostname'], (!empty($host['host_template_id']) ? $name:''));
 	} else {
-		$host = db_fetch_row('SELECT id, description FROM host ORDER BY description ASC LIMIT 1');
+		$header_label = __('New Graphs [ Search for a Device First ]');
 	}
 
 	process_sanitize_draw_filter(true, $header_label, $host);
@@ -482,70 +482,6 @@ function graphs() {
 	} else {
 		$rows = get_request_var('rows');
 	}
-
-	html_start_box($header_label, '100%', '', '3', 'center', '');
-
-											?>
-										</select>
-									</td>
-								</tr>
-							</table>
-						</td>
-					</tr>
-				</table>
-			</form>
-			<script type='text/javascript'>
-				function applyFilter() {
-					strURL  = '?graph_type=' + $('#graph_type').val();
-					strURL += '&host_id=' + $('#host_id').val();
-					strURL += '&filter=' + $('#filter').val();
-					strURL += '&rows=' + $('#rows').val();
-					loadUrl({url:strURL})
-				}
-
-				function clearFilter() {
-					loadUrl({url:'graphs_new.php?clear=true'})
-				}
-
-				function saveFilter() {
-					strURL = 'graphs_new.php?action=ajax_save_filter' +
-						'&rows='     + $('#rows').val() +
-						'&graph_type=' + $('#graph_type').val();
-
-					$.get(strURL)
-						.done(function(data) {
-							$('#text').show().text('<?php print __('Filter Settings Saved');?>').fadeOut(2000);
-						})
-						.fail(function(data) {
-							getPresentHTTPError(data);
-						});
-				}
-
-				$(function() {
-					$('[id^="reload"]').click(function(data) {
-						$(this).addClass('fa-spin');
-						loadUrl({url:'graphs_new.php?action=query_reload&id='+$(this).attr('data-id')+'&host_id='+$('#host_id').val()})
-					});
-
-					$('#clear').click(function() {
-						clearFilter();
-					});
-
-					$('#save').click(function() {
-						saveFilter();
-					});
-
-					$('#graphs_new').submit(function(event) {
-						event.preventDefault();
-						applyFilter();
-					});
-				});
-			</script>
-		</td>
-	</tr>
-	<?php
-
-	html_end_box();
 
 	form_start('graphs_new.php', 'chk');
 
