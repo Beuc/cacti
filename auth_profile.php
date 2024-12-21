@@ -488,7 +488,7 @@ function settings() {
 		)
 	);
 
-	form_save_buttons($buttons, false, $_SESSION['profile_referer']);
+	form_save_buttons($buttons, $_SESSION['profile_referer']);
 
 	form_end();
 }
@@ -594,7 +594,7 @@ function settings_2fa() {
 		)
 	);
 
-	form_save_buttons($buttons, true, $_SESSION['profile_referer']);
+	form_save_buttons($buttons, $_SESSION['profile_referer']);
 
 	?>
 	<script type='text/javascript'>
