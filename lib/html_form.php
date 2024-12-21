@@ -1787,15 +1787,15 @@ function form_save_button($cancel_url, $force_type = '', $key_field = 'id', $aja
 	}
 
 	?>
-	<table class='cactiTable saveRowParent'>
-		<tr>
-			<td class='saveRow'>
+	<div class='cactiTable saveRowParent'>
+		<div class='formRow'>
+			<div class='saveRow'>
 				<input type='hidden' name='action' value='save'>
 				<?php print $cancel_action; ?>
 				<input type='submit' class='<?php print $force_type; ?> ui-button ui-corner-all ui-widget' id='submit' value='<?php print $alt; ?>'>
-			</td>
-		</tr>
-	</table>
+			</div>
+		</div>
+	</div>
 	<?php
 
 	form_end($ajax);
@@ -1838,9 +1838,6 @@ function form_save_buttons($buttons, $cancel_url = '', $force_type = '', $key_fi
 		} else {
 			$cancel_url = '';
 		}
-	} else {
-		$url_components = parse_url($url);
-		$cancel_url = $url_components['path'];
 	}
 
 	if (empty($force_type) || $force_type == 'return') {
@@ -1872,9 +1869,9 @@ function form_save_buttons($buttons, $cancel_url = '', $force_type = '', $key_fi
 	}
 
 	?>
-	<table class='cactiTable saveRowParent'>
-		<tr>
-			<td class='saveRow'>
+	<div class='cactiTable saveRowParent'>
+		<div class='formRow'>
+			<div class='saveRow'>
 				<input type='hidden' name='action' value='save'>
 				<?php foreach ($buttons as $b) {
 					$type = 'button';
@@ -1921,9 +1918,9 @@ function form_save_buttons($buttons, $cancel_url = '', $force_type = '', $key_fi
 
 					print '>' . PHP_EOL;
 				} ?>
-			</td>
-		</tr>
-	</table>
+			</div>
+		</div>
+	</div>
 	<?php
 
 	form_end(true);
