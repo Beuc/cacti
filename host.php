@@ -696,7 +696,7 @@ function host_remove_gt() {
 	api_device_gt_remove(get_request_var('host_id'), get_request_var('id'));
 }
 
-function create_host_edit_filter($host) {
+function create_host_edit_filter($host, $content = '') {
 	global $item_rows;
 
 	$debug = is_device_debug_enabled($host['id']);
@@ -704,6 +704,10 @@ function create_host_edit_filter($host) {
 	$filters = array(
 		'rows' => array(
 			array(
+				'pingdata' => array(
+					'method'  => 'content',
+					'content' => $content,
+				),
 				'id' => array(
 					'method'  => 'validate',
 					'filter'  => FILTER_VALIDATE_INT,
@@ -824,7 +828,11 @@ function host_edit() {
 	}
 
 	if (cacti_sizeof($host)) {
-		$filters = create_host_edit_filter($host);
+		$content  = "<div class='pingRow'>";
+		$content .= "<div id='ping_results'>" . __('Contacting Device') . "&nbsp;<i style='font-size:12px;' class='fa fa-spin fa-spinner'></i></div>";
+		$content .= "</div>";
+
+		$filters = create_host_edit_filter($host, $content);
 
 		$_SESSION['cur_device_id'] = get_request_var('id');
 	} else {
@@ -838,13 +846,6 @@ function host_edit() {
 	$pageFilter->set_filter_array($filters);
 	$pageFilter->render();
 
-	if (cacti_sizeof($host)) {
-		print "<div class='filterTable'>";
-		print "<div class='pingRow'>";
-		print "<div id='ping_results'>" . __('Contacting Device') . "&nbsp;<i style='font-size:12px;' class='fa fa-spin fa-spinner'></i></div>";
-		print "</div>";
-		print "</div>";
-	}
 
 	form_start('host.php', 'host_form');
 

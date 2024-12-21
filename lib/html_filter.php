@@ -433,6 +433,10 @@ class CactiTableFilter {
 
 				foreach ($row as $field_name => $field_array) {
 					switch($field_array['method']) {
+						case 'content':
+							print '<div class="filterColumn">' . $field_array['content'] . '</div>';
+
+							break;
 						case 'validate':
 							// Just for validating other request variables
 
@@ -578,6 +582,7 @@ class CactiTableFilter {
 			foreach($this->filter_array['rows'] as $index => $row) {
 				foreach($row as $field_name => $field_array) {
 					switch($field_array['method']) {
+						case 'content':
 						case 'validate':
 							// Just for validating other request variables
 
