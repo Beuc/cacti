@@ -696,6 +696,108 @@ function host_remove_gt() {
 	api_device_gt_remove(get_request_var('host_id'), get_request_var('id'));
 }
 
+function create_host_edit_filter($host) {
+	global $item_rows;
+
+	$debug = is_device_debug_enabled($host['id']);
+
+	$filters = array(
+		'rows' => array(
+			array(
+				'id' => array(
+					'method'  => 'validate',
+					'filter'  => FILTER_VALIDATE_INT,
+					'default' => '',
+				)
+			)
+		),
+		'links' => array(
+			array(
+				'display' => __('Create New Device'),
+				'url'     => 'host.php?action=edit',
+				'class'   => 'fa fa-server deviceUp'
+			),
+			array(
+				'display' => __('Create New Graphs'),
+				'url'     => 'graphs_new.php?reset=true&host_id=' . $host['id'],
+				'class'   => 'fa fa-chart-line deviceRecovering'
+			),
+			array(
+				'display' => __('Re-Index Device'),
+				'url'     => 'host.php?action=reindex&host_id=' . $host['id'],
+				'class'   => 'fa fa-sync deviceUp'
+			),
+			array(
+				'display' => ($debug ? __('Disable Device Debug'):__('Enable Device Debug')),
+				'url'     => 'host.php?action=' . ($debug ? 'disable_debug':'enable_debug') . '&host_id=' . $host['id'],
+				'class'   => ($debug ? 'fa fa-bug deviceRecovering':'fa fa-bug deviceUp')
+			),
+			array(
+				'display' => __('Repopulate Poller Cache'),
+				'url'     => 'host.php?action=repopulate&host_id=' . $host['id'],
+				'class'   => 'fa fa-hammer'
+			),
+			array(
+				'display' => __('View Poller Cache'),
+				'url'     => 'utilities.php?poller_action=-1&action=view_poller_cache&host_id=' . $host['id'] . '&template_id=-1&filter=&rows=-1',
+				'class'   => 'fa fa-search-plus deviceDisabled'
+			),
+			array(
+				'display' => __('View Data Source List'),
+				'url'     => 'data_sources.php?reset=true&host_id=' . $host['id'] . '&ds_rows=30&filter=&template_id=-1&method_id=-1&page=1',
+				'class'   => 'fa fa-th-large deviceUp'
+			),
+			array(
+				'display' => __('View Graphs List'),
+				'url'     => 'graphs.php?reset=true&host_id=' . $host['id'] . '&graph_rows=30&filter=&template_id=-1&page=1',
+				'class'   => 'fa fa-th-large deviceRecovering'
+			),
+		)
+	);
+
+	/* process plugin links */
+	ob_start();
+
+	/**
+	 * Prototype - We will convert links into nice glyphs potentially
+	 *
+	 * <span class="linkMarker">*</span>
+	 * <a
+	 *   class="autocreate linkEditMain"
+	 *   href="plugins/thold/thold.php?action=autocreate&host_id=99"
+	 * >Auto-create Thresholds</a>
+	 * <br>';
+	 */
+	api_plugin_hook('device_edit_top_links');
+
+	$new_links = ob_get_clean();
+
+	/**
+	 * Now that we have anchors, let's add them to the
+	 * filter array.
+	 */
+	if ($new_links != '') {
+		$links = new DOMDocument();
+		$links->loadHTML($new_links);
+		$anchors = $links->getElementsByTagName('a');
+
+		if (cacti_sizeof($anchors)) {
+			foreach($anchors as $a) {
+				$name = $a->textContent;
+				$href = $a->getAttribute('href');
+
+				$filters['links'][] = array(
+					'display' => $name,
+					'url'     => $href,
+					'class'   => 'fa fa-plug'
+				);
+			}
+		}
+	}
+
+	return $filters;
+}
+
 function host_edit() {
 	global $fields_host_edit, $reindex_types;
 
@@ -706,12 +808,10 @@ function host_edit() {
 	api_plugin_hook('host_edit_top');
 
 	$header_label = __('Device [new]');
-	$debug_link   = '';
-	$repop_link   = '';
 
-	if (!isempty_request_var('id')) {
-		$_SESSION['cur_device_id'] = get_request_var('id');
+	$host = array();
 
+	if (get_request_var('id') > 0) {
 		$host = db_fetch_row_prepared('SELECT *
 			FROM host
 			WHERE id = ?',
@@ -720,53 +820,35 @@ function host_edit() {
 
 		if (cacti_sizeof($host)) {
 			$header_label = __esc('Device [edit: %s]', $host['description']);
-
-			if (is_device_debug_enabled($host['id'])) {
-				$debug_link = "<span class='linkMarker'>*</span><a class='hyperLink' href='" . html_escape('host.php?action=disable_debug&host_id=' . $host['id']) . "'>" . __('Disable Device Debug') . '</a><br>';
-			} else {
-				$debug_link = "<span class='linkMarker'>*</span><a class='hyperLink' href='" . html_escape('host.php?action=enable_debug&host_id=' . $host['id']) . "'>" . __('Enable Device Debug') . '</a><br>';
-			}
-
-			$repop_link = "<span class='linkMarker'>*</span><a class='hyperLink' href='" . html_escape('host.php?action=repopulate&host_id=' . $host['id']) . "'>" . __('Repopulate Poller Cache') . '</a><br>';
-			$repop_link .= "<span class='linkMarker'>*</span><a class='hyperLink' href='" . html_escape('utilities.php?poller_action=-1&action=view_poller_cache&host_id=' . $host['id'] . '&template_id=-1&filter=&rows=-1') . "'>" . __('View Poller Cache') . '</a><br>';
-
-			/* append uptime data */
-			$header_label .= __(' [ In state since \'%s\', Uptime since \'%s\' ]', get_timeinstate($host, true), get_uptime($host, true));
 		}
+	}
+
+	if (cacti_sizeof($host)) {
+		$filters = create_host_edit_filter($host);
+
+		$_SESSION['cur_device_id'] = get_request_var('id');
 	} else {
+		$filters = array();
+
 		$_SESSION['cur_device_id'] = 0;
 	}
 
-	if (!empty($host['id'])) {
-		?>
-		<table class='hostInfoHeader' style='width:100%'>
-			<tr>
-				<td class='textInfo left'>
-					<?php print html_escape($host['description']); ?> (<?php print html_escape($host['hostname']); ?>)<br />
-				</td>
-				<td rowspan='2' class='textInfo right' style='vertical-align:top'>
-					<span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('host.php?action=edit'); ?>'><?php print __('Create New Device'); ?></a><br>
-					<span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('graphs_new.php?reset=true&host_id=' . $host['id']); ?>'><?php print __('Create Graphs for this Device'); ?></a><br>
-					<span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('host.php?action=reindex&host_id=' . $host['id']); ?>'><?php print __('Re-Index Device'); ?></a><br>
-					<?php print $debug_link; ?>
-					<?php print $repop_link; ?>
-					<span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('data_sources.php?reset=true&host_id=' . $host['id'] . '&ds_rows=30&filter=&template_id=-1&method_id=-1&page=1'); ?>'><?php print __('Data Source List'); ?></a><br>
-					<span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('graphs.php?reset=true&host_id=' . $host['id'] . '&graph_rows=30&filter=&template_id=-1&page=1'); ?>'><?php print __('Graph List'); ?></a>
-					<?php api_plugin_hook('device_edit_top_links'); ?>
-				</td>
-			</tr>
-			<tr>
-				<td style='vertical-align:top;' class='textHeader'>
-					<div id='ping_results'><?php print __('Contacting Device'); ?>&nbsp;<i style='font-size:12px;' class='fa fa-spin fa-spinner'></i><br><br></div>
-				</td>
-			</tr>
-		</table>
-		<?php
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter($header_label, 'host.php', 'form_host', 'sess_host_edit', '', '', false);
+	$pageFilter->set_filter_array($filters);
+	$pageFilter->render();
+
+	if (cacti_sizeof($host)) {
+		print "<div class='filterTable'>";
+		print "<div class='pingRow'>";
+		print "<div id='ping_results'>" . __('Contacting Device') . "&nbsp;<i style='font-size:12px;' class='fa fa-spin fa-spinner'></i></div>";
+		print "</div>";
+		print "</div>";
 	}
 
 	form_start('host.php', 'host_form');
 
-	html_start_box($header_label, '100%', true, '3', 'center', '');
+	html_start_box('', '100%', true, '3', 'center', '');
 
 	/* preserve the host template id if passed in via a GET variable */
 	if (!isempty_request_var('host_template_id')) {
