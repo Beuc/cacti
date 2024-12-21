@@ -281,7 +281,7 @@ class CactiTableFilter {
 					'friendly_name'  => __('Has Graphs'),
 					'filter'         => FILTER_VALIDATE_REGEXP,
 					'filter_options' => array('options' => array('regexp' => '(true|false)')),
-					'default'        => '',
+					'default'        => read_config_option('default_has') == 'on' ? 'true':'false',
 					'pageset'        => true,
 					'value'          => $value
 				)
@@ -301,7 +301,7 @@ class CactiTableFilter {
 					'friendly_name'  => __('Has Data Sources'),
 					'filter'         => FILTER_VALIDATE_REGEXP,
 					'filter_options' => array('options' => array('regexp' => '(true|false)')),
-					'default'        => '',
+					'default'        => read_config_option('default_has') == 'on' ? 'true':'false',
 					'pageset'        => true,
 					'value'          => $value
 				)
@@ -321,7 +321,7 @@ class CactiTableFilter {
 					'friendly_name'  => __('Named Colors'),
 					'filter'         => FILTER_VALIDATE_REGEXP,
 					'filter_options' => array('options' => array('regexp' => '(true|false)')),
-					'default'        => '',
+					'default'        => read_config_option('default_has') == 'on' ? 'true':'false',
 					'pageset'        => true,
 					'value'          => $value
 				)
@@ -341,7 +341,7 @@ class CactiTableFilter {
 					'friendly_name'  => ($this->associated_label != '' ? $this->associated_label : __('Associated')),
 					'filter'         => FILTER_VALIDATE_REGEXP,
 					'filter_options' => array('options' => array('regexp' => '(true|false)')),
-					'default'        => '',
+					'default'        => read_config_option('default_has') == 'on' ? 'true':'false',
 					'pageset'        => true,
 					'value'          => $value
 				)
