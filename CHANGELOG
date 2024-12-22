@@ -133,6 +133,7 @@ Cacti CHANGELOG
 -feature#5717: Add Aruba Clearpass template
 -feature#5804: Remove the Classic Theme in Cacti
 -feature#5833: Add button for remove all data and configuration/settings
+-feature#5837: Remote poller installer should test version of cacti and new poller
 -feature#5838: Reduce the number of default log from automation
 -feature#5849: Separate Logging related settings to a new settings tab
 -feature#5855: Replace Plugin Images with FontAwesome Glyphs

@@ -416,11 +416,22 @@ function install_test_remote_database_connection() {
 	);
 
 	if (is_object($connection)) {
+		$version = db_fetch_cell('SELECT cacti FROM version', '', true, $connection);
+
+		if (cacti_version_compare($version, CACTI_VERSION, '<')) {
+			$failed  = true;
+			$message = __('Test Failed! Remote Cacti version newer than main server.  Remote is at %s and main is at %s.', $version, CACTI_VERSION);
+		} else {
+			$failed  = false;
+			$message = __('Check ran successfully.');
+		}
+
 		db_close($connection);
 
-		return json_encode(array('status' => 'true'));
+		return json_encode(array('status' => $failed, 'message' => $message));
 	} else {
-		return json_encode(array('status' => 'false'));
+		$message = __('Unable to connect to the main Cacti server.');
+		return json_encode(array('status' => 'false', 'message' => $message));
 	}
 }
 

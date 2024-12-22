@@ -784,10 +784,13 @@ function performTestConnection() {
 				if (data.status == 'true') {
 					isSuccessful = true;
 					statusText = testSuccessful;
+				} else {
+					isSuccessful = false;
+					statusText = data.message;
 				}
 			}
 			$('#labelTest').text(statusText);
-			$('#labelTest').show().fadeOut(2000);
+			$('#labelTest').show().delay(2000).fadeOut(2000);
 			if (isSuccessful) {
 				enableButton('Next');
 			} else {
