@@ -5205,8 +5205,7 @@ function check_reset_no_authentication($auth_method) {
 }
 
 function disable_2fa($user_id) {
-	$current_user = db_fetch_row_prepared(
-		'SELECT *
+	$current_user = db_fetch_row_prepared('SELECT *
 		FROM user_auth
 		WHERE id = ?',
 		array($user_id)
@@ -5220,8 +5219,7 @@ function disable_2fa($user_id) {
 	} else {
 		db_execute_prepared('UPDATE user_auth SET tfa_enabled = \'\', tfa_secret = \'\' WHERE id = ?', array($user_id));
 
-		$current_user = db_fetch_row_prepared(
-			'SELECT *
+		$current_user = db_fetch_row_prepared('SELECT *
 			FROM user_auth
 			WHERE id = ?',
 			array($_SESSION[SESS_USER_ID])
@@ -5278,8 +5276,7 @@ function enable_2fa($user_id) {
 }
 
 function verify_2fa($user_id, $code) {
-	$current_user = db_fetch_row_prepared(
-		'SELECT *
+	$current_user = db_fetch_row_prepared('SELECT *
 		FROM user_auth
 		WHERE id = ?',
 		array($user_id)
@@ -5310,12 +5307,16 @@ function verify_2fa($user_id, $code) {
 }
 
 function is_2fa_enabled($user_id) {
-	$current_user = db_fetch_row_prepared(
-		'SELECT *
-		FROM user_auth
-		WHERE id = ?',
-		array($user_id)
-	);
+	if (read_config_option('secpass_2fa_enabled') == 'on') {
+		$current_user = db_fetch_row_prepared('SELECT *
+			FROM user_auth
+			WHERE id = ?',
+			array($user_id)
+		);
 
-	return isset($current_user['2fa_enabled']) && ($current_user['2fa_enabled'] != '');
+		return isset($current_user['2fa_enabled']) && ($current_user['2fa_enabled'] != '');
+	} else {
+		return false;
+	}
 }
+

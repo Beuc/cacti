@@ -32,6 +32,10 @@ $actions = array(
 	5 => __('Batch Copy')
 );
 
+if (read_config_option('secpass_2fa_enabled') == 'on') {
+	$actions[6] = __('Reset 2FA');
+}
+
 set_default_action();
 
 if (isset_request_var('update_policy')) {
@@ -310,6 +314,10 @@ function form_actions() {
 						raise_message(2);
 					} else {
 						raise_message(1);
+					}
+				} elseif (get_nfilter_request_var('drp_action') == '6') { // reset 2FA token and status
+					foreach($selected_items as $user_id) {
+						disable_2fa($user_id);
 					}
 				}
 			}

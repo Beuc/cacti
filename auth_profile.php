@@ -98,6 +98,10 @@ switch (get_request_var('action')) {
 			),
 		);
 
+		if (read_config_option('secpass_2fa_enabled') == '') {
+			unset($tabs['2fa']);
+		}
+
 		$tabs = api_plugin_hook_function('auth_profile_tabs', $tabs);
 
 		/* set the default tab */

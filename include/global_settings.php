@@ -1903,9 +1903,39 @@ $settings['authentication'] = array(
 			'1440' => __('1 Day'),
 		),
 	),
+	'secpass_pwned_header' => array(
+		'friendly_name' => __('Pwned Checks (Online)'),
+		'method'        => 'spacer',
+		'collapsible'   => 'true'
+	),
+	'secpass_pwnedcheck' => array(
+		'friendly_name' => __('Pwned Check'),
+		'description'   => __('Check password against haveibeenpwned.com'),
+		'method'        => 'checkbox',
+		'default'       => '',
+	),
+	'secpass_pwnedcount' => array(
+		'friendly_name' => __('Pwned Threshold'),
+		'description'   => __('Block use of a password once it reaches this reported usage level'),
+		'method'        => 'textbox',
+		'default'       => '8',
+		'max_length'    => 2,
+		'size'          => 4
+	),
+	'secpass_2fa_header' => array(
+		'friendly_name' => __('Localized 2FA'),
+		'method'        => 'spacer',
+		'collapsible'   => 'true'
+	),
+	'secpass_2fa_enabled' => array(
+		'friendly_name' => __('Enable Localized 2FA'),
+		'description'   => __('Check this option if you wish users to locally enable Two Factor Authentication for their accounts.  Note that most Enterprise level MFA does not require intervention by the Cacti Administrator.'),
+		'method'        => 'checkbox',
+		'default'       => '',
+	),
 	'secpass_2fatime' => array(
-		'friendly_name' => __('2FA Timeout'),
-		'description'   => __('How long the Two Factor Auth token lasts before being rechecked up to a max of 1 week'),
+		'friendly_name' => __('Token Lifetime'),
+		'description'   => __('How long the Two Factor Auth Token lasts before being rechecked up to a max of 1 week.'),
 		'method'        => 'drop_array',
 		'default'       => '1440',
 		'array'         => array(
@@ -1926,25 +1956,6 @@ $settings['authentication'] = array(
 			'8640'  => __('%d Days', 6),
 			'10080' => __('%d Week', 1),
 		),
-	),
-	'secpass_pwned_header' => array(
-		'friendly_name' => __('Pwned Checks (Online)'),
-		'method'        => 'spacer',
-		'collapsible'   => 'true'
-	),
-	'secpass_pwnedcheck' => array(
-		'friendly_name' => __('Pwned Check'),
-		'description'   => __('Check password against haveibeenpwned.com'),
-		'method'        => 'checkbox',
-		'default'       => '',
-	),
-	'secpass_pwnedcount' => array(
-		'friendly_name' => __('Pwned Threshold'),
-		'description'   => __('Block use of a password once it reaches this reported usage level'),
-		'method'        => 'textbox',
-		'default'       => '8',
-		'max_length'    => 2,
-		'size'          => 4
 	),
 	'basic_header' => array(
 		'friendly_name' => __('Basic Authentication Settings'),
