@@ -706,12 +706,18 @@ function create_host_edit_filter($host, $content = '') {
 			array(
 				'pingdata' => array(
 					'method'  => 'content',
+					'filter'  => FILTER_DEFAULT,
 					'content' => $content,
 				),
 				'id' => array(
 					'method'  => 'validate',
 					'filter'  => FILTER_VALIDATE_INT,
 					'default' => '',
+				),
+				'host_template_id' => array(
+					'method'  => 'validate',
+					'filter'  => FILTER_VALIDATE_INT,
+					'default' => '0'
 				)
 			)
 		),
