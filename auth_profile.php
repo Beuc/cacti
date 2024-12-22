@@ -395,7 +395,7 @@ function settings() {
 			'logout_everywhere' => array(
 				'method'        => 'button',
 				'friendly_name' => __('Logout Everywhere'),
-				'description'   => __('Clear all your Login Session Tokens.'),
+				'description'   => __('Clear all your Login Session Tokens from all devices that you have logged into using your session cookies.'),
 				'value'         => __('Logout Everywhere'),
 				'on_click'      => 'logoutEverywhere()'
 			)
