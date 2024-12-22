@@ -1218,7 +1218,11 @@ class Installer implements JsonSerializable {
 		global $config;
 
 		$default_template = read_config_option('default_template', true);
-		log_install_always('templates', 'getDefaultTemplate(): Default Device Template is \'' . $default_template . '\'');
+
+		if (read_config_option('install_get_template_message_logged', true) == '') {
+			log_install_always('templates', 'getDefaultTemplate(): Default Device Template is \'' . $default_template . '\'');
+			set_config_option('install_get_template_message_logged', 'on');
+		}
 
 		$sysDescrMatch = $config['cacti_server_os'] == 'win32' ? 'Windows' : 'Linux';
 		foreach ($this->defaultAutomation as $item) {
@@ -1273,7 +1277,10 @@ class Installer implements JsonSerializable {
 		set_install_config_option('default_template', $default_template);
 
 		$default_template = $this->getDefaultTemplate();
-		log_install_always('templates', 'setDefaultTemplate(): Default Device Template is \'' . $default_template . '\'');
+		if (read_config_option('install_set_template_message_logged', true) == '') {
+			log_install_always('templates', 'setDefaultTemplate(): Default Device Template is \'' . $default_template . '\'');
+			set_config_option('install_set_template_message_logged', 'on');
+		}
 	}
 
 	/* getTemplates() - returns a list of expected templates and whether
