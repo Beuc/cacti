@@ -631,6 +631,21 @@ include_once(CACTI_PATH_LIBRARY . '/api_automation.php');
 if ($config['is_web']) {
 	include_once(CACTI_PATH_INCLUDE . '/csrf.php');
 
+	/* check for Cacti lockout status. */
+	if ($config['is_web']) {
+		$lockout = read_config_option('cacti_lockout_status', true);
+
+		if ($lockout != '') {
+			$lockout = json_decode($lockout, true);
+
+			if ($lockout['session'] != session_id()) {
+				print '<h1>' . __('Cacti is Locked Out for Maintenance') . '</h1>';
+				print '<p>'. __('The primary Cacti administrator has locked out the Cacti user interface for maintenance for activities such as upgrades.  If you feel this is in error, please contact your Cacti adminnistrator.  This lockout will stay in place for approximately 30 minutes.') . '</p>';
+				exit;
+			}
+		}
+	}
+
 	/* raise a message and perform a page refresh if we've changed modes */
 	if ($config['poller_id'] > 1) {
 		if (isset($_SESSION['connection_mode'])) {

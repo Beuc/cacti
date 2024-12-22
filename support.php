@@ -33,7 +33,38 @@ include_once('./lib/utility.php');
 /* set default action */
 set_default_action();
 
-support_view_tech();
+switch(get_request_var('action')) {
+	case 'lockout':
+		support_lockout();
+
+		break;
+	default:
+		support_view_tech();
+}
+
+function support_lockout() {
+	$admin = read_config_option('admin_user', true);
+
+	if (read_config_option('admin_user') != $_SESSION[SESS_USER_ID]) {
+		raise_message('lockout_user', __('Only the Primary Cacti Administrator \'%s\' can lockout the Cacti system.', get_username($admin)), MESSAGE_LEVEL_ERROR);
+	} else {
+		$status = read_config_option('cacti_lockout_status', true);
+
+		if ($status == '') {
+			raise_message('lockout', __('Cacti has been locked out by \'%s\'.  Press the button again after Cacti maintenance is over.', get_username($admin)), MESSAGE_LEVEL_WARN);
+			cacti_log('WARNING: Cacti has been locked out by the primary administrator!');
+			set_config_option('cacti_lockout_status', json_encode(array('session' => session_id(), 'time' => time())));
+		} else {
+			raise_message('lockout', __('Cacti maintenance lockout has been cleared by \'%s\'.  Press the button again after Cacti maintenance is over.', get_username($admin)), MESSAGE_LEVEL_INFO);
+			cacti_log('WARNING: Cacti maintenance lockout has been cleared by the primary administrator!');
+			set_config_option('cacti_lockout_status', '');
+		}
+	}
+
+	header('Location: support.php?tab=summary');
+
+	exit;
+}
 
 function support_view_tech() {
 	global $database_hostname, $poller_options, $input_types, $local_db_cnn_id;
@@ -177,6 +208,10 @@ function support_view_tech() {
 			cssIconDesc: 'fa-sort-down',
 			cssIconNone: 'fa-sort',
 			cssIcon: 'fa'
+		});
+
+		$('#lockout').click(function() {
+			loadUrl({ url: 'support.php?action=lockout' });
 		});
 	});
 	</script>
@@ -1120,6 +1155,23 @@ function show_tech_summary() {
 	}
 
 	html_section_header(__('General Information'), 2);
+
+	form_alternate_row();
+	$lockout = read_config_option('cacti_lockout_status', true);
+
+	print '<td>' . __('Cacti Lockout Status') . '</td>';
+	if ($lockout !=  '') {
+		$lockout = json_decode($lockout, true);
+
+		$unlock_time = $lockout['time'] + (30 * 60);
+		$unlock_hms = date('H:i', $unlock_time);
+
+		print '<td><input class="deviceDown" type="button" id="lockout" value="' . __('Cacti in Maintenance Mode until approximately %s!', $unlock_hms) . '" title="' . __('To Unlock, press this button again.') . '"></td>';
+	} else {
+		print '<td><input type="button" id="lockout" value="' . __('Lockout Cacti for Maintenance') . '" title="' . __('Press this button to Lockout Cacti for 30 minutes for maintenance.') . '"></td>';
+	}
+	form_end_row();
+
 	form_alternate_row();
 	print '<td>' . __('Date') . '</td>';
 	print '<td>' . date('r') . '</td>';

@@ -115,6 +115,8 @@ if ($config['poller_id'] == 1) {
 	reindex_devices();
 
 	remove_aged_password_hashes();
+
+	unlock_cacti();
 }
 
 // Check the realtime cache and poller
@@ -158,6 +160,20 @@ if (!$force) {
 }
 
 exit(0);
+
+function unlock_cacti() {
+	$lockout = read_config_option('cacti_lockout_status', true);
+
+	if ($lockout != '') {
+		$lockout = json_decode($lockout, true);
+
+		if (time() - (30*60) > $lockout['time']) {
+			set_config_option('cacti_lockout_status', '');
+
+			cacti_log('WARNING: Cacti Maintenance Mode cleared by main Cacti Data Collector automatically!', true, 'SYSTEM');
+		}
+	}
+}
 
 function purge_host_value_cache() {
 	if (db_table_exists('host_value_cache')) {

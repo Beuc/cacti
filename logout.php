@@ -27,6 +27,17 @@ include('./include/auth.php');
 
 global $config;
 
+/* forcibly unlock cacti if the user logg's out */
+$admin_user = read_config_option('admin_user');
+$lockout    = read_config_option('cacti_lockout_status', true);
+if ($lockout != '') {
+	$lockout = json_decode($lockout, true);
+
+	if ($admin_user == $_SESSION[SESS_USER_ID] && $lockout['session'] == session_id()) {
+		set_config_optin('cacti_lockout_status', '');
+	}
+}
+
 set_default_action();
 
 api_plugin_hook('logout_pre_session_destroy');
