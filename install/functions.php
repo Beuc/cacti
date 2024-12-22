@@ -420,7 +420,7 @@ function install_test_remote_database_connection() {
 
 		if (cacti_version_compare($version, CACTI_VERSION, '<')) {
 			$failed  = true;
-			$message = __('Test Failed! Remote Cacti version newer than main server.  Remote is at %s and main is at %s.', $version, CACTI_VERSION);
+			$message = __('Test Failed! Remote version newer than Primary.  Main Primary at %s and Remote at %s.', $version, CACTI_VERSION);
 		} else {
 			$failed  = false;
 			$message = __('Check ran successfully.');
