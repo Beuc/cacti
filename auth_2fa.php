@@ -81,8 +81,11 @@ if (get_nfilter_request_var('action') == 'login_2fa') {
 
 				// About using the user agent: It's easy to fake it, but it increases the barrier for stealing and reusing cookies nevertheless
 				// and it doesn't do any harm (except that it's invalid after a browser upgrade, but that may be even intended)
-				$cookie = $_SESSION[SESS_USER_2FA] .':'.hash_hmac('sha1', $user['username'].':'. $tfaMins . ':' . $_SESSION[SESS_USER_2FA] .':'.$_SERVER['HTTP_USER_AGENT'], $user['tfa_secret']);
-				cacti_cookie_set(session_name() . '_otp', $cookie, time() + (30 * 24 * 3600));
+				$cookie = $_SESSION[SESS_USER_2FA] . ':' . hash_hmac('sha1', $user['username'] . ':' . $tfaMins . ':' . $_SESSION[SESS_USER_2FA] . ':' . $_SERVER['HTTP_USER_AGENT'], $user['tfa_secret']);
+
+				$cookie_lifetime = read_config_option('secpass_2fatime') * 60;
+
+				cacti_cookie_set(session_name() . '_otp', $cookie, time() + ($cookie_lifetime));
 			} else {
 				$_SESSION[SESS_USER_2FA] = false;
 			}
