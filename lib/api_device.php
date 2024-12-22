@@ -1641,7 +1641,7 @@ function api_device_ping_device($device_id, $from_remote = false) {
 		$am == AVAIL_SNMP_OR_PING) {
 		$anym = true;
 
-		print __('SNMP Information') . '<br>';
+		print '<span><b>' . __('SNMP Information') . '</b></span><br>';
 		print "<span class='monoSpace'>";
 
 		if (($host['snmp_community'] == '' && $host['snmp_username'] == '') || $host['snmp_version'] == 0) {
@@ -1706,25 +1706,25 @@ function api_device_ping_device($device_id, $from_remote = false) {
 						$snmp_location   = cacti_snmp_session_get($session, '.1.3.6.1.2.1.1.6.0');
 						$snmp_contact    = cacti_snmp_session_get($session, '.1.3.6.1.2.1.1.4.0');
 
-						print '<strong>' . __('System:') . '</strong> ' . html_split_string($snmp_system, 150) . '<br>';
+						print '<b>' . __('System:') . '</b> ' . html_split_string($snmp_system, 150) . '<br>';
 						$snmp_uptime_ticks = intval($snmp_uptime);
 						$days              = intval($snmp_uptime_ticks / (60 * 60 * 24 * 100));
 						$remainder         = $snmp_uptime_ticks % (60 * 60 * 24 * 100);
 						$hours             = intval($remainder / (60 * 60 * 100));
 						$remainder         = $remainder % (60 * 60 * 100);
 						$minutes           = intval($remainder / (60 * 100));
-						print '<strong>' . __('Uptime:') . "</strong> $snmp_uptime";
+						print '<b>' . __('Uptime:') . "</b> $snmp_uptime";
 						print '&nbsp;(' . $days . __('days') . ', ' . $hours . __('hours') . ', ' . $minutes . __('minutes') . ')<br>';
-						print '<strong>' . __('Hostname:') . "</strong> $snmp_hostname<br>";
-						print '<strong>' . __('Location:') . "</strong> $snmp_location<br>";
-						print '<strong>' . __('Contact:') . "</strong> $snmp_contact<br>";
+						print '<b>' . __('Hostname:') . "</b> $snmp_hostname<br>";
+						print '<b>' . __('Location:') . "</b> $snmp_location<br>";
+						print '<b>' . __('Contact:') . "</b> $snmp_contact<br>";
 					}
 				}
 
 				$session->close();
 			}
 		}
-		print '</span><br>';
+		print '</span>';
 	}
 
 	if ($am == AVAIL_PING || $am == AVAIL_SNMP_AND_PING || $am == AVAIL_SNMP_OR_PING) {
