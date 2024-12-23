@@ -1001,11 +1001,6 @@ function create_tree_filter() {
 	$metrics_array = html_graph_order_filter_array();
 
 	$filters = array(
-		'options' => array(
-			'change_function' => 'applyGraphFilter()',
-			'clear_function'  => 'clearGraphFilter()',
-			'save_function'   => 'saveGraphFilter()'
-		),
 		'rows' => array(
 			array(
 				'rfilter' => array(
@@ -1039,10 +1034,10 @@ function create_tree_filter() {
 					'method'        => 'drop_array',
 					'friendly_name' => __('Graphs'),
 					'filter'        => FILTER_VALIDATE_INT,
-					'default'       => read_user_setting('treeview_graphs_per_page', 4),
+					'default'       => '-1',
 					'pageset'       => true,
 					'array'         => $item_rows,
-					'value'         => read_user_setting('treeview_graphs_per_page', 4)
+					'value'         => ''
 				),
 				'columns' => array(
 					'method'        => 'drop_array',
@@ -1113,11 +1108,19 @@ function create_tree_filter() {
 				'method'  => 'submit',
 				'display' => __('Go'),
 				'title'   => __('Apply filter to table'),
+				'callback' => 'applyGraphFilter()'
 			),
 			'clear' => array(
 				'method'  => 'button',
 				'display' => __('Clear'),
 				'title'   => __('Reset filter to default values'),
+				'callback' => 'clearGraphFilter()'
+			),
+			'save' => array(
+				'method'  => 'button',
+				'display' => __('Save'),
+				'title'   => __('Save the filter to the database'),
+				'callback' => 'saveGraphFilter()'
 			)
 		)
 	);
@@ -1329,7 +1332,7 @@ function grow_right_pane_tree($tree_id, $leaf_id, $host_group_data) {
 	}
 
 	if (get_request_var('graphs') == '-1') {
-		$graph_rows = read_user_setting('treeview_graphs_per_page', 4);
+		$graph_rows = read_user_setting('treeview_graphs_per_page', read_config_option('treeview_graphs_per_page', 10));
 	} else {
 		$graph_rows = get_request_var('graphs');
 	}

@@ -3029,7 +3029,7 @@ $settings_user = array(
 			'friendly_name' => __('Preview Graphs Per Page'),
 			'description'   => __('The number of graphs to display on one page in preview mode.'),
 			'method'        => 'drop_array',
-			'default'       => '10',
+			'default'       => '20',
 			'array'         => $graphs_per_page
 		)
 	),

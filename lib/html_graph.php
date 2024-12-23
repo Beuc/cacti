@@ -141,7 +141,7 @@ function html_graph_validate_preview_request_vars() {
 		'graphs' => array(
 			'filter'  => FILTER_VALIDATE_INT,
 			'pageset' => true,
-			'default' => read_user_setting('preview_graphs_per_page', 20)
+			'default' => read_user_setting('preview_graphs_per_page', read_config_option('preview_graphs_per_page', 20))
 		),
 		'page' => array(
 			'filter'  => FILTER_VALIDATE_INT,
@@ -784,7 +784,11 @@ function html_save_graph_settings() {
 			}
 
 			if (isset_request_var('graphs')) {
-				set_graph_config_option('preview_graphs_per_page', get_request_var('graphs'));
+				if (get_request_var('graphs') == '-1') {
+					set_graph_config_option('preview_graphs_per_page', read_config_option('preview_graphs_per_page', 20));
+				} else {
+					set_graph_config_option('preview_graphs_per_page', get_request_var('graphs'));
+				}
 			}
 
 			if (isset_request_var('thumbnails')) {
@@ -796,7 +800,11 @@ function html_save_graph_settings() {
 			}
 
 			if (isset_request_var('graphs')) {
-				set_graph_config_option('treeview_graphs_per_page', get_request_var('graphs'));
+				if (get_request_var('graphs') == '-1') {
+					set_graph_config_option('treeview_graphs_per_page', read_config_option('treeview_graphs_per_page', 10));
+				} else {
+					set_graph_config_option('treeview_graphs_per_page', get_request_var('graphs'));
+				}
 			}
 
 			if (isset_request_var('thumbnails')) {
@@ -926,7 +934,13 @@ function html_graph_preview_view() {
 		$sql_where .= ($sql_where != '' ? ' AND ':'') . ' (gl.graph_template_id IN (' . get_request_var('graph_template_id') . '))';
 	}
 
-	$sql_limit = (get_request_var('graphs') * (get_request_var('page') - 1)) . ',' . get_request_var('graphs');
+	if (get_request_var('graphs') == '-1') {
+		$graph_rows = read_user_setting('treeview_graphs_per_page', read_config_option('treeview_graphs_per_page', 10));
+	} else {
+		$graph_rows = get_request_var('graphs');
+	}
+
+	$sql_limit = ($graph_rows * (get_request_var('page') - 1)) . ',' . $graph_rows;
 
 	if (read_config_option('dsstats_enable') == 'on' && get_request_var('graph_source') != '' && get_request_var('graph_order') != '') {
 		$sql_order = array(
@@ -943,7 +957,7 @@ function html_graph_preview_view() {
 
 	$graphs = get_allowed_graphs($sql_where, $sql_order, $sql_limit, $total_graphs);
 
-	$nav = html_nav_bar('graph_view.php', MAX_DISPLAY_PAGES, get_request_var('page'), get_request_var('graphs'), $total_graphs, get_request_var('columns'), __('Graphs'), 'page', 'main');
+	$nav = html_nav_bar('graph_view.php', MAX_DISPLAY_PAGES, get_request_var('page'), $graph_rows, $total_graphs, get_request_var('columns'), __('Graphs'), 'page', 'main');
 
 	print $nav;
 

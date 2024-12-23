@@ -619,14 +619,26 @@ class CactiTableFilter {
 			}
 		} else {
 			if (!isset($buttonArray['status'])) {
+				if (isset($buttonArray['callback'])) {
+					$callbackFunction = $buttonArray['callback'];
+				} else {
+					$callbackFunction = "loadUrl({ url: $buttonAction })";
+				}
+
 				$buttonFunction .= PHP_EOL . "\t\tfunction {$buttonId}Function () {" . $func_nl .
-					"loadUrl({ url: $buttonAction });" . $func_el .
+					$callbackFunction . ";" . $func_el .
 				"};" . PHP_EOL;
 			} else {
+				if (isset($buttonArray['callback'])) {
+					$callbackFunction = $buttonArray['callback'];
+				} else {
+					$callbackFunction = "loadUrl({ url: $buttonAction, funcEnd: 'finishFinalize' })";
+				}
+
 				$buttonFunction .= PHP_EOL . "\t\tfunction {$buttonId}Function () {" . $func_nl .
 					"$('#text').text('{$field_array['status']}');" . $func_nl .
 					"pulsate('#text');" . $func_nl .
-					"loadUrl({ url: $buttonAction, funcEnd: 'finishFinalize' });" . $func_el .
+					$callbackFunction . ";" . $func_el .
 					"};" . PHP_EOL;
 			}
 		}
@@ -669,14 +681,14 @@ class CactiTableFilter {
 			$purgeFilter = "'#'";
 		}
 
-		if (isset($this->filter_array['options']['change_function'])) {
-			$changeFunction = $this->filter_array['options']['change_function'];
+		if (isset($this->filter_array['buttons']['go']['callback'])) {
+			$changeFunction = $this->filter_array['buttons']['go']['callback'];
 		} else {
 			$changeFunction = 'applyFilter()';
 		}
 
-		if (isset($this->filter_array['options']['clear_function'])) {
-			$clearFunction = $this->filter_array['options']['clear_function'];
+		if (isset($this->filter_array['buttons']['clear']['callback'])) {
+			$clearFunction = $this->filter_array['buttons']['clear']['callback'];
 		} else {
 			$clearFunction = 'clearFilter()';
 		}
