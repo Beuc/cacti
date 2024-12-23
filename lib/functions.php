@@ -1475,7 +1475,9 @@ function cacti_log($string, $output = false, $environ = 'CMDPHP', $level = '') {
 		$database_log = false;
 	}
 
-	if ($string == '' || trim($string) == '') {
+	if (is_array($string)) {
+		$string = json_encode($string);
+	} elseif ($string == '' || trim($string) == '') {
 		return false;
 	}
 
