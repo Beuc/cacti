@@ -35,6 +35,9 @@ $actions = array(
 	AUTOMATION_ACTION_TREE_DELETE    => __('Delete'),
 );
 
+/* sanitize the tab */
+get_filter_request_var('tab', FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => '/^([a-z_A-Z]+)$/')));
+
 /* set default action */
 set_default_action();
 
@@ -548,58 +551,56 @@ function automation_tree_rules_item_edit() {
 	get_filter_request_var('id');
 	get_filter_request_var('item_id');
 	get_filter_request_var('rule_type');
-	get_filter_request_var('show_trees');
 	/* ==================================================== */
 
-	/* handle show_trees mode */
-	if (isset_request_var('show_trees')) {
-		if (get_request_var('show_trees') == '0') {
-			kill_session_var('automation_tree_rules_show_trees');
-		} elseif (get_request_var('show_trees') == '1') {
-			$_SESSION['automation_tree_rules_show_trees'] = true;
-		}
-	}
+	if (!isempty_request_var('id')) {
+		$tabs = array(
+			'rule'    => __('Rule Item')
+		);
 
-	if (!isempty_request_var('rule_type') && !isempty_request_var('item_id')) {
-		if (get_request_var('rule_type') == AUTOMATION_RULE_TYPE_TREE_ACTION) {
-			$item = db_fetch_row_prepared('SELECT * FROM automation_tree_rule_items WHERE id = ?', array(get_request_var('item_id')));
+		if (!isempty_request_var('rule_type') && !isempty_request_var('item_id')) {
+			if (get_request_var('rule_type') == AUTOMATION_RULE_TYPE_TREE_ACTION) {
+				$item = db_fetch_row_prepared('SELECT *
+					FROM automation_tree_rule_items
+					WHERE id = ?',
+					array(get_request_var('item_id')));
 
-			if ($item['field'] != AUTOMATION_TREE_ITEM_TYPE_STRING) {
-				?>
-				<table style='width:100%;text-align:center;'>
-					<tr>
-						<td class='textInfo' style='text-align:right;vertical-align:top;'><span class='linkMarker'>*</span><a class='linkEditMain' href='<?php print html_escape('automation_tree_rules.php?action=item_edit&id=' . (isset_request_var('id') ? get_request_var('id') : 0) . '&item_id=' . (isset_request_var('item_id') ? get_request_var('item_id') : 0) . '&rule_type=' . (isset_request_var('rule_type') ? get_request_var('rule_type') : 0) .'&show_trees=') . (isset($_SESSION['automation_tree_rules_show_trees']) ? '0' : '1');?>'><?php print(isset($_SESSION['automation_tree_rules_show_trees']) ? __('Don\'t Show'):__('Show'));?> <?php print __('Created Trees');?></a><br>
-						</td>
-					</tr>
-				</table>
-				<br>
-				<?php
-			}
-		}
-	}
-
-	global_item_edit(get_request_var('id'), get_request_var('item_id'), get_request_var('rule_type'));
-
-	form_hidden_box('rule_type', get_request_var('rule_type'), get_request_var('rule_type'));
-	form_hidden_box('id', (isset_request_var('id') ? get_request_var('id') : '0'), '');
-	form_hidden_box('item_id', (isset_request_var('item_id') ? get_request_var('item_id') : '0'), '');
-
-	if (get_request_var('rule_type') == AUTOMATION_RULE_TYPE_TREE_MATCH) {
-		form_hidden_box('save_component_automation_match_item', '1', '');
-	} else {
-		form_hidden_box('save_component_automation_tree_rule_item', '1', '');
-	}
-	form_save_button('automation_tree_rules.php?action=edit&id=' . get_request_var('id') . '&rule_type=' . get_request_var('rule_type'));
-	print '<br>';
-
-	/* display list of matching trees */
-	if (!isempty_request_var('rule_type') && !isempty_request_var('item_id')) {
-		if (get_request_var('rule_type') == AUTOMATION_RULE_TYPE_TREE_ACTION) {
-			if (isset($_SESSION['automation_tree_rules_show_trees']) && ($item['field'] != AUTOMATION_TREE_ITEM_TYPE_STRING)) {
-				if ($_SESSION['automation_tree_rules_show_trees']) {
-					display_matching_trees(get_request_var('id'), AUTOMATION_RULE_TYPE_TREE_ACTION, $item, 'automation_tree_rules.php?action=item_edit&id=' . get_request_var('id') . '&item_id=' . get_request_var('item_id') . '&rule_type=' . get_request_var('rule_type'));
+				if ($item['field'] != AUTOMATION_TREE_ITEM_TYPE_STRING) {
+	            	$tabs['objects'] = __('Matching Items');
 				}
 			}
+		} else {
+			unset($tabs['objects']);
+		}
+
+        html_sub_tabs($tabs, 'action=item_edit&id=' . get_request_var('id') . '&item_id=' . get_request_var('item_id') . '&rule_type=' . get_request_var('rule_type'));
+	} else {
+		$tabs = array(
+			'rule' => __('Rule Item')
+		);
+
+        html_sub_tabs($tabs, 'action=item_edit&id=' . get_request_var('id') . '&item_id=' . get_request_var('item_id') . '&rule_type=' . get_request_var('rule_type'));
+	}
+
+	if (!isset_request_var('tab') || get_request_var('tab') == 'rule') {
+		global_item_edit(get_request_var('id'), get_request_var('item_id'), get_request_var('rule_type'));
+
+		form_hidden_box('rule_type', get_request_var('rule_type'), get_request_var('rule_type'));
+		form_hidden_box('id', (isset_request_var('id') ? get_request_var('id') : '0'), '');
+		form_hidden_box('item_id', (isset_request_var('item_id') ? get_request_var('item_id') : '0'), '');
+
+		if (get_request_var('rule_type') == AUTOMATION_RULE_TYPE_TREE_MATCH) {
+			form_hidden_box('save_component_automation_match_item', '1', '');
+		} else {
+			form_hidden_box('save_component_automation_tree_rule_item', '1', '');
+		}
+
+		form_save_button('automation_tree_rules.php?action=edit&id=' . get_request_var('id') . '&rule_type=' . get_request_var('rule_type'));
+	} elseif (!isempty_request_var('rule_type') && !isempty_request_var('item_id')) {
+		/* display list of matching trees */
+		if (get_request_var('rule_type') == AUTOMATION_RULE_TYPE_TREE_ACTION &&
+			$item['field'] != AUTOMATION_TREE_ITEM_TYPE_STRING) {
+			display_matching_trees(get_request_var('id'), AUTOMATION_RULE_TYPE_TREE_ACTION, $item, 'automation_tree_rules.php?action=item_edit&id=' . get_request_var('id') . '&item_id=' . get_request_var('item_id') . '&rule_type=' . get_request_var('rule_type'));
 		}
 	}
 
@@ -712,7 +713,7 @@ function automation_tree_rules_edit() {
 			);
 		}
 
-        html_sub_tabs($tabs, 'action=edit&id=' . get_request_var('id'));
+        html_sub_tabs($tabs, 'action=edit&id=' . get_filter_request_var('id'));
 
 		$header_label = __esc('Tree Rule Selection [edit: %s]', $rule['name']);
 	} else {
@@ -720,7 +721,7 @@ function automation_tree_rules_edit() {
 			'rule'    => __('Rule')
 		);
 
-        html_sub_tabs($tabs, 'action=edit&id=' . get_request_var('id'));
+        html_sub_tabs($tabs, 'action=edit&id=' . get_filter_request_var('id'));
 
 		$header_label = __('Tree Rules Selection [new]');
 	}
@@ -791,9 +792,9 @@ function automation_tree_rules_edit() {
 
 		form_save_button('automation_tree_rules.php', 'return');
 	} elseif ($rule['leaf_type'] == TREE_ITEM_TYPE_HOST) {
-		display_matching_hosts($rule, AUTOMATION_RULE_TYPE_TREE_MATCH, 'automation_tree_rules.php?action=edit&id=' . get_request_var('id'));
+		display_matching_hosts($rule, AUTOMATION_RULE_TYPE_TREE_MATCH, 'automation_tree_rules.php?action=edit&tab=hosts&id=' . get_request_var('id'));
 	} elseif ($rule['leaf_type'] == TREE_ITEM_TYPE_GRAPH) {
-		display_matching_graphs($rule, AUTOMATION_RULE_TYPE_TREE_MATCH, 'automation_tree_rules.php?action=edit&id=' . get_request_var('id'));
+		display_matching_graphs($rule, AUTOMATION_RULE_TYPE_TREE_MATCH, 'automation_tree_rules.php?action=edit&tab=graphs&id=' . get_request_var('id'));
 	}
 
 	?>

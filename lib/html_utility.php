@@ -323,10 +323,12 @@ function form_selectable_cell($contents, $id, $width = '', $style_or_class = '',
 }
 
 function form_get_table_id() {
-	if (isset_request_var('action') && get_request_var('action') != '') {
-		return basename(get_current_page(), '.php') . ':action-' . get_request_var('action') . ':';
-	} elseif (isset_request_var('tab') && get_request_var('tab') != '') {
-		return basename(get_current_page(), '.php') . ':tab-' . get_request_var('tab') . ':';
+	if (isset_request_var('action') && get_nfilter_request_var('action') != '' && isset_request_var('tab') && get_nfilter_request_var('tab') != '') {
+		return basename(get_current_page(), '.php') . ':action-tab-' . get_nfilter_request_var('action') . '-' . get_nfilter_request_var('tab') . ':';
+	} elseif (isset_request_var('action') && get_nfilter_request_var('action') != '') {
+		return basename(get_current_page(), '.php') . ':action-' . get_nfilter_request_var('action') . ':';
+	} elseif (isset_request_var('tab') && get_nfilter_request_var('tab') != '') {
+		return basename(get_current_page(), '.php') . ':tab-' . get_nfilter_request_var('tab') . ':';
 	} else {
 		return basename(get_current_page(), '.php') . ':';
 	}
@@ -1146,7 +1148,7 @@ function update_order_string($inplace = false) {
 			$direction = get_request_var('sort_direction');
 
 			if ($column == 'ip' || $column == 'ip_address') {
-				$_SESSION['sort_string'][$page] ='ORDER BY INET_ATON(' . $column . ') ' . $direction;
+				$_SESSION['sort_string'][$page] = 'ORDER BY INET_ATON(' . $column . ') ' . $direction;
 			} else {
 				$_SESSION['sort_string'][$page] = 'ORDER BY ' . $del . implode($del . '.'. $del, explode('.', get_request_var('sort_column'))) . $del . ' ' . get_request_var('sort_direction');
 			}

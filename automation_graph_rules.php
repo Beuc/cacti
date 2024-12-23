@@ -34,6 +34,9 @@ $actions = array(
 	AUTOMATION_ACTION_GRAPH_DELETE    => __('Delete'),
 );
 
+/* sanitize the tab */
+get_filter_request_var('tab', FILTER_VALIDATE_REGEXP, array('options' => array('regexp' => '/^([a-z_A-Z]+)$/')));
+
 /* set default action */
 set_default_action();
 
@@ -654,7 +657,7 @@ function automation_graph_rules_edit() {
 		$tabs = array(
 			'rule'    => __('Rule'),
 			'hosts'   => __('Matching Devices'),
-			'objects' => __('Matching Objects')
+			'objects' => __('Matching Indexes')
 		);
 
 		html_sub_tabs($tabs, 'action=edit&id=' . get_request_var('id'));
@@ -881,12 +884,6 @@ function automation_graph_rules() {
 		$rows = read_config_option('num_rows_table');
 	} else {
 		$rows = get_request_var('rows');
-	}
-
-	if ((!empty($_SESSION['sess_autom_gr_status'])) && (!isempty_request_var('status'))) {
-		if ($_SESSION['sess_autom_gr_status'] != get_nfilter_request_var('status')) {
-			set_request_var('page', 1);
-		}
 	}
 
 	$sql_where  = '';
