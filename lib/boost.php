@@ -424,13 +424,19 @@ function boost_graph_cache_check($local_graph_id, $rra_id, $rrdtool_pipe = null,
 		 */
 		$cache_directory = read_config_option('boost_png_cache_directory');
 
+		if (read_config_option('business_hours_enable') == 'on') {
+			$bh_index = get_nfilter_request_var('business_hours') == 'true' ? '_bh_':'';
+		} else {
+			$bh_index = '';
+		}
+
 		if ($cache_directory != '') {
 			if (is_dir($cache_directory)) {
 				if (is_writable($cache_directory)) {
 					if ($rra_id > 0) {
-						$cache_file = $cache_directory . '/' . get_selected_theme() . '_lgi_' . $local_graph_id . '_rrai_' . $rra_id;
+						$cache_file = $cache_directory . '/' . get_selected_theme() . '_lgi_' . $local_graph_id . '_rrai_' . $rra_id . $bh_index;
 					} else {
-						$cache_file = $cache_directory . '/' . get_selected_theme() . '_lgi_' . $local_graph_id . '_rrai_' . $rra_id . '_tsi_' . $timespan;
+						$cache_file = $cache_directory . '/' . get_selected_theme() . '_lgi_' . $local_graph_id . '_rrai_' . $rra_id . $bh_index . '_tsi_' . $timespan;
 					}
 
 					if (isset($graph_data_array['graph_height'])) {
@@ -546,12 +552,18 @@ function boost_graph_set_file(&$output, $local_graph_id, $rra_id) {
 	if ((read_config_option('boost_png_cache_enable')) && (boost_determine_caching_state())) {
 		$cache_directory = read_config_option('boost_png_cache_directory');
 
+		if (read_config_option('business_hours_enable') == 'on') {
+			$bh_index = get_nfilter_request_var('business_hours') == 'true' ? '_bh_':'';
+		} else {
+			$bh_index = '';
+		}
+
 		if ($cache_directory != '') {
 			if (is_dir($cache_directory)) {
 				if ($rra_id > 0) {
-					$cache_file = $cache_directory . '/' . get_selected_theme() . '_lgi_' . $local_graph_id . '_rrai_' . $rra_id;
+					$cache_file = $cache_directory . '/' . get_selected_theme() . '_lgi_' . $local_graph_id . '_rrai_' . $rra_id . $bh_index;
 				} else {
-					$cache_file = $cache_directory . '/' . get_selected_theme() . '_lgi_' . $local_graph_id . '_rrai_' . $rra_id . '_tsi_' . $timespan;
+					$cache_file = $cache_directory . '/' . get_selected_theme() . '_lgi_' . $local_graph_id . '_rrai_' . $rra_id . $bh_index . '_tsi_' . $timespan;
 				}
 
 				if (isset($graph_data_array['graph_height'])) {
