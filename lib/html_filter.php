@@ -209,11 +209,11 @@ class CactiTableFilter {
 	}
 
 	public function render() {
-		/* create the filter for the page */
-		$filter = $this->create_filter();
-
 		/* validate filter variables */
 		$this->sanitize_filter_variables();
+
+		/* create the filter for the page */
+		$filter = $this->create_filter();
 
 		/* if validation succeeds, print output the data */
 		print $filter;
