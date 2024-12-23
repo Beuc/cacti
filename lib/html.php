@@ -2047,6 +2047,10 @@ function is_console_page($url) {
 		return true;
 	}
 
+	if ($basename == 'clog.php') {
+		return false;
+	}
+
 	if (api_plugin_hook_function('is_console_page', $url) != $url) {
 		return true;
 	}
