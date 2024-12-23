@@ -4047,9 +4047,21 @@ function handlePopState(e) {
 
 function applyGraphTimespan() {
 	var href = correctUrlParameters(graphPage + '?action=' + pageAction +
-		'&predefined_timespan=' + $('#predefined_timespan').val() +
 		($('#rfilter').length ? '&rfilter=' + base64_encode($('#rfilter').val()) : '') +
-		'&predefined_timeshift=' + $('#predefined_timeshift').val());
+		'&predefined_timespan=' + $('#predefined_timespan').val() +
+		'&predefined_timeshift=' + $('#predefined_timeshift').val() +
+		(typeof $('#site_id').val()      != 'undefined' ? '&site_id='      + $('#site_id').val() : '') +
+		(typeof $('#location').val()     != 'undefined' ? '&location='     + $('#location').val() : '') +
+		(typeof $('#host_id').val()      != 'undefined' ? '&host_id='      + $('#host_id').val() : '') +
+		(typeof $('#graph_source').val() != 'undefined' ? '&graph_source=' + $('#graph_source').val() : '') +
+		(typeof $('#graph_order').val()  != 'undefined' ? '&graph_order='  + $('#graph_order').val() : '') +
+		(typeof $('#cf').val()           != 'undefined' ? '&cf='           + $('#cf').val() : '') +
+		(typeof $('#measure').val()      != 'undefined' ? '&measure='      + $('#measure').val() : '') +
+		'&columns=' + $('#columns').val() +
+		'&graphs=' + $('#graphs').val() +
+		'&graph_template_id=' + $('#graph_template_id').val() +
+		'&thumbnails=' + $('#thumbnails').is(':checked') +
+		'&business_hours=' + $('#business_hours').is(':checked'));
 
 	closeDateFilters();
 
@@ -4929,6 +4941,7 @@ function makeCallbacks() {
 		var title    = searchSelect;
 		var action   = $(this).attr('data-action');
 		var value    = $(this).attr('data-value');
+		var reqvars  = $(this).attr('data-variables');
 
 		var Id        = $(this).attr('id');
 		var dcId      = '#' + Id;
@@ -4962,7 +4975,25 @@ function makeCallbacks() {
 		$(this).hide();
 
 		$(dcInput).autocomplete({
-			source: pageName + '?action=' + action,
+			source: function(request, response) {
+				var _action = pageName + '?action=' + action;
+
+				if (reqvars != '') {
+					var variables = reqvars.split(',');
+
+					$.each(variables, function(index, data) {
+						if ($('#'+data).length) {
+							_action += "&" + data + "=" + $('#'+data).val();
+						}
+					});
+				}
+
+				_action += '&term=' + request.term;
+
+				$.getJSON(_action, function(data) {
+					response(data);
+				});
+			},
 			autoFocus: true,
 			minLength: 0,
 			select: function(event, ui) {

@@ -31,6 +31,7 @@ class CactiTableFilter {
 	public $form_header      = '';
 	public $form_action      = '';
 	public $form_id          = '';
+	public $form_method      = 'get';
 	public $session_var      = 'sess_';
 	public $action_url       = '';
 	public $action_label     = '';
@@ -424,7 +425,7 @@ class CactiTableFilter {
 		}
 
 		if (isset($this->filter_array['rows'])) {
-			print "<form id='" . $this->form_id . "' action='" . $this->form_action . "'>";
+			print "<form id='" . $this->form_id . "' action='" . $this->form_action . "' method='" . $this->form_method . "'>";
 
 			foreach($this->filter_array['rows'] as $index => $row) {
 				if ($index > 0 && !$text_appended) {
@@ -783,7 +784,7 @@ class CactiTableFilter {
 							if ($field_name != 'rfilter') {
 								$applyFilter .= ($filterLength == 0 ? '&':"+'&") . $field_name . "='+$('#" . $field_name . "').val()";
 							} else {
-								$applyFilter .= ($filterLength == 0 ? '&':"+'&") . $field_name . "='+atob($('#" . $field_name . "').val())";
+								$applyFilter .= ($filterLength == 0 ? '&':"+'&") . $field_name . "='+base64_encode($('#" . $field_name . "').val())";
 							}
 							$filterLength++;
 

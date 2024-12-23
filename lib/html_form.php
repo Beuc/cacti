@@ -368,7 +368,8 @@ function draw_edit_control($field_name, &$field_array) {
 				((isset($field_array['default'])) ? $field_array['default'] : ''),
 				((isset($field_array['class'])) ? $field_array['class'] : ''),
 				((isset($field_array['on_change'])) ? $field_array['on_change'] : ''),
-				((isset($field_array['friendly_name'])) ? $field_array['friendly_name'] : '')
+				((isset($field_array['friendly_name'])) ? $field_array['friendly_name'] : ''),
+				((isset($field_array['request_vars'])) ? $field_array['request_vars'] : '')
 			);
 
 			break;
@@ -1008,10 +1009,11 @@ function form_droplanguage($form_name, $column_display, $column_id, $form_previo
  * @param string $class Optional. Additional CSS classes for the form element.
  * @param string $on_change Optional. JavaScript function to call on form element change.
  * @param string $display_name Optional. The display name for the column.
+ * @param string $request_vars Optional. The the request variables to include in the action
  *
  * @return void
  */
-function form_callback($form_name, $classic_sql, $column_display, $column_id, $action, $previous_id, $previous_value, $none_entry, $default_value, $class = '', $on_change = '', $display_name = '') {
+function form_callback($form_name, $classic_sql, $column_display, $column_id, $action, $previous_id, $previous_value, $none_entry, $default_value, $class = '', $on_change = '', $display_name = '', $request_vars = '') {
 	if ($previous_value == '') {
 		$previous_value = $default_value;
 	}
@@ -1046,7 +1048,7 @@ function form_callback($form_name, $classic_sql, $column_display, $column_id, $a
 			$previous_value = $none_entry;
 		}
 
-		print "<input id='$form_name' name='$form_name' type='text' class='drop-callback ui-state-default ui-corner-all' data-action='$action' data-callback='$on_change' data-value='" . html_escape($previous_value) . "' value='" . html_escape($previous_id) . "'>";
+		print "<input id='$form_name' name='$form_name' type='text' class='drop-callback ui-state-default ui-corner-all' data-action='$action' data-variables='$request_vars' data-callback='$on_change' data-value='" . html_escape($previous_value) . "' value='" . html_escape($previous_id) . "'>";
 	}
 }
 
