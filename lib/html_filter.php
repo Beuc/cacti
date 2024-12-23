@@ -62,13 +62,15 @@ class CactiTableFilter {
 	private $button_array  = array();
 	private $append_array  = array();
 	private $item_rows     = array();
+	private $timespans     = array();
+	private $timeshifts    = array();
 	private $filter_array  = array();
 	private $frequencies   = array();
 
 	public function __construct($form_header = '', $form_action = '', $form_id = '',
 		$session_var = '', $action_url = '', $action_label = false, $show_columns = true) {
 
-		global $item_rows;
+		global $item_rows, $graph_timespans, $graph_timeshifts;
 
 		$this->form_header   = $form_header;
 		$this->form_action   = $form_action;
@@ -79,6 +81,8 @@ class CactiTableFilter {
 		$this->show_columns  = $show_columns;
 
 		$this->item_rows     = $item_rows;
+		$this->timespans     = $graph_timespans;
+		$this->timeshifts    = $graph_timeshifts;
 		$this->rows_label    = __('Rows');
 
 		$this->frequencies = array(
@@ -428,10 +432,26 @@ class CactiTableFilter {
 					$text_appened = true;
 				}
 
-				print "<div class='filterTable'>";
+				print "<div class='filterTable even'>";
 				print "<div class='filterRow'>";
 
 				foreach ($row as $field_name => $field_array) {
+					if (isset($field_array['class'])) {
+						$class = ' ' . $field_array['class'];
+					} else {
+						$class = '';
+					}
+
+					if (!isset($field_array['value']) &&
+						$field_array['method'] != 'validate' &&
+						$field_array['method'] != 'submit' &&
+						$field_array['method'] != 'button' &&
+						$field_array['method'] != 'timespan') {
+						cacti_log("WARNING: The Filter Class value field $field_name is missing");
+
+						$field_array['value'] = '';
+					}
+
 					switch($field_array['method']) {
 						case 'content':
 							print '<div class="filterColumn">' . $field_array['content'] . '</div>';
@@ -445,9 +465,9 @@ class CactiTableFilter {
 							print '<div class="filterColumnButton">' . PHP_EOL;
 
 							if (isset($field_array['display'])) {
-								print '<input type="button" class="ui-button ui-corner-all ui-widget" id="' . $field_name . '" value="' . $field_array['display'] . '"' . (isset($field_array['title']) ? ' title="' . $field_array['title']:'') . '">';
+								print '<input type="button" class="ui-button ui-corner-all ui-widget' . $class . '" id="' . $field_name . '" value="' . $field_array['display'] . '"' . (isset($field_array['title']) ? ' title="' . $field_array['title']:'') . '">';
 							} else {
-								print '<button type="button" class="ui-button ui-corner-all ui-widget" id="' . $field_name . '"' . (isset($field_array['title']) ? ' title="' . $field_array['title']:'') . '"><i class="' . $field_array['class'] . '"></i></button>';
+								print '<button type="button" class="ui-button ui-corner-all ui-widget' . $class . '" id="' . $field_name . '"' . (isset($field_array['title']) ? ' title="' . $field_array['title']:'') . '"><i class="' . $field_array['class'] . '"></i></button>';
 							}
 
 							print '</div>' . PHP_EOL;
@@ -455,19 +475,96 @@ class CactiTableFilter {
 							break;
 						case 'submit':
 							print '<div class="filterColumnButton">' . PHP_EOL;
-							print '<input type="submit" class="ui-button ui-corner-all ui-widget" id="' . $field_name . '" value="' . $field_array['display'] . '"' . (isset($field_array['title']) ? ' title="' . $field_array['title']:'') . '">';
+							print '<input type="submit" class="ui-button ui-corner-all ui-widget' . $class . '" id="' . $field_name . '" value="' . $field_array['display'] . '"' . (isset($field_array['title']) ? ' title="' . $field_array['title']:'') . '">';
 							print '</div>' . PHP_EOL;
 
 							break;
 						case 'filter_checkbox':
 							print '<div class="filterColumn"><span>' . PHP_EOL;
-							print '<input type="checkbox" class="ui-button ui-corner-all ui-widget" id="' . $field_name . '"' . (isset($field_array['title']) ? ' title="' . $field_array['title']:'') . '"' . ($field_array['value'] == 'on' || $field_array['value'] == 'true' ? ' checked':'') . '>';
+							print '<input type="checkbox" class="ui-button ui-corner-all ui-widget' . $class . '" id="' . $field_name . '"' . (isset($field_array['title']) ? ' title="' . $field_array['title']:'') . '"' . ($field_array['value'] == 'on' || $field_array['value'] == 'true' ? ' checked':'') . '>';
 							print '&nbsp;<label for="' . $field_name . '">' . $field_array['friendly_name'] . '</label>';
 							print '</span></div>' . PHP_EOL;
 
 							break;
 						case 'timespan':
 							print '<div class="filterColumn"><div class="filterFieldName">' . __('Presets') . '</div></div>' . PHP_EOL;
+
+							print '<div class="filterColumn">';
+							print '<select id="predefined_timespan" class="' . $class . '">';
+
+							$this->timespans = array_merge(array(GT_CUSTOM => __('Custom')), $this->timespans);
+
+							$start_val = 0;
+							$end_val   = cacti_sizeof($this->timespans);
+
+							if (cacti_sizeof($this->timespans)) {
+								foreach ($this->timespans as $value => $text) {
+									print "<option value='$value'" . ($_SESSION['sess_current_timespan'] == $value ? ' selected':'') .  '>' . html_escape($text) . '</option>';
+								}
+							}
+							print '</select>';
+							print '</div>';
+
+							// From data
+							print '<div class="filterColumn">';
+							print __('From');
+							print '</div>';
+							print '<div class="filterColumn">';
+							print '<span>';
+							print '<input type="text" class="ui-state-default ui-corner-all' . $class . '" id="date1" size="18" value="' . (isset($_SESSION['sess_current_date1']) ? $_SESSION['sess_current_date1'] : '') . '">';
+							print '<i id="startDate" class="calendar fa fa-calendar-alt" title="' . __esc('Start Date Selector') . '"></i>';
+							print '</span>';
+							print '</div>';
+
+							// To Data
+							print '<div class="filterColumn">';
+							print __('From');
+							print '</div>';
+							print '<div class="filterColumn">';
+							print '<span>';
+							print '<input type="text" class="ui-state-default ui-corner-all' . $class . '" id="date2" size="18" value="' . (isset($_SESSION['sess_current_date2']) ? $_SESSION['sess_current_date2'] : '') . '">';
+							print '<i id="endDate" class="calendar fa fa-calendar-alt" title="' . __esc('End Date Selector') . '"></i>';
+							print '</span>';
+							print '</div>';
+
+							if (isset($field_array['shifter']) && $field_array['shifter'] === true) {
+								print '<div class="filterColumn">';
+								print '<span>';
+
+								print '<i id="shift_left" class="shiftArrow fa fa-backward" title="' . __esc('Shift Time Backward') . '"></i>';
+								print '<select id="predefined_timeshift" title="' . __esc('Define Shifting Interval') . '" class="' . $class . '">';
+
+								$start_val = 1;
+								$end_val    = cacti_sizeof($this->timeshifts) + 1;
+
+								if (cacti_sizeof($this->timeshifts)) {
+									for ($shift_value=$start_val; $shift_value < $end_val; $shift_value++) {
+										print "<option value='$shift_value'" . ($_SESSION['sess_current_timeshift'] == $shift_value ? ' selected':'') . '>' . html_escape($this->timeshifts[$shift_value]) . '</option>';
+									}
+								}
+
+								print '</select>';
+								print '<i id="shift_right" class="shiftArrow fa fa-forward" title="' . __esc('Shift Time Forward') . '"></i>';
+
+								print '</span>';
+								print '</div>';
+							}
+
+							if ((isset($field_array['refresh']) && $field_array['refresh'] === true) || (isset($field_array['clear']) && $field_array['clear'] === true)) {
+								print '<div class="filterColumn">';
+								print '<span>';
+
+								if (isset($field_array['refresh'])) {
+									print '<input type="button" class="ui-button ui-corner-all ui-widget' . $class . '" id="tsrefresh" value="' . __esc('Refresh') . '" title="' . __esc('Refresh Selected Timespan') . '">';
+								}
+
+								if (isset($field_array['clear'])) {
+									print '<input type="button" class="ui-button ui-corner-all ui-widget' . $class . '" id="tsclear" value="' . __esc('Clear') . '" title="' . __esc('Clear Selected Timespan') . '">';
+								}
+
+								print '</span>';
+								print '</div>';
+							}
 
 							break;
 						default:
@@ -549,6 +646,7 @@ class CactiTableFilter {
 		}
 
 		$applyFilter   .= $separator;
+
 		$clearFilter   .= $separator . "clear=true'";
 		$defaultFilter .= $separator . "action=noaction'";
 
@@ -569,6 +667,18 @@ class CactiTableFilter {
 
 		if (!$this->has_purge && !isset($this->filter_array['buttons']['purge'])) {
 			$purgeFilter = "'#'";
+		}
+
+		if (isset($this->filter_array['options']['change_function'])) {
+			$changeFunction = $this->filter_array['options']['change_function'];
+		} else {
+			$changeFunction = 'applyFilter()';
+		}
+
+		if (isset($this->filter_array['options']['clear_function'])) {
+			$clearFunction = $this->filter_array['options']['clear_function'];
+		} else {
+			$clearFunction = 'clearFilter()';
 		}
 
 		$filterLength    = 0;
@@ -610,6 +720,40 @@ class CactiTableFilter {
 							$filterLength++;
 
 							break;
+						case 'timespan':
+							if (!isset($field_array['span_function'])) {
+								$readyAdd .= "$('#predefined_timespan').change( function() { applyGraphTimespan(); });" . PHP_EOL;
+							} else {
+								$readyAdd .= "$('#predefined_timespan').change( function() { " . $field_array['span_function'] . "; });" . PHP_EOL;
+							}
+
+							if (isset($field_array['shifter']) && $field_array['shifter'] === true) {
+								if (!isset($field_array['lshift_function'])) {
+									$readyAdd .= "$('#shift_left').click( function() { timeshiftGraphFilterLeft(); });" . PHP_EOL;
+								} else {
+									$readyAdd .= "$('#shift_left').click( function() { " . $field_array['lshift_function'] . "; });" . PHP_EOL;
+								}
+
+								if (!isset($field_array['rshift_function'])) {
+									$readyAdd .= "$('#shift_right').click( function() { timeshiftGraphFilterRight(); });" . PHP_EOL;
+								} else {
+									$readyAdd .= "$('#shift_right').click( function() { " . $field_array['rshift_function'] . "; });" . PHP_EOL;
+								}
+							}
+
+							if (!isset($field_array['refresh_function'])) {
+								$readyAdd .= "$('#tsrefresh').click( function() { refreshGraphTimespanFilter(); });" . PHP_EOL;
+							} else {
+								$readyAdd .= "$('#tsrefresh').click( function() { " . $field_array['refresh_function'] . "; });" . PHP_EOL;
+							}
+
+							if (!isset($field_array['clear_function'])) {
+								$readyAdd .= "$('#tsclear').click( function() { clearGraphTimespanFilter(); });" . PHP_EOL;
+							} else {
+								$readyAdd .= "$('#tsclear').click( function() { " . $field_array['clear_function'] . "; });" . PHP_EOL;
+							}
+
+							break;
 						case 'textbox':
 						case 'drop_array':
 						case 'drop_files':
@@ -619,10 +763,16 @@ class CactiTableFilter {
 						case 'drop_color':
 						case 'drop_tree':
 							if ($field_array['method'] != 'textbox' && $this->dynamic) {
-								$changeChain .= ($changeChain != '' ? ', ':'') . '#' . $field_name;
+								if (!isset($field_array['dynamic']) || $field_array['dynamic'] === true) {
+									$changeChain .= ($changeChain != '' ? ', ':'') . '#' . $field_name;
+								}
 							}
 
-							$applyFilter .= ($filterLength == 0 ? '&':"+'&") . $field_name . "='+$('#" . $field_name . "').val()";
+							if ($field_name != 'rfilter') {
+								$applyFilter .= ($filterLength == 0 ? '&':"+'&") . $field_name . "='+$('#" . $field_name . "').val()";
+							} else {
+								$applyFilter .= ($filterLength == 0 ? '&':"+'&") . $field_name . "='+atob($('#" . $field_name . "').val())";
+							}
 							$filterLength++;
 
 							break;
@@ -647,11 +797,11 @@ class CactiTableFilter {
 		}
 
 		if (isset($this->filter_array['javascript']['ready']) && $this->filter_array['javascript']['ready'] != '') {
-			$readyAdd = "\t\t" . trim($this->filter_array['javascript']['ready']) . PHP_EOL;;
+			$readyAdd .= "\t\t" . trim($this->filter_array['javascript']['ready']) . PHP_EOL;;
 		}
 
 		if (isset($this->filter_array['javascript']['global']) && $this->filter_array['javascript']['global'] != '') {
-			$globalAdd = "\t\t" . trim($this->filter_array['javascript']['global']) . PHP_EOL;
+			$globalAdd .= "\t\t" . trim($this->filter_array['javascript']['global']) . PHP_EOL;
 		}
 
 		if ($this->has_refresh || isset_request_var('refresh')) {
@@ -660,7 +810,7 @@ class CactiTableFilter {
 
 		if ($clickChain != '') {
 			$clickReady = "$('" . $clickChain . "').click(function() {\n\t\t\t\t" .
-				"applyFilter();\n\t\t\t" .
+				"$changeFunction;\n\t\t\t" .
 			"});" . PHP_EOL;
 		} else {
 			$clickReady = '';
@@ -668,7 +818,7 @@ class CactiTableFilter {
 
 		if ($changeChain != '') {
 			$changeReady = "$('" . $changeChain . "').change(function() {\n\t\t\t\t" .
-				"applyFilter();\n\t\t\t" .
+				"$changeFunction;\n\t\t\t" .
 			"});" . PHP_EOL;
 		} else {
 			$changeReady = '';
@@ -692,18 +842,19 @@ class CactiTableFilter {
 		$buttonFunctions
 
 		$(function() {
-			refreshFunction = 'applyFilter()';
+			refreshFunction = '$changeFunction';
 			refreshMSeconds = $refreshMSeconds;
 			setupPageTimeout();
 
 			$('#" . $this->form_id . "').submit(function(event) {
 				event.preventDefault();
-				applyFilter();
+				$changeFunction;
 			});
 
 			$('#clear').click(function() {
-				clearFilter();
+				$clearFunction;
 			});
+
 			$readyAdd
 			$changeReady
 			$clickReady
@@ -719,10 +870,11 @@ class CactiTableFilter {
 			foreach($this->filter_array['rows'] as $index => $row) {
 				foreach($row as $field_name => $field_array) {
 					switch($field_array['method']) {
+						case 'timespan':
 						case 'button':
 						case 'submit':
-							break;
 
+							break;
 						default:
 							$filters[$field_name]['filter'] = $field_array['filter'];
 
