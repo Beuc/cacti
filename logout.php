@@ -34,7 +34,7 @@ if ($lockout != '') {
 	$lockout = json_decode($lockout, true);
 
 	if ($admin_user == $_SESSION[SESS_USER_ID] && $lockout['session'] == session_id()) {
-		set_config_optin('cacti_lockout_status', '');
+		set_config_option('cacti_lockout_status', '');
 	}
 }
 

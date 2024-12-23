@@ -536,7 +536,7 @@ function create_manager_log_filter($severity_levels) {
 			'purge' => array(
 				'method'  => 'button',
 				'display' => __('Purge'),
-				'title'   => __('Purge the Notification Reciever Log'),
+				'title'   => __('Purge the Notification Receiver Log'),
 			)
 		)
 	);

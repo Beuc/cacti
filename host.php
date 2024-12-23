@@ -1771,7 +1771,7 @@ function host() {
 
 			form_alternate_row('line' . $host['id'], true);
 
-			$maint = ($host['maint'] == 1 ? '<i class="fas fa-wrench" title="' . __('Maintenace') . '"></i>' : '');
+			$maint = ($host['maint'] == 1 ? '<i class="fas fa-wrench" title="' . __('Maintenance') . '"></i>' : '');
 
 			form_selectable_cell(filter_value($host['description'], get_request_var('filter'), 'host.php?action=edit&id=' . $host['id']) . $maint, $host['id']);
 			form_selectable_cell(filter_value($host['hostname'], get_request_var('filter')), $host['id']);
