@@ -1190,8 +1190,8 @@ function display_matching_trees ($rule_id, $rule_type, $item, $url) {
 		$sql_field = $item['field'] . ' AS source ';
 	} else {
 		$sql_field = '"SQL Injection" AS source ';
-		cacti_log('Attempted SQL Injection found in Tree Automation for the field variable.', false, 'AUTOM8');
-		raise_message('sql_injection', __('Attempted SQL Injection found in Tree Automation for the field variable.'), MESSAGE_LEVEL_ERROR);
+		cacti_log("Attempted SQL Injection found in Tree Automation for the field variable {$item['field']}.", false, 'AUTOM8');
+		raise_message('sql_injection', __("Attempted SQL Injection found in Tree Automation for the field variable {$item['field']}."), MESSAGE_LEVEL_ERROR);
 	}
 
 	/* now we build up a new query for counting the rows */
@@ -1279,7 +1279,7 @@ function display_matching_trees ($rule_id, $rule_type, $item, $url) {
 }
 
 function api_automation_column_exists($column, $tables) {
-	$column = str_replace(array('h.', 'ht.', 'gt.', 'gl.', 'gtg.'), '', 1);
+	$column = str_replace(array('h.', 'ht.', 'gt.', 'gl.', 'gtg.'), array('', '', '', '', ''), $column);
 
 	if (cacti_sizeof($tables)) {
 		foreach($tables as $table) {
