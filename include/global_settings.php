@@ -3095,7 +3095,7 @@ $settings_user = array(
 					'friendly_name' => __('Preview Mode'),
 					'default'       => 'on'
 				),
-				'thumbnail_section_tree_2' => array(
+				'thumbnail_section_tree' => array(
 					'friendly_name' => __('Tree View'),
 					'default'       => ''
 				)
