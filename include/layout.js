@@ -1630,7 +1630,7 @@ function responsiveUI(event) {
 		}
 	});
 
-	$('.filterTable').each(function () {
+	$('table.filterTable').each(function () {
 		tuneFilter($(this), mainWidth);
 	});
 
@@ -3501,7 +3501,7 @@ function setSelectMenus() {
 
 	$('select.colordropdown').dropcolor();
 
-	$('select').not('.colordropdown').not('.drop-icon').not('.multi-select').not('#user_language').each(function() {
+	$('select').not('.colordropdown').not('.drop-icon').not('.multi-select').not('.graph-multiselect').not('#user_language').each(function() {
 		if ($(this).prop('multiple') != true) {
 			$(this).each(function() {
 				let id = $(this).attr('id');
@@ -3535,6 +3535,76 @@ function setSelectMenus() {
 		} else {
 			$(this).addClass('ui-state-default ui-corner-all');
 		}
+	});
+
+	var msWidth = 200;
+
+	$('#graph_template_id.graph-multiselect').hide().multiselect({
+		menuHeight: $(window).height()*.7,
+		menuWidth: 'auto',
+		linkInfo: faIcons,
+		buttonWidth: 'auto',
+		noneSelectedText: allSelectedText,
+		selectedText: function(numChecked, numTotal, checkedItems) {
+			myReturn = numChecked + ' ' + templatesSelected;
+
+			$.each(checkedItems, function(index, value) {
+				if (value.value == '-1') {
+					myReturn = allSelectedText;
+					return false;
+				} else if (value.value == '0') {
+					myReturn = notTemplated;
+
+					return false;
+				}
+			});
+
+			return myReturn;
+		},
+		checkAllText: allText,
+		uncheckAllText: noneText,
+		uncheckAll: function() {
+			$(this).multiselect('widget').find(':checkbox:first').each(function() {
+				$(this).prop('checked', true);
+			});
+		},
+		close: function(event, ui) {
+			applyGraphFilter();
+		},
+		open: function(event, ui) {
+			$("input[type='search']:first").focus();
+		},
+		click: function(event, ui) {
+			checked=$(this).multiselect('widget').find('input:checked').length;
+
+			if (ui.value == -1 || ui.value == 0) {
+				if (ui.checked == true) {
+					$('#graph_template_id').multiselect('uncheckAll');
+					if (ui.value == -1) {
+						$(this).multiselect('widget').find(':checkbox:first').prop('checked', true);
+					} else {
+						$(this).multiselect('widget').find(':checkbox[value="0"]').prop('checked', true);
+					}
+				}
+			} else if (checked == 0) {
+				$(this).multiselect('widget').find(':checkbox:first').each(function() {
+					$(this).click();
+				});
+			} else if ($(this).multiselect('widget').find('input:checked:first').val() == '-1') {
+				if (checked > 0) {
+					$(this).multiselect('widget').find(':checkbox:first').each(function() {
+						$(this).click();
+						$(this).prop('disable', true);
+					});
+				}
+			} else {
+				$(this).multiselect('widget').find(':checkbox[value="0"]').prop('checked', false);
+			}
+		}
+	}).multiselectfilter({
+		label: searchPlaceholder,
+		placeholder: searchEnterKeyword,
+		width: msWidth
 	});
 }
 
@@ -4038,10 +4108,6 @@ function clearGraphTimespanFilter() {
 		funcEnd: 'finalizeGraphFilter',
 	}, {
 		button_clear: 1,
-		date1: $('#date1').val(),
-		date2: $('#date2').val(),
-		predefined_timespan: $('#predefined_timespan').val(),
-		predefined_timeshift: $('#predefined_timeshift').val(),
 		__csrf_magic: csrfMagicToken
 	});
 }
@@ -4181,6 +4247,10 @@ function redrawGraph(graph_id) {
 	var myColumns  = $('#columns').val();
 	var graphRow   = $('.tableRowGraph').width();
 	var drillDown  = $('.graphDrillDown:first').outerWidth() + 10;
+	var isSource   = $('#graph_source').length ? true:false;
+	var isOrder    = $('#graph_order').length ? true:false;
+	var isCF       = $('#cf').length ? true:false;
+	var isMeasure  = $('#measure').length ? true:false;
 
 	if (mainWidth < graphRow) {
 		graphRow = mainWidth - drillDown;
@@ -4202,6 +4272,10 @@ function redrawGraph(graph_id) {
 		'&graph_height=' + graph_height +
 		'&graph_width=' + graph_width +
 		(isThumb ? '&graph_nolegend=true' : '') +
+		(isSource ? '&graph_source='+$('#graph_source').val() : '') +
+		(isOrder ? '&graph_order='+$('#graph_order').val() : '') +
+		(isCF ? '&cf='+$('#cf').val() : '') +
+		(isMeasure ? '&measure='+$('#measure').val() : '') +
 		'&business_hours=' + (isBusiness ? 'true' : 'false') +
 
 	loadUrl({
@@ -4358,6 +4432,10 @@ function initializeGraphs(disable_cache) {
 	var isBusiness = $('#business_hours').is(':checked');
 	var myWidth    = (mainWidth - (30 * myColumns)) / myColumns;
 	var numGraphs  = $('.graphWrapper').length;
+	var isSource   = $('#graph_source').length ? true:false;
+	var isOrder    = $('#graph_order').length ? true:false;
+	var isCF       = $('#cf').length ? true:false;
+	var isMeasure  = $('#measure').length ? true:false;
 
 	$('.graphWrapper').each(function () {
 		var graph_id = $(this).attr('graph_id');
@@ -4383,6 +4461,10 @@ function initializeGraphs(disable_cache) {
 			'&graph_end=' + graph_end +
 			'&graph_height=' + graph_height +
 			'&graph_width=' + graph_width +
+			(isSource ? '&graph_source='+$('#graph_source').val() : '') +
+			(isOrder ? '&graph_order='+$('#graph_order').val() : '') +
+			(isCF ? '&cf='+$('#cf').val() : '') +
+			(isMeasure ? '&measure='+$('#measure').val() : '') +
 			(disable_cache ? '&disable_cache=true' : '') +
 			(isThumb ? '&graph_nolegend=true' : '') +
 			'&business_hours=' + (isBusiness ? 'true' : 'false');

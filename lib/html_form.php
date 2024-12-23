@@ -1240,7 +1240,7 @@ function form_multi_dropdown($form_name, $array_display, $sql_previous_values, $
 		}
 	}
 
-	$class = 'multiselect';
+	$class = "multiselect $class";
 
 	if ($class != '') {
 		$class .= " $class";

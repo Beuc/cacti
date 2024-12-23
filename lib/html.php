@@ -2423,6 +2423,189 @@ function html_graph_tabs_right() {
 	print '</ul></nav></div>';
 }
 
+function html_transform_graph_template_ids($ids) {
+	$return_ids = array();
+
+	if (strpos($ids, ',') !== false) {
+		$ids = explode(',', $ids);
+	} else {
+		$ids = array($ids);
+	}
+
+	foreach($ids as $id) {
+		if (is_numeric($id)) {
+			$return_ids[] = $id;
+		} elseif (strpos($id, 'cg_') !== false) {
+			$new_id = str_replace('cg_', '', $id);
+			$return_ids[] = $new_id;
+		} else {
+			$id = str_replace('dq_', '', $id);
+
+			$return_ids[] = db_fetch_cell_prepared('SELECT graph_template_id
+				FROM snmp_query_graph
+				WHERE id = ?',
+				array($id));
+		}
+	}
+
+	return implode(',', $return_ids);
+}
+
+function html_graph_order_filter_array() {
+	$return  = array();
+
+	if (read_config_option('dsstats_enable') == '') {
+		$data_sources = array('-1' => __('Enable Data Source Statistics to Sort'));
+
+		$return['graph_source'] = array(
+			'method'         => 'drop_array',
+			'friendly_name'  => __('Metric'),
+			'filter'         => FILTER_CALLBACK,
+			'filter_options' => array('options' => 'sanitize_search_string'),
+			'array'          => $data_sources,
+			'value'          => '-1'
+		);
+	} else {
+		$mode = read_config_option('dsstats_mode'); // 0 - Peak/Average only, 1 - Kitchen Sink
+		$peak = read_config_option('dsstats_peak'); // '' - Average CF Only, 'on' - Average and Max CF's
+
+		if (isset_request_var('graph_template_id')) {
+			$graph_templates = get_nfilter_request_var('graph_template_id');
+
+			if (strpos($graph_templates, ',') !== false || $graph_templates == '' || $graph_templates <= 0) {
+				$show_sort    = false;
+
+				$data_sources = array('-1' => __('Select a Single Template'));
+			} else {
+				$show_sort    = true;
+
+				if (is_numeric($graph_templates)) {
+					$graph_template_id = $graph_templates;
+				} elseif (strpos($graph_templates, 'cg_') !== false) {
+					$graph_template_id = str_replace('cg_', '', $graph_templates);
+				} else {
+					$graph_template_id = db_fetch_cell_prepared('SELECT graph_template_id
+						FROM snmp_query_graph
+						WHERE id = ?',
+						array(str_replace('dq_', '', $graph_templates)));
+				}
+
+				$data_sources = array_rekey(
+					db_fetch_assoc_prepared("SELECT DISTINCT data_source_name AS graph_source
+						FROM graph_templates_item AS gti
+						INNER JOIN data_template_rrd AS dtr
+						ON dtr.id = gti.task_item_id
+						WHERE graph_template_id = ?
+						AND local_graph_id = 0
+						ORDER BY data_source_name",
+						array($graph_template_id)),
+					'graph_source', 'graph_source'
+				);
+
+				if (get_nfilter_request_var('graph_source') == '') {
+					if (cacti_sizeof($data_sources)) {
+						set_request_var('graph_source', $data_sources[0]['graph_source']);
+						set_request_var('graph_order', 'desc');
+					}
+				}
+			}
+
+			$return['graph_source'] = array(
+				'method'         => 'drop_array',
+				'friendly_name'  => __('Metric'),
+				'filter'         => FILTER_CALLBACK,
+				'filter_options' => array('options' => 'sanitize_search_string'),
+				'array'          => $data_sources,
+				'value'          => '-1'
+			);
+
+			if ($show_sort) {
+				$options = array(
+					'asc'  => __('Ascending'),
+					'desc' => __('Descending')
+				);
+
+				$return['graph_order'] = array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Order'),
+					'filter'         => FILTER_CALLBACK,
+					'filter_options' => array('options' => 'sanitize_search_string'),
+					'default'        => 'desc',
+					'array'          => $options,
+					'value'          => 'desc'
+				);
+
+				if ($peak == 'on') {
+					$options = array(
+						'0' => __esc('Average'),
+						'1' => __esc('Maximum')
+					);
+
+					$return['cf'] = array(
+						'method'         => 'drop_array',
+						'friendly_name'  => __('CF'),
+						'filter'         => FILTER_VALIDATE_INT,
+						'default'        => 'desc',
+						'array'          => $options,
+						'value'          => get_nfilter_request_var('cf')
+					);
+				}
+
+				if ($mode == 0) {
+					$options = array(
+						'average' => __esc('Average'),
+						'peak'    => __esc('Maximum')
+					);
+
+					$return['measure'] = array(
+						'method'         => 'drop_array',
+						'friendly_name'  => __('Measure'),
+						'filter'         => FILTER_CALLBACK,
+						'filter_options' => array('options' => 'sanitize_search_string'),
+						'default'        => 'desc',
+						'array'          => $options,
+						'value'          => get_nfilter_request_var('measure')
+					);
+				} else {
+					$options = array(
+						'average' => __esc('Average'),
+						'peak'    => __esc('Maximum'),
+						'p25n'    => __esc('25th Percentile'),
+						'p50n'    => __esc('50th Percentile (Median)'),
+						'p75n'    => __esc('75th Percentile'),
+						'p90n'    => __esc('90th Percentile'),
+						'p95n'    => __esc('95th Percentile'),
+						'sum'     => __esc('Total/Sum/Bandwidth')
+					);
+
+					$return['measure'] = array(
+						'method'         => 'drop_array',
+						'friendly_name'  => __('Measure'),
+						'filter'         => FILTER_CALLBACK,
+						'filter_options' => array('options' => 'sanitize_search_string'),
+						'default'        => 'desc',
+						'array'          => $options,
+						'value'          => get_nfilter_request_var('measure')
+					);
+				}
+			}
+		} else {
+			$data_sources = array('-1' => __('Select a Single Template'));
+
+			$return['graph_source'] = array(
+				'method'         => 'drop_array',
+				'friendly_name'  => __('Metric'),
+				'filter'         => FILTER_CALLBACK,
+				'filter_options' => array('options' => 'sanitize_search_string'),
+				'array'          => $data_sources,
+				'value'          => '-1'
+			);
+		}
+	}
+
+	return $return;
+}
+
 function html_graph_order_filter() {
 	$output  = '';
 	$output .= '<td>' . __('Metric') . '</td>';
@@ -2441,6 +2624,17 @@ function html_graph_order_filter() {
 			} else {
 				$output .= '<td>';
 
+				if (is_numeric($graph_templates)) {
+					$graph_template_id = $graph_templates;
+				} elseif (strpos($graph_templates, 'cg_') !== false) {
+					$graph_template_id = str_replace('cg_', '', $graph_templates);
+				} else {
+					$graph_template_id = db_fetch_cell_prepared('SELECT graph_template_id
+						FROM snmp_query_graph
+						WHERE id = ?',
+						array(str_replace('dq_', '', $graph_templates)));
+				}
+
 				$data_sources = db_fetch_assoc_prepared("SELECT DISTINCT data_source_name AS graph_source
 					FROM graph_templates_item AS gti
 					INNER JOIN data_template_rrd AS dtr
@@ -2448,35 +2642,20 @@ function html_graph_order_filter() {
 					WHERE graph_template_id = ?
 					AND local_graph_id = 0
 					ORDER BY data_source_name",
-					array($graph_templates));
+					array($graph_template_id));
 
-				if (get_request_var('graph_source') != '') {
-					$exists = db_fetch_row_prepared("SELECT DISTINCT data_source_name
-						FROM graph_templates_item AS gti
-						INNER JOIN data_template_rrd AS dtr
-						ON dtr.id = gti.task_item_id
-						WHERE graph_template_id = ?
-						AND data_source_name = ?
-						AND local_graph_id = 0
-						LIMIT 1",
-						array($graph_templates, get_request_var('graph_source')));
-
-					if (cacti_sizeof($exists)) {
-						$exists = true;
+				if (get_request_var('graph_source') == '') {
+					if (cacti_sizeof($data_sources)) {
+						set_request_var('graph_source', $data_sources[0]['graph_source']);
+						set_request_var('graph_order', 'desc');
 					}
-				} else {
-					$exists = false;
-				}
-
-				if (!$exists) {
-					set_request_var('graph_order', 'desc');
 				}
 
 				if (cacti_sizeof($data_sources)) {
 					$output .= "<select id='graph_source' data-defaultLabel='" .  __('Sort Column') . "' onChange='applyGraphFilter()'>";
 
 					foreach($data_sources as $index => $d) {
-						if ((!$exists && $index == 0) || get_request_var('graph_source') == $d['graph_source']) {
+						if (get_request_var('graph_source') == $d['graph_source']) {
 							$selected = true;
 						} else {
 							$selected = false;
@@ -3204,6 +3383,7 @@ function html_common_header($title, $selectedTheme = '') {
 		var searchRFilter = '<?php print __esc('Enter a regular expression');?>';
 		var searchSelect = '<?php print __esc('Select to Search');?>';
 		var searchPlaceholder = '<?php print __esc('Search');?>';
+		var searchEnterKeyword = '<?php print __esc('Enter keyword');?>';
 		var sessionMessageCancel = '<?php print __esc('Cancel');?>';
 		var sessionMessageContinue = '<?php print __esc('Continue');?>';
 		var sessionMessageOk = '<?php print __esc('Ok');?>';
@@ -3222,6 +3402,11 @@ function html_common_header($title, $selectedTheme = '') {
 		var usePreferredColorTheme = '<?php print __esc('Use System Color');?>';
 		var userSettings=<?php print is_view_allowed('graph_settings') ? 'true':'false';?>;
 		var utilityView = '<?php print __esc('Utility View');?>';
+		var allSelectedText = '<?php print __('All Graphs & Templates');?>';
+		var templatesSelected = '<?php print __esc('Templates Selected');;?>';
+		var notTemplated = '<?php print __esc('Not Templated');?>';
+		var allText = '<?php __esc('All');?>';
+		var noneText = '<?php print __esc('None');?>';
 		var zoom_i18n_3rd_button = '<?php print __esc('3rd Mouse Button');?>';
 		var zoom_i18n_advanced = '<?php print __esc('Advanced');?>';
 		var zoom_i18n_auto = '<?php print __esc('Auto');?>';

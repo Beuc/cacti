@@ -63,7 +63,13 @@ function set_default_graph_action() {
 		'list'    => array('permission' => 'show_list',    'id' => '2'),
 	);
 
-	if (!isset_request_var('action') || get_nfilter_request_var('action') == '') {
+	if (isset_request_var('action')) {
+		$action = get_nfilter_request_var('action');
+	} else {
+		$action = '';
+	}
+
+	if ($action == '') {
 		/* setup the default action */
 		if (!isset($_SESSION['sess_graph_view_action'])) {
 
@@ -99,11 +105,11 @@ function set_default_graph_action() {
 				set_request_var('action', $_SESSION['sess_graph_view_action']);
 			}
 		}
-	} elseif (in_array(get_request_var('action'), array('get_node', 'tree_content'), true)) {
+	} elseif (in_array($action, array('get_node', 'tree_content'), true)) {
 		$_SESSION['sess_graph_view_action'] = 'tree';
-	} elseif (in_array(get_request_var('action'), array_keys($modes), true)) {
-		if (is_view_allowed('show_' . $_SESSION['sess_graph_view_action'])) {
-			$_SESSION['sess_graph_view_action'] = get_request_var('action');
+	} elseif (in_array($action, array_keys($modes), true)) {
+		if (is_view_allowed('show_' . $action)) {
+			$_SESSION['sess_graph_view_action'] = $action;
 		}
 	}
 }
@@ -913,7 +919,9 @@ function html_graph_preview_view() {
 	}
 
 	if (!isempty_request_var('graph_template_id') && get_request_var('graph_template_id') != '-1' && get_request_var('graph_template_id') != '0') {
-		$sql_where .= ($sql_where != '' ? ' AND ':'') . ' (gl.graph_template_id IN (' . get_request_var('graph_template_id') . '))';
+		$graph_templates = html_transform_graph_template_ids(get_request_var('graph_template_id'));
+
+		$sql_where .= ($sql_where != '' ? ' AND ':'') . ' (gl.graph_template_id IN (' . $graph_templates . '))';
 	} elseif (get_request_var('graph_template_id') == '0') {
 		$sql_where .= ($sql_where != '' ? ' AND ':'') . ' (gl.graph_template_id IN (' . get_request_var('graph_template_id') . '))';
 	}
@@ -1226,7 +1234,9 @@ function html_graph_list_view() {
 	}
 
 	if (!isempty_request_var('graph_template_id') && get_request_var('graph_template_id') != '-1' && get_request_var('graph_template_id') != '0') {
-		$sql_where .= ($sql_where != '' ? ' AND ':'') . ' (gl.graph_template_id IN (' . get_request_var('graph_template_id') . '))';
+		$graph_templates = html_transform_graph_template_ids(get_request_var('graph_template_id'));
+
+		$sql_where .= ($sql_where != '' ? ' AND ':'') . ' (gl.graph_template_id IN (' . $graph_templates . '))';
 	} elseif (get_request_var('graph_template_id') == '0') {
 		$sql_where .= ($sql_where != '' ? ' AND ':'') . ' (gl.graph_template_id IN (' . get_request_var('graph_template_id') . '))';
 	}
