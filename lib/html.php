@@ -298,82 +298,6 @@ function html_filter_end_box() {
 }
 
 /**
- * html_graph_template_multiselect - consistent multiselect javascript library for cacti.
- *
- * @return void
- */
-function html_graph_template_multiselect() {
-	?>
-	var msWidth = 200;
-
-	$('#graph_template_id').hide().multiselect({
-		menuHeight: $(window).height()*.7,
-		menuWidth: 'auto',
-		linkInfo: faIcons,
-		buttonWidth: 'auto',
-		noneSelectedText: '<?php print __('All Graphs & Templates');?>',
-		selectedText: function(numChecked, numTotal, checkedItems) {
-			myReturn = numChecked + ' <?php print __('Templates Selected');?>';
-			$.each(checkedItems, function(index, value) {
-				if (value.value == '-1') {
-					myReturn='<?php print __('All Graphs & Templates');?>';
-					return false;
-				} else if (value.value == '0') {
-					myReturn='<?php print __('Not Templated');?>';
-					return false;
-				}
-			});
-			return myReturn;
-		},
-		checkAllText: '<?php print __('All');?>',
-		uncheckAllText: '<?php print __('None');?>',
-		uncheckAll: function() {
-			$(this).multiselect('widget').find(':checkbox:first').each(function() {
-				$(this).prop('checked', true);
-			});
-		},
-		close: function(event, ui) {
-			applyGraphFilter();
-		},
-		open: function(event, ui) {
-			$("input[type='search']:first").focus();
-		},
-		click: function(event, ui) {
-			checked=$(this).multiselect('widget').find('input:checked').length;
-
-			if (ui.value == -1 || ui.value == 0) {
-				if (ui.checked == true) {
-					$('#graph_template_id').multiselect('uncheckAll');
-					if (ui.value == -1) {
-						$(this).multiselect('widget').find(':checkbox:first').prop('checked', true);
-					} else {
-						$(this).multiselect('widget').find(':checkbox[value="0"]').prop('checked', true);
-					}
-				}
-			} else if (checked == 0) {
-				$(this).multiselect('widget').find(':checkbox:first').each(function() {
-					$(this).click();
-				});
-			} else if ($(this).multiselect('widget').find('input:checked:first').val() == '-1') {
-				if (checked > 0) {
-					$(this).multiselect('widget').find(':checkbox:first').each(function() {
-						$(this).click();
-						$(this).prop('disable', true);
-					});
-				}
-			} else {
-				$(this).multiselect('widget').find(':checkbox[value="0"]').prop('checked', false);
-			}
-		}
-	}).multiselectfilter({
-		label: '<?php print __('Search');?>',
-		placeholder: '<?php print __('Enter keyword');?>',
-		width: msWidth
-	});
-	<?php
-}
-
-/**
  * html_graph_area - draws an area the contains full sized graphs
  *
  * @param array $graph_array - the array to contains graph information. for each graph in the
@@ -1375,7 +1299,7 @@ function html_create_list($form_data, $column_display, $column_id, $form_previou
  * @return string $new_string - the escaped request variable to be returned.
  */
 function html_escape_request_var($string) {
-	return html_escape(get_request_var($string));
+	return html_escape(get_nfilter_request_var($string));
 }
 
 /**
@@ -2451,6 +2375,32 @@ function html_transform_graph_template_ids($ids) {
 	return implode(',', $return_ids);
 }
 
+function html_make_device_where() {
+	$sql_where = '';
+
+	if (isset_request_var('site_id') && get_filter_request_var('site_id') > 0) {
+		$sql_where .= ($sql_where != '' ? ' AND ':' (') . 'h.site_id = ' . get_request_var('site_id');
+	}
+
+	if (isset_request_var('location') && get_nfilter_request_var('location') != '-1') {
+		$sql_where .= ($sql_where != '' ? ' AND ':' (') . 'h.location = ' . db_qstr(get_nfilter_request_var('location'));
+	}
+
+	if (isset_request_var('host_template_id') && get_filter_request_var('host_template_id') > 0) {
+		$sql_where .= ($sql_where != '' ? ' AND ':' (') . 'h.location = ' . get_request_var('host_template_id');
+	}
+
+	if (isset_request_var('external_id') && get_nfilter_filter_request_var('external_id') != '-1') {
+		$sql_where .= ($sql_where != '' ? ' AND ':' (') . 'h.external_id = ' . db_qstr(get_nfilter_request_var('external_id'));
+	}
+
+	if ($sql_where != '') {
+		$sql_where .= ')';
+	}
+
+	return $sql_where;
+}
+
 function html_graph_order_filter_array() {
 	$return  = array();
 
@@ -2459,18 +2409,18 @@ function html_graph_order_filter_array() {
 
 		$return['graph_source'] = array(
 			'method'         => 'drop_array',
-			'friendly_name'  => __('Metric'),
+			'friendly_name'  => __('Source'),
 			'filter'         => FILTER_CALLBACK,
 			'filter_options' => array('options' => 'sanitize_search_string'),
 			'array'          => $data_sources,
-			'value'          => '-1'
+			'value'          => ''
 		);
 	} else {
 		$mode = read_config_option('dsstats_mode'); // 0 - Peak/Average only, 1 - Kitchen Sink
 		$peak = read_config_option('dsstats_peak'); // '' - Average CF Only, 'on' - Average and Max CF's
 
 		if (isset_request_var('graph_template_id')) {
-			$graph_templates = get_nfilter_request_var('graph_template_id');
+			$graph_templates = html_transform_graph_template_ids(get_nfilter_request_var('graph_template_id'));
 
 			if (strpos($graph_templates, ',') !== false || $graph_templates == '' || $graph_templates <= 0) {
 				$show_sort    = false;
@@ -2478,17 +2428,6 @@ function html_graph_order_filter_array() {
 				$data_sources = array('-1' => __('Select a Single Template'));
 			} else {
 				$show_sort    = true;
-
-				if (is_numeric($graph_templates)) {
-					$graph_template_id = $graph_templates;
-				} elseif (strpos($graph_templates, 'cg_') !== false) {
-					$graph_template_id = str_replace('cg_', '', $graph_templates);
-				} else {
-					$graph_template_id = db_fetch_cell_prepared('SELECT graph_template_id
-						FROM snmp_query_graph
-						WHERE id = ?',
-						array(str_replace('dq_', '', $graph_templates)));
-				}
 
 				$data_sources = array_rekey(
 					db_fetch_assoc_prepared("SELECT DISTINCT data_source_name AS graph_source
@@ -2498,13 +2437,13 @@ function html_graph_order_filter_array() {
 						WHERE graph_template_id = ?
 						AND local_graph_id = 0
 						ORDER BY data_source_name",
-						array($graph_template_id)),
+						array($graph_templates)),
 					'graph_source', 'graph_source'
 				);
 
-				if (get_nfilter_request_var('graph_source') == '') {
+				if (get_nfilter_request_var('graph_source') == '' || get_nfilter_request_var('graph_source') == '-1') {
 					if (cacti_sizeof($data_sources)) {
-						set_request_var('graph_source', $data_sources[0]['graph_source']);
+						set_request_var('graph_source', array_keys($data_sources)[0]);
 						set_request_var('graph_order', 'desc');
 					}
 				}
@@ -2512,11 +2451,11 @@ function html_graph_order_filter_array() {
 
 			$return['graph_source'] = array(
 				'method'         => 'drop_array',
-				'friendly_name'  => __('Metric'),
+				'friendly_name'  => __('Source'),
 				'filter'         => FILTER_CALLBACK,
 				'filter_options' => array('options' => 'sanitize_search_string'),
 				'array'          => $data_sources,
-				'value'          => '-1'
+				'value'          => ''
 			);
 
 			if ($show_sort) {
@@ -2594,135 +2533,16 @@ function html_graph_order_filter_array() {
 
 			$return['graph_source'] = array(
 				'method'         => 'drop_array',
-				'friendly_name'  => __('Metric'),
+				'friendly_name'  => __('Source'),
 				'filter'         => FILTER_CALLBACK,
 				'filter_options' => array('options' => 'sanitize_search_string'),
 				'array'          => $data_sources,
-				'value'          => '-1'
+				'value'          => ''
 			);
 		}
 	}
 
 	return $return;
-}
-
-function html_graph_order_filter() {
-	$output  = '';
-	$output .= '<td>' . __('Metric') . '</td>';
-
-	if (read_config_option('dsstats_enable') == 'on') {
-		$mode = read_config_option('dsstats_mode'); // 0 - Peak/Average only, 1 - Kitchen Sink
-		$peak = read_config_option('dsstats_peak'); // '' - Average CF Only, 'on' - Average and Max CF's
-
-		if (isset_request_var('graph_template_id')) {
-			$graph_templates = get_request_var('graph_template_id');
-
-			if (strpos($graph_templates, ',') !== false || $graph_templates == '' || $graph_templates <= 0) {
-				$output .= '<td><select>';
-				$output .= '<option selected>' . __esc('Select a Single Template') . '</option></td>';
-				$output .= '</select></td>';
-			} else {
-				$output .= '<td>';
-
-				if (is_numeric($graph_templates)) {
-					$graph_template_id = $graph_templates;
-				} elseif (strpos($graph_templates, 'cg_') !== false) {
-					$graph_template_id = str_replace('cg_', '', $graph_templates);
-				} else {
-					$graph_template_id = db_fetch_cell_prepared('SELECT graph_template_id
-						FROM snmp_query_graph
-						WHERE id = ?',
-						array(str_replace('dq_', '', $graph_templates)));
-				}
-
-				$data_sources = db_fetch_assoc_prepared("SELECT DISTINCT data_source_name AS graph_source
-					FROM graph_templates_item AS gti
-					INNER JOIN data_template_rrd AS dtr
-					ON dtr.id = gti.task_item_id
-					WHERE graph_template_id = ?
-					AND local_graph_id = 0
-					ORDER BY data_source_name",
-					array($graph_template_id));
-
-				if (get_request_var('graph_source') == '') {
-					if (cacti_sizeof($data_sources)) {
-						set_request_var('graph_source', $data_sources[0]['graph_source']);
-						set_request_var('graph_order', 'desc');
-					}
-				}
-
-				if (cacti_sizeof($data_sources)) {
-					$output .= "<select id='graph_source' data-defaultLabel='" .  __('Sort Column') . "' onChange='applyGraphFilter()'>";
-
-					foreach($data_sources as $index => $d) {
-						if (get_request_var('graph_source') == $d['graph_source']) {
-							$selected = true;
-						} else {
-							$selected = false;
-						}
-
-						$output .= "<option value='{$d['graph_source']}'" . ($selected ? ' selected':'') . '>' . html_escape($d['graph_source']) . '</option>';
-					}
-
-					$output .= '</select>';
-				}
-
-				$output .= '</td>';
-
-				$output .= '<td>' . __('Sort Order') . '</td>';
-				$output .= '<td>';
-				$output .= "<select id='graph_order' data-defaultLabel='" .  __('Sort Order') . "' onChange='applyGraphFilter()'>";
-				$output .= "<option value='asc'" . (get_request_var('graph_order') == 'asc' ? ' selected':'') . '>' . __esc('Ascending') . '</option>';
-				$output .= "<option value='desc'" . (get_request_var('graph_order') == 'desc' ? ' selected':'') . '>' . __esc('Descending') . '</option>';
-				$output .= '</select>';
-				$output .= '</td>';
-
-				if ($peak == 'on') {
-					$output .= '<td>' . __('CF') . '</td>';
-					$output .= '<td>';
-					$output .= "<select id='cf' data-defaultLabel='" .  __('CF') . "' onChange='applyGraphFilter()'>";
-					$output .= "<option value='0'" . (get_request_var('cf') == '0' ? ' selected':'') . '>' . __esc('Average') . '</option>';
-					$output .= "<option value='1'" . (get_request_var('cf') == '1' ? ' selected':'') . '>' . __esc('Maximum') . '</option>';
-					$output .= '</select>';
-					$output .= '</td>';
-				}
-
-				if ($mode == 0) {
-					$output .= '<td>' . __('Measure') . '</td>';
-					$output .= '<td>';
-					$output .= "<select id='measure' data-defaultLabel='" .  __('Measure') . "' onChange='applyGraphFilter()'>";
-					$output .= "<option value='average'" . (get_request_var('measure') == 'average' ? ' selected':'') . '>' . __esc('Average') . '</option>';
-					$output .= "<option value='peak'"    . (get_request_var('measure') == 'peak'    ? ' selected':'') . '>' . __esc('Maximum') . '</option>';
-					$output .= '</select>';
-					$output .= '</td>';
-				} else {
-					$output .= '<td>' . __('Measure') . '</td>';
-					$output .= '<td>';
-					$output .= "<select id='measure' data-defaultLabel='" .  __('Measure') . "' onChange='applyGraphFilter()'>";
-					$output .= "<option value='average'" . (get_request_var('measure') == 'average' ? ' selected':'') . '>' . __esc('Average')                  . '</option>';
-					$output .= "<option value='peak'"    . (get_request_var('measure') == 'peak'    ? ' selected':'') . '>' . __esc('Maximum')                  . '</option>';
-					$output .= "<option value='p25n'"    . (get_request_var('measure') == 'p25n'    ? ' selected':'') . '>' . __esc('25th Percentile')          . '</option>';
-					$output .= "<option value='p50n'"    . (get_request_var('measure') == 'p50n'    ? ' selected':'') . '>' . __esc('50th Percentile (Median)') . '</option>';
-					$output .= "<option value='p75n'"    . (get_request_var('measure') == 'p75n'    ? ' selected':'') . '>' . __esc('75th Percentile')          . '</option>';
-					$output .= "<option value='p90n'"    . (get_request_var('measure') == 'p90n'    ? ' selected':'') . '>' . __esc('90th Percentile')          . '</option>';
-					$output .= "<option value='p95n'"    . (get_request_var('measure') == 'p95n'    ? ' selected':'') . '>' . __esc('95th Percentile')          . '</option>';
-					$output .= "<option value='sum'"     . (get_request_var('measure') == 'sum'     ? ' selected':'') . '>' . __esc('Total/Sum/Bandwidth')      . '</option>';
-					$output .= '</select>';
-					$output .= '</td>';
-				}
-			}
-		} else {
-			$output .= '<td><select disabled="disabled">';
-			$output .= '<option selected disabled>' . __esc('Select a Single Template') . '</option></td>';
-			$output .= '</select></td>';
-		}
-	} else {
-		$output .= '<td><select disabled="disabled">';
-		$output .= '<option selected disabled>' . __esc('Enable Data Source Statistics to Sort Graphs') . '</option></td>';
-		$output .= '</select></td>';
-	}
-
-	print $output;
 }
 
 function html_thumbnails_filter($callBack = 'applyGraphFilter') {

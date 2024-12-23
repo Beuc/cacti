@@ -46,7 +46,8 @@ initialize_realtime_step_and_window();
 
 switch (get_nfilter_request_var('action')) {
 	case 'ajax_hosts':
-		get_allowed_ajax_hosts();
+		$sql_where = html_make_device_where();
+		get_allowed_ajax_hosts(true, true, $sql_where);
 
 		break;
 	case 'ajax_search':

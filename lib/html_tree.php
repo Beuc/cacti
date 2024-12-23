@@ -952,6 +952,10 @@ function create_dhtml_tree() {
 function create_tree_filter() {
 	global $item_rows;
 
+	$all     = array('-1' => __('All'));
+	$any     = array('-1' => __('Any'));
+	$none    = array('0'  => __('None'));
+
 	/* unset the ordering if we have a setup that does not support ordering */
 	if (isset_request_var('graph_template_id')) {
 		if (strpos(get_nfilter_request_var('graph_template_id'), ',') !== false || get_nfilter_request_var('graph_template_id') <= 0) {
@@ -959,18 +963,6 @@ function create_tree_filter() {
 			set_request_var('graph_source', '');
 		}
 	}
-
-	/* handle the change of a single template */
-	if (isset($_SESSION['sess_grt_graph_template_id']) && isset_request_var('graph_template_id')) {
-		if ($_SESSION['sess_grt_graph_template_id'] != get_nfilter_request_var('graph_template_id')) {
-			set_request_var('graph_order', '');
-			set_request_var('graph_source', '');
-		}
-	}
-
-	$all     = array('-1' => __('All'));
-	$any     = array('-1' => __('Any'));
-	$none    = array('0'  => __('None'));
 
 	if (get_filter_request_var('host_id') == 0) {
 		$templates = get_allowed_graph_templates_normalized('gl.host_id=0', 'name', '', $total_rows);
@@ -1000,6 +992,18 @@ function create_tree_filter() {
 
 	$metrics_array = html_graph_order_filter_array();
 
+	if (isset_request_var('business_hours')) {
+		$business_hours = get_nfilter_request_var('business_hours');
+	} else {
+		$business_hours = read_user_setting('show_business_hours') == 'on' ? 'true':'false';
+	}
+
+	if (isset_request_var('thumbnails')) {
+		$thumbnails = get_nfilter_request_var('thumbnails');
+	} else {
+		$thumbnails = read_user_setting('thumbnail_section_tree') == 'on' ? 'true':'false';
+	}
+
 	$filters = array(
 		'rows' => array(
 			array(
@@ -1018,7 +1022,7 @@ function create_tree_filter() {
 			array(
 				'graph_template_id' => array(
 					'method'         => 'drop_multi',
-					'friendly_name'  => __('Templates'),
+					'friendly_name'  => __('Template'),
 					'filter'         => FILTER_VALIDATE_REGEXP,
 					'filter_options' => array('options' => array('regexp' => '(cg_[0-9]|dq_[0-9]|[\-0-9])')),
 					'default'        => '-1',
@@ -1026,7 +1030,7 @@ function create_tree_filter() {
 					'class'          => 'graph-multiselect',
 					'pageset'        => true,
 					'array'          => $normalized_templates,
-					'value'          => get_nfilter_request_var('graph_template_id')
+					'value'          => ''
 				),
 			),
 			array(
@@ -1053,16 +1057,16 @@ function create_tree_filter() {
 					'friendly_name'  => __('Thumbnails'),
 					'filter'         => FILTER_VALIDATE_REGEXP,
 					'filter_options' => array('options' => array('regexp' => '(true|false)')),
-					'default'        => '',
-					'value'          => get_nfilter_request_var('thumbnails')
+					'default'        => read_user_setting('thumbnail_section_tree') == 'on' ? 'true':'false',
+					'value'          => $thumbnails
 				),
 				'business_hours' => array(
 					'method'         => 'filter_checkbox',
 					'friendly_name'  => __('Business Hours'),
 					'filter'         => FILTER_VALIDATE_REGEXP,
 					'filter_options' => array('options' => array('regexp' => '(true|false)')),
-					'default'        => '',
-					'value'          => get_nfilter_request_var('business_hours')
+					'default'        => read_user_setting('show_business_hours') == 'on' ? 'true':'false',
+					'value'          => $business_hours
 				)
 			),
 			array(
@@ -1115,12 +1119,6 @@ function create_tree_filter() {
 				'display' => __('Clear'),
 				'title'   => __('Reset filter to default values'),
 				'callback' => 'clearGraphFilter()'
-			),
-			'save' => array(
-				'method'  => 'button',
-				'display' => __('Save'),
-				'title'   => __('Save the filter to the database'),
-				'callback' => 'saveGraphFilter()'
 			)
 		)
 	);
@@ -1130,10 +1128,11 @@ function create_tree_filter() {
 	}
 
 	if (is_view_allowed('graph_settings')) {
-		$filters['button']['save'] = array(
+		$filters['buttons']['save'] = array(
 			'method'  => 'button',
 			'display' => __('Save'),
 			'title'   => __('Save filter to the database'),
+			'callback' => 'saveGraphFilter("treeview")'
 		);
 	}
 
@@ -1141,7 +1140,7 @@ function create_tree_filter() {
 }
 
 function process_sanitize_draw_tree_filter($render = false) {
-	$header = __('Graph Filters') . (get_nfilter_request_var('rfilter') != '' ? ' [ ' . __('Filter') . " '" . html_escape_request_var('rfilter') . "' " . __('Applied') . ' ]' : '');
+	$header = __('Graph Tree Filters') . (get_nfilter_request_var('rfilter') != '' ? ' [ ' . __('Filter') . " '" . html_escape_request_var('rfilter') . "' " . __('Applied') . ' ]' : '');
 
 	/* create the page filter */
 	$filters    = create_tree_filter();
