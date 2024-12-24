@@ -2424,7 +2424,11 @@ ul#nav {
 	margin-bottom: 4px;
 }
 
-.ui-multiselect-filter-label > input {
+.ui-multiselect-header .ui-multiselect-filter input {
+	border: 1px solid #d3d3d3 !important;
+}
+
+.ui-multiselect-filter-label input {
 	padding: 2px;
 	margin-left: 4px;
 }

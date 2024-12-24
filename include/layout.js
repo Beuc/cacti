@@ -884,7 +884,7 @@ function applySkin() {
 
 	function blinkMe() {
 		$('.blink').each(function() {
-			var width = $(this).textWidth();
+			var width = $(this).textBoxWidth();
 
 			$(this).css({ 'min-width': width });
 			$(this).fadeOut(900).fadeIn(900);
@@ -3546,7 +3546,7 @@ function setSelectMenus() {
 		}
 	});
 
-	msWidth -= 20;
+	msWidth -= 50;
 
 	$('#graph_template_id.graph-multiselect').hide().multiselect({
 		menuHeight: $(window).height()*.7,
