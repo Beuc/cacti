@@ -288,22 +288,13 @@ function host_new_graphs_save($host_id) {
 	}
 }
 
-function create_filter($host) {
+function create_filter($host, $snmp_queries) {
 	global $item_rows;
 
 	$all = array('-2' => __('All'));
 	$gt  = array('-1' => __('Graph Template Based'));
 
-	$graph_types = array_rekey(
-		db_fetch_assoc_prepared('SELECT sq.id, sq.name
-			FROM snmp_query AS sq
-			INNER JOIN host_snmp_query AS hsq
-			ON hsq.snmp_query_id = sq.id
-			WHERE hsq.host_id = ?
-			ORDER BY sq.name',
-			array($host['id'])),
-		'id', 'name'
-	);
+	$graph_types = array_rekey($snmp_queries, 'id', 'name');
 
 	$graph_types = $all + $gt + $graph_types;
 
@@ -432,8 +423,8 @@ function create_filter($host) {
 	return $filters;
 }
 
-function process_sanitize_draw_filter($render = false, $header_label = '', $host = array()) {
-	$filters = create_filter($host);
+function process_sanitize_draw_filter($render = false, $header_label = '', $host = array(), $snmp_queries = array()) {
+	$filters = create_filter($host, $snmp_queries);
 
 	/* create the page filter */
 	$pageFilter = new CactiTableFilter($header_label, 'graphs_new.php', 'form_gn', 'sess_gn', '', '', false);
@@ -451,7 +442,7 @@ function graphs() {
 	global $config, $item_rows;
 
 	if (isempty_request_var('host_id')) {
-		$host = db_fetch_row('SELECT id, description, hostname, host_template
+		$host = db_fetch_row('SELECT id, description, hostname, host_template_id
 			FROM host
 			ORDER BY description ASC
 			LIMIT 1');
@@ -475,7 +466,15 @@ function graphs() {
 		$header_label = __('New Graphs [ Search for a Device First ]');
 	}
 
-	process_sanitize_draw_filter(true, $header_label, $host);
+	$snmp_queries = db_fetch_assoc_prepared('SELECT sq.id, sq.name
+		FROM snmp_query AS sq
+		INNER JOIN host_snmp_query AS hsq
+		ON hsq.snmp_query_id = sq.id
+		WHERE hsq.host_id = ?
+		ORDER BY sq.name',
+		array($host['id']));
+
+	process_sanitize_draw_filter(true, $header_label, $host, $snmp_queries);
 
 	if (get_request_var('rows') == '-1') {
 		$rows = read_user_setting('num_rows_table', read_config_option('num_rows_table'), true);
@@ -731,7 +730,7 @@ function graphs() {
 				}
 
 				print "<div class='cactiTable'>
-					<div>
+					<div class='cactiTableTitleRow'>
 						<div class='cactiTableTitle'>
 							<span>" . __esc('Data Query [%s]', $snmp_query['name']) . "</span>
 						</div>

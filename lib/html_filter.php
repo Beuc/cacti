@@ -644,7 +644,7 @@ class CactiTableFilter {
 				"};" . PHP_EOL;
 			} else {
 				$buttonFunction .= PHP_EOL . "\t\tfunction {$buttonId}Function () {" . $func_nl .
-					"$('#text').text('{$field_array['status']}');" . $func_nl .
+					"$('#text').text('{$buttonArray['status']}');" . $func_nl .
 					"pulsate('#text');" . $func_nl .
 					"loadUrl({ url: '{$buttonArray['url']}', funcEnd: 'finishFinalize' });" . $func_el .
 				"};" . PHP_EOL;
