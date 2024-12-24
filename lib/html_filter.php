@@ -59,6 +59,8 @@ class CactiTableFilter {
 	public $has_associated = false;
 	public $has_refresh    = false;
 
+	private $initialized   = false;
+
 	private $sort_array    = array();
 	private $button_array  = array();
 	private $append_array  = array();
@@ -113,6 +115,8 @@ class CactiTableFilter {
 		if ($this->action_url != '' && $this->action_label == '') {
 			$this->action_label = __('Add');
 		}
+
+		$this->filter_array = $this->create_default();
 	}
 
 	private function create_default() {
@@ -209,8 +213,8 @@ class CactiTableFilter {
 	}
 
 	public function render() {
-		if (!cacti_sizeof($this->filter_array)) {
-			$this->filter_array = $this->create_default();
+		if (!$this->initialized) {
+			$this->initialize_filter();
 		}
 
 		/* validate filter variables */
@@ -229,15 +233,15 @@ class CactiTableFilter {
 	}
 
 	public function sanitize() {
-		if (!cacti_sizeof($this->filter_array)) {
-			$this->filter_array = $this->create_default();
+		if (!$this->initialized) {
+			$this->initialize_filter();
 		}
 
 		/* validate filter variables */
 		$this->sanitize_filter_variables();
 	}
 
-	private function create_filter() {
+	private function initialize_filter() {
 		if (!cacti_sizeof($this->filter_array)) {
 			$this->filter_array = $this->create_default();
 		}
@@ -396,6 +400,10 @@ class CactiTableFilter {
 			$this->filter_array['rows'][0] += $this->filter_array['buttons'];
 		}
 
+		$this->initialized = true;
+	}
+
+	private function create_filter() {
 		// Buffer output
 		ob_start();
 
