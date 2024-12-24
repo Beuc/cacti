@@ -2131,7 +2131,7 @@ function user() {
 	$filters = create_user_filter();
 
 	/* create the page filter */
-	$pageFilter = new CactiTableFilter(__('User Management'), 'user_admin.php', 'form_user', 'sess_ua', 'user_admin.php?action=edit');
+	$pageFilter = new CactiTableFilter(__('User Management'), 'user_admin.php', 'form_user', 'sess_ua', 'user_admin.php?action=user_edit&tab=general');
 
 	$pageFilter->rows_label       = __('Users');
 
