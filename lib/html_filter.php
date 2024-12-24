@@ -209,6 +209,10 @@ class CactiTableFilter {
 	}
 
 	public function render() {
+		if (!cacti_sizeof($this->filter_array)) {
+			$this->filter_array = $this->create_default();
+		}
+
 		/* validate filter variables */
 		$this->sanitize_filter_variables();
 
@@ -225,8 +229,9 @@ class CactiTableFilter {
 	}
 
 	public function sanitize() {
-		/* create the filter for the page */
-		$filter = $this->create_filter();
+		if (!cacti_sizeof($this->filter_array)) {
+			$this->filter_array = $this->create_default();
+		}
 
 		/* validate filter variables */
 		$this->sanitize_filter_variables();
@@ -817,7 +822,7 @@ class CactiTableFilter {
 			$globalAdd .= "\t\t" . trim($this->filter_array['javascript']['global']) . PHP_EOL;
 		}
 
-		if ($this->has_refresh || isset_request_var('refresh')) {
+		if (!$this->has_refresh && isset_request_var('refresh') && get_request_var('refresh') > 0) {
 			$refreshMSeconds = get_request_var('refresh') * 1000;
 		}
 

@@ -263,7 +263,6 @@ function create_filter() {
 		ON ua.realm = ud.domain_id+1000
 		ORDER BY username, realm');
 
-
 	if (cacti_sizeof($users)) {
 		$users = array_rekey($users, 'id', 'name');
 	}
@@ -296,19 +295,19 @@ function create_filter() {
 					'method'        => 'drop_array',
 					'friendly_name' => __('User'),
 					'filter'        => FILTER_VALIDATE_INT,
-					'default'       => '0',
+					'default'       => '-1',
 					'pageset'       => true,
 					'array'         => $users,
-					'value'         => '0'
+					'value'         => '-1'
 				),
 				'result' => array(
 					'method'        => 'drop_array',
 					'friendly_name' => __('Result'),
 					'filter'        => FILTER_VALIDATE_INT,
-					'default'       => '0',
+					'default'       => '-1',
 					'pageset'       => true,
 					'array'         => $results,
-					'value'         => '0'
+					'value'         => '-1'
 				),
 				'rows' => array(
 					'method'        => 'drop_array',

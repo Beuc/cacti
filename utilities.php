@@ -239,7 +239,7 @@ function create_data_query_filter() {
 	$sql_where  = '';
 	$sql_params = array();
 
-	$host_id = get_request_var('host_id');
+	$host_id = get_filter_request_var('host_id');
 
 	if ($host_id > 0) {
 		/* for the templates dropdown */
@@ -250,17 +250,17 @@ function create_data_query_filter() {
 			FROM host
 			WHERE id = ?',
 			array($host_id));
-	} elseif ($host_id == 0) {
-		$host_id  = '0';
-		$hostname = __('None');
-	} else {
+	} elseif ($host_id == '' || $host_id == '-1') {
 		$host_id  = '-1';
 		$hostname = __('Any');
+	} else {
+		$host_id  = '0';
+		$hostname = __('None');
 	}
 
 	if (get_request_var('site_id') >= 0) {
 		$sql_where    = ($sql_where != '' ? ' AND ':'WHERE ') . 'site_id = ?';
-		$sql_params[] = get_request_var('site_id');
+		$sql_params[] = get_filter_request_var('site_id');
 	}
 
 	$data_queries = array_rekey(
@@ -272,14 +272,14 @@ function create_data_query_filter() {
 			ON hsc.host_id = h.id
 			$sql_where
 			ORDER by sq.name",
-			$sql_param),
+			$sql_params),
 		'id', 'name'
 	);
 
 	$data_queries = $any + $data_queries;
 
 	if (isset_request_var('with_index')) {
-		$value = get_request_var('with_index');
+		$value = get_nfilter_request_var('with_index');
 	} else {
 		$value = read_config_option('default_has') == 'on' ? 'true':'false';
 	}
@@ -469,7 +469,7 @@ function utilities_view_snmp_cache() {
 
 	html_start_box('', '100%', '', '3', 'center', '');
 
-	html_header($display_text);
+	html_header($display_text, 1);
 
 	$i = 0;
 
@@ -480,9 +480,9 @@ function utilities_view_snmp_cache() {
 			form_selectable_cell(filter_value($item['description'], get_request_var('filter')), $i);
 			form_selectable_cell(filter_value($item['name'], get_request_var('filter')), $i);
 			form_selectable_ecell($item['snmp_index'], $i);
-			form_selectable_cell(filter_value($item['field_name'], get_request_var('filter')), $i);
-			form_selectable_cell(filter_value($item['field_value'], get_request_var('filter')), $i);
-			form_selectable_cell(filter_value($item['oid'], get_request_var('filter')), $i);
+			form_selectable_ecell(filter_value($item['field_name'], get_request_var('filter')), $i);
+			form_selectable_ecell(filter_value($item['field_value'], get_request_var('filter')), $i);
+			form_selectable_ecell(filter_value($item['oid'], get_request_var('filter')), $i);
 
 			form_end_row();
 		}
@@ -691,26 +691,26 @@ function create_poller_cache_filter() {
 	$sql_where  = '';
 	$sql_params = array();
 
-	$host_id = get_request_var('host_id');
+	$host_id = get_filter_request_var('host_id');
 
 	if ($host_id > 0) {
 		/* for the templates dropdown */
-		$sql_where    = 'AND h.id = ?';
+		$sql_where    = ($sql_where != '' ? ' AND ':'WHERE ') . 'h.id = ?';
 		$sql_params[] = $host_id;
 
 		$hostname = db_fetch_cell_prepared('SELECT description
 			FROM host
 			WHERE id = ?',
 			array($host_id));
-	} elseif ($host_id == 0) {
-		$host_id  = '0';
-		$hostname = __('None');
-	} else {
+	} elseif ($host_id == '' || $host_id == '-1') {
 		$host_id  = '-1';
 		$hostname = __('Any');
+	} else {
+		$host_id  = '0';
+		$hostname = __('None');
 	}
 
-	if (get_request_var('site_id') >= 0) {
+	if (get_filter_request_var('site_id') >= 0) {
 		$sql_where    = 'AND site_id = ?';
 		$sql_params[] = get_request_var('site_id');
 	}
