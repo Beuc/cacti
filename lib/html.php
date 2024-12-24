@@ -1656,7 +1656,7 @@ function draw_graph_items_list($item_list, $filename, $url_data, $disable_contro
 			$i++;
 		}
 	} else {
-		print "<tr class='tableRow'><td colspan='" . cacti_sizeof($display_text) . "'><em>" . __('No Items') . '</em></td></tr>';
+		print "<tr class='tableRow odd'><td colspan='" . cacti_sizeof($display_text) . "'><em>" . __('No Items') . '</em></td></tr>';
 	}
 }
 
@@ -2488,7 +2488,7 @@ function html_graph_order_filter_array() {
 						'method'         => 'drop_array',
 						'friendly_name'  => __('CF'),
 						'filter'         => FILTER_VALIDATE_INT,
-						'default'        => 'desc',
+						'default'        => '0',
 						'array'          => $options,
 						'value'          => get_nfilter_request_var('cf')
 					);
@@ -2505,7 +2505,7 @@ function html_graph_order_filter_array() {
 						'friendly_name'  => __('Measure'),
 						'filter'         => FILTER_CALLBACK,
 						'filter_options' => array('options' => 'sanitize_search_string'),
-						'default'        => 'desc',
+						'default'        => 'average',
 						'array'          => $options,
 						'value'          => get_nfilter_request_var('measure')
 					);
@@ -2526,7 +2526,7 @@ function html_graph_order_filter_array() {
 						'friendly_name'  => __('Measure'),
 						'filter'         => FILTER_CALLBACK,
 						'filter_options' => array('options' => 'sanitize_search_string'),
-						'default'        => 'desc',
+						'default'        => 'average',
 						'array'          => $options,
 						'value'          => get_nfilter_request_var('measure')
 					);
