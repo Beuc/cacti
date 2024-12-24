@@ -63,6 +63,7 @@ class CactiTableFilter {
 
 	private $sort_array    = array();
 	private $button_array  = array();
+	private $link_array    = array();
 	private $append_array  = array();
 	private $item_rows     = array();
 	private $timespans     = array();
@@ -208,6 +209,10 @@ class CactiTableFilter {
 		$this->button_array[$id] = $button;
 	}
 
+	public function add_link($id, $link) {
+		$this->link_array[$id] = $link;
+	}
+
 	public function add_row_element($row, $id, $filter) {
 		$this->append_array[$row][$id] = $filter;
 	}
@@ -251,7 +256,19 @@ class CactiTableFilter {
 		}
 
 		if (cacti_sizeof($this->button_array)) {
-			$this->filter_array['buttons'] += $this->button_array;
+			if (cacti_sizeof($this->filter_array['buttons'])) {
+				$this->filter_array['buttons'] += $this->button_array;
+			} else {
+				$this->filter_array['buttons']  = $this->button_array;
+			}
+		}
+
+		if (cacti_sizeof($this->link_array)) {
+			if (cacti_sizeof($this->filter_array['links'])) {
+				$this->filter_array['links'] += $this->link_array;
+			} else {
+				$this->filter_array['links']  = $this->link_array;
+			}
 		}
 
 		if (cacti_sizeof($this->append_array)) {
@@ -482,7 +499,7 @@ class CactiTableFilter {
 							if (isset($field_array['display'])) {
 								print '<input type="button" class="ui-button ui-corner-all ui-widget' . $class . '" id="' . $field_name . '" value="' . $field_array['display'] . '"' . (isset($field_array['title']) ? ' title="' . $field_array['title']:'') . '">';
 							} else {
-								print '<button type="button" class="ui-button ui-corner-all ui-widget' . $class . '" id="' . $field_name . '"' . (isset($field_array['title']) ? ' title="' . $field_array['title']:'') . '"><i class="' . $field_array['class'] . '"></i></button>';
+								print '<button type="button" class="ui-button ui-corner-all ui-widget" id="' . $field_name . '"' . (isset($field_array['title']) ? ' title="' . $field_array['title']:'') . '"><i class="' . $field_array['class'] . '"></i></button>';
 							}
 
 							print '</div>' . PHP_EOL;
