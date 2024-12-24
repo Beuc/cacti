@@ -2517,6 +2517,11 @@ tr#realtime td:first-child {
 	font-size: unset;
 }
 
+.ui-widget-header {
+	background: transparent;
+	background-color: #161616;
+}
+
 .ui-checkboxradio-icon {
 	display: none;
 }

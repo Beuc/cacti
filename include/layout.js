@@ -3539,6 +3539,15 @@ function setSelectMenus() {
 
 	var msWidth = 200;
 
+	$('#graph_template_id option').each(function() {
+		var curWidth = $(this).textWidth();
+		if (curWidth > msWidth) {
+			msWidth = curWidth;
+		}
+	});
+
+	msWidth -= 20;
+
 	$('#graph_template_id.graph-multiselect').hide().multiselect({
 		menuHeight: $(window).height()*.7,
 		menuWidth: 'auto',
