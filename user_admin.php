@@ -1100,30 +1100,30 @@ function graph_perms_edit($tab, $header_label) {
 			$sql_params[] = get_request_var('id');
 
 			if (get_request_var('filter') != '') {
-				$sql_where    = 'WHERE host.deleted = "" AND (host.hostname LIKE ? OR host.description LIKE ?)';
+				$sql_where    = 'WHERE h.deleted = "" AND (h.hostname LIKE ? OR h.description LIKE ?)';
 				$sql_params[] = '%' . get_request_var('filter') . '%';
 				$sql_params[] = '%' . get_request_var('filter') . '%';
 			} else {
-				$sql_where = 'WHERE host.deleted = ""';
+				$sql_where = 'WHERE h.deleted = ""';
 			}
 
 			if (get_request_var('host_template_id') == '0') {
-				$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . ' host.host_template_id = 0';
+				$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . ' h.host_template_id = 0';
 			} elseif (get_request_var('host_template_id') > 0) {
-				$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . ' host.host_template_id = ?';
+				$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . ' h.host_template_id = ?';
 				$sql_params[] = get_request_var('host_template_id');
 			}
 
 			if (get_request_var('associated') != 'false') {
-				$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . ' user_auth_perms.user_id=' . get_request_var('id', 0);
+				$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . ' uap.user_id=' . get_request_var('id', 0);
 			}
 
-			$total_rows = db_fetch_cell_prepared("SELECT COUNT(host.id)
-				FROM host
-				LEFT JOIN user_auth_perms
-				ON host.id = user_auth_perms.item_id
-				AND user_auth_perms.type = 3
-				AND user_auth_perms.user_id = ?,
+			$total_rows = db_fetch_cell_prepared("SELECT COUNT(h.id)
+				FROM host AS h
+				LEFT JOIN user_auth_perms AS uap
+				ON h.id = uap.item_id
+				AND uap.type = 3
+				AND uap.user_id = ?
 				$sql_where",
 				$sql_params);
 
@@ -1141,12 +1141,12 @@ function graph_perms_edit($tab, $header_label) {
 				'host_id', 'data_sources'
 			);
 
-			$sql_query = "SELECT host.*, user_auth_perms.user_id
-				FROM host
-				LEFT JOIN user_auth_perms
-				ON host.id = user_auth_perms.item_id
-				AND user_auth_perms.type = 3
-				AND user_auth_perms.user_id = ?
+			$sql_query = "SELECT h.*, uap.user_id
+				FROM host AS h
+				LEFT JOIN user_auth_perms AS uap
+				ON h.id = uap.item_id
+				AND uap.type = 3
+				AND uap.user_id = ?
 				$sql_where
 				ORDER BY description
 				LIMIT " . ($rows * (get_request_var('page') - 1)) . ',' . $rows;
