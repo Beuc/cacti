@@ -459,6 +459,7 @@ class CactiTableFilter {
 					if (!isset($field_array['value']) &&
 						$field_array['method'] != 'validate' &&
 						$field_array['method'] != 'submit' &&
+						$field_array['method'] != 'content' &&
 						$field_array['method'] != 'button' &&
 						$field_array['method'] != 'timespan') {
 						cacti_log("WARNING: The Filter Class value field $field_name is missing");
@@ -929,10 +930,6 @@ class CactiTableFilter {
 
 		if (!isset_request_var('page')) {
 			set_request_var('page', 1);
-		}
-
-		if (!isset_request_var('rows')) {
-			set_request_var('rows', read_config_option('num_rows_table'));
 		}
 
 		if (isset($this->filter_array['sort'])) {
