@@ -1539,7 +1539,7 @@ function user_realms_edit($header_label) {
 	$all_realms = $user_auth_realms;
 
 	print "<div class='cactiTable' style='width:100%;text-align:left;'>
-		<div>
+		<div class='cactiTableTitleRow'>
 			<div class='cactiTableTitle'><span style='padding:3px;'>" . __('User Permissions') . ' ' . html_escape($header_label) . "</span></div>
 			<div class='cactiTableButton'><span style='padding:3px;'><input class='checkbox' type='checkbox' id='all' name='all' title='" . __esc('Select All') . "' onClick='selectAllRealms(this.checked)'></a><label class='formCheckboxLabel' title='" . __esc('Select All') . "' for='all'></label></span></div>
 		</div>
