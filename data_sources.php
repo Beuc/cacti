@@ -1456,11 +1456,6 @@ function data_sources() {
 			}
 
 			$data_source['data_template_name'] = html_escape($data_source['data_template_name']);
-			$data_name_cache                   = title_trim(html_escape($data_source['name_cache']), read_config_option('max_title_length'));
-
-			if (get_request_var('rfilter') != '') {
-				$data_name_cache = filter_value($data_name_cache, get_request_var('rfilter'));
-			}
 
 			/* keep copy of data source for comparison */
 			$data_source_orig = $data_source;
@@ -1488,7 +1483,9 @@ function data_sources() {
 
 			form_alternate_row('line' . $data_source['local_data_id'], true, $disabled);
 
-			form_selectable_cell(filter_value(title_trim($name, read_config_option('max_title_length')), get_request_var('rfilter'), 'data_sources.php?action=ds_edit&id=' . $data_source['local_data_id']), $data_source['local_data_id']);
+			$url = 'data_sources.php?action=ds_edit&id=' . $data_source['local_data_id'];
+
+			form_selectable_cell(filter_value($name, get_request_var('rfilter'), $url), $data_source['local_data_id']);
 			form_selectable_cell($data_source['local_data_id'], $data_source['local_data_id'], '', 'right');
 
 			// Show link to Graphs and Aggregates

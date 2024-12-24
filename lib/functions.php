@@ -66,7 +66,8 @@ function filter_value(?string $value, string $filter, string $href = '', string 
 		return $value;
 	}
 
-	$value =  htmlspecialchars($value, ENT_QUOTES, $charset, false);
+	$value =  html_escape($value);
+
 	// Grave Accent character can lead to xss
 	$value = str_replace('`', '&#96;', $value);
 

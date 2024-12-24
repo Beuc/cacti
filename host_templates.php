@@ -1058,14 +1058,18 @@ function device_templates() {
 
 			$archive_url = 'host_templates.php?action=archives&host_template=' . $template['id'];
 
-			form_selectable_cell($template['version'], $template['id'], '', 'center');
+			form_selectable_ecell($template['version'], $template['id'], '', 'center');
 			form_selectable_cell(filter_value($template['archives'], '', $archive_url), $template['id'], '', 'center');
-			form_selectable_cell($template['author'], $template['id'], '', 'left');
-			form_selectable_cell($template['copyright'], $template['copyright'], '', 'left');
+			form_selectable_ecell($template['author'], $template['id'], '', 'left');
+			form_selectable_ecell($template['copyright'], $template['copyright'], '', 'left');
 
 			form_selectable_cell($template['id'], $template['id'], '', 'right');
 			form_selectable_cell($disabled ? __('No') : __('Yes'), $template['id'], '', 'right');
-			form_selectable_cell('<a class="linkEditMain" href="' . html_escape('host.php?reset=true&host_template_id=' . $template['id']) . '">' . number_format_i18n($template['hosts'], '-1') . '</a>', $template['id'], '', 'right');
+
+			$url = 'host.php?reset=true&host_template_id=' . $template['id'];
+
+			form_selectable_cell(filter_value(number_format_i18n($template['hosts'], '-1'), '', $url), $template['id'], '', 'right');
+
 			form_checkbox_cell($template['name'], $template['id'], $disabled);
 
 			form_end_row();
@@ -1450,9 +1454,9 @@ function device_archives() {
 				form_selectable_cell(__('Unassigned'), $a['id']);
 			}
 
-			form_selectable_cell($a['version'], $a['id'], '', 'center');
-			form_selectable_cell($a['author'], $a['id'], '', 'left');
-			form_selectable_cell($a['copyright'], $a['id'], '', 'left');
+			form_selectable_ecell($a['version'], $a['id'], '', 'center');
+			form_selectable_ecell($a['author'], $a['id'], '', 'left');
+			form_selectable_ecell($a['copyright'], $a['id'], '', 'left');
 
 			form_selectable_cell(filter_value(__('Notes'), '', '#', $a['archive_note']), $a['id'], '', 'left');
 

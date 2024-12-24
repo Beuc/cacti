@@ -546,7 +546,9 @@ function debug_wizard() {
 
 			form_alternate_row('line' . $check['local_data_id']);
 
-			form_selectable_cell(filter_value(title_trim($check['name_cache'], read_config_option('max_title_length')), get_request_var('rfilter'), 'data_debug.php?action=view&id=' . $check['local_data_id']), $check['local_data_id']);
+			$url = 'data_debug.php?action=view&id=' . $check['local_data_id'];
+
+			form_selectable_cell(filter_value($check['name_cache'], get_request_var('rfilter'), $url), $check['local_data_id']);
 
 			if (!empty($check['datasource'])) {
 				form_selectable_ecell($check['username'], $check['local_data_id']);
@@ -565,7 +567,7 @@ function debug_wizard() {
 					form_selectable_cell(debug_icon(($info['rra_timestamp2'] != '' ? 1 : '')), $check['local_data_id'], '', 'center');
 				}
 
-				form_selectable_cell('<a class=\'linkEditMain\' href=\'#\' title="' . html_escape($issue_title) . '">' . ($iline != '' ? __esc('Issues') : __esc('N/A')) . '</a>', $check['local_data_id'], '', 'right');
+				form_selectable_cell(filter_value($iline != '' ? __('Issues') : __('N/A'), '', '#', $issue_title), $check['local_data_id'], '', 'right');
 			} else {
 				form_selectable_cell('-', $check['local_data_id']);
 				form_selectable_cell(__('Not Debugging'), $check['local_data_id'], '', 'right');
@@ -799,7 +801,7 @@ function debug_view() {
 		}
 
 		if (array_key_exists('value', $field)) {
-			$value = html_escape($field['value']);
+			$value = $field['value'];
 		}
 
 		if (array_key_exists('icon', $field)) {
@@ -812,7 +814,7 @@ function debug_view() {
 			$value = substr($value, 0, 100);
 		}
 
-		form_selectable_cell($value, $i, '', '', $value_title);
+		form_selectable_ecell($value, $i, '', '', $value_title);
 		form_selectable_cell($icon, $i);
 
 		form_end_row();
@@ -836,7 +838,7 @@ function debug_view() {
 
 			foreach ($check['info']['rrd_match_array']['ds'] as $data_source => $details) {
 				form_alternate_row('line2_' . $i, true);
-				form_selectable_cell($data_source, $i);
+				form_selectable_ecell($data_source, $i);
 
 				$output = '';
 
@@ -844,7 +846,7 @@ function debug_view() {
 					$output .= __('For attribute \'%s\', issue found \'%s\'', $attribute, $recommendation);
 				}
 
-				form_selectable_cell($output, 'line_2' . $i);
+				form_selectable_ecell($output, 'line_2' . $i);
 				form_end_row();
 				$i++;
 			}
@@ -868,7 +870,7 @@ function debug_view() {
 
 			foreach ($check['info']['rrd_match_array']['tune'] as $options) {
 				form_alternate_row('line3_' . $i, true);
-				form_selectable_cell($rrdtool_path . ' tune ' . $options, 'line3_' . $i);
+				form_selectable_ecell($rrdtool_path . ' tune ' . $options, 'line3_' . $i);
 				form_end_row();
 				$i++;
 			}

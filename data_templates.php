@@ -1152,16 +1152,19 @@ function data_templates() {
 			form_selectable_cell(filter_value($template['name'], get_request_var('filter'), 'data_templates.php?action=template_edit&id=' . $template['id']), $template['id']);
 			form_selectable_cell($template['id'], $template['id'], '', 'right');
 			form_selectable_cell($disabled ? __('No'):__('Yes'), $template['id'], '', 'right');
-			form_selectable_cell('<a class="linkEditMain" href="' . html_escape($ds_url) . '">' . number_format_i18n($template['data_sources']) . '</a>', $template['id'], '', 'right');
+
+			form_selectable_cell(filter_value(number_format_i18n($template['data_sources']), '', $ds_url),, $template['id'], '', 'right');
+
 			form_selectable_cell((empty($template['data_input_method']) ? '<em>' . __('None') .'</em>': html_escape($template['data_input_method'])), $template['id']);
 			form_selectable_cell((empty($template['profile_name']) ? __('External'):html_escape($template['profile_name'])), $template['id']);
 			form_selectable_cell((($template['active'] == 'on') ? __('Active'):__('Disabled')), $template['id']);
+
 			form_checkbox_cell($template['name'], $template['id'], $disabled);
 
 			form_end_row();
 		}
 	} else {
-		print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Data Templates Found') . "</em></td></tr>\n";
+		print "<tr class='tableRow odd'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Data Templates Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);

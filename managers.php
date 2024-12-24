@@ -143,9 +143,9 @@ function manager() {
 			$description = filter_value($item['description'], get_request_var('filter'));
 			$hostname    = filter_value($item['hostname'], get_request_var('filter'));
 
-			$url         = html_escape('managers.php?action=edit&id=' . $item['id']);
-			$url1        = html_escape('managers.php?action=edit&tab=notifications&id=' . $item['id']);
-			$url2        = html_escape('managers.php?action=edit&tab=logs&id=' . $item['id']);
+			$url         = 'managers.php?action=edit&id=' . $item['id'];
+			$url1        = 'managers.php?action=edit&tab=notifications&id=' . $item['id'];
+			$url2        = 'managers.php?action=edit&tab=logs&id=' . $item['id'];
 
 			form_alternate_row('line' . $item['id'], false);
 
@@ -457,7 +457,7 @@ function manager_notifications($id, $header_label) {
 
 			form_selectable_cell($oid, $row_id);
 			form_selectable_cell($mib, $row_id);
-			form_selectable_cell($item['kind'], $row_id);
+			form_selectable_ecell($item['kind'], $row_id);
 			form_selectable_cell($item['max-access'],$row_id);
 			form_selectable_cell(((isset($notifications[$item['mib']]) && isset($notifications[$item['mib']][$item['name']])) ? '<span class="deviceUp">' . __('Enabled'):'<span class="deviceDown">' . __('Disabled')) . '</span>', $row_id);
 			form_checkbox_cell($item['oid'], $row_id);
@@ -657,7 +657,7 @@ function manager_logs($id, $header_label) {
 
 				form_selectable_cell(filter_value($item['notification'], '', '#', $item['notification'] . $description), $item['id']);
 			} else {
-				form_selectable_cell($item['notification'], $item['id']);
+				form_selectable_ecell($item['notification'], $item['id']);
 			}
 
 			form_selectable_cell($varbinds, $item['id']);

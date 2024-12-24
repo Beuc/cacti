@@ -974,17 +974,17 @@ function automation_snmp() {
 			form_alternate_row('line' . $snmp_option['id'], true);
 
 			form_selectable_cell(filter_value($snmp_option['name'], get_request_var('filter'), 'automation_snmp.php?action=edit&id=' . $snmp_option['id'] . '&page=1'), $snmp_option['id']);
-			form_selectable_cell($snmp_option['networks'], $snmp_option['id'], '', 'text-align:right;');
-			form_selectable_cell($snmp_option['totals'], $snmp_option['id'], '', 'text-align:right;');
-			form_selectable_cell($snmp_option['v1entries'], $snmp_option['id'], '', 'text-align:right;');
-			form_selectable_cell($snmp_option['v2entries'], $snmp_option['id'], '', 'text-align:right;');
-			form_selectable_cell($snmp_option['v3entries'], $snmp_option['id'], '', 'text-align:right;');
+			form_selectable_cell($snmp_option['networks'], $snmp_option['id'], '', 'right');
+			form_selectable_cell($snmp_option['totals'], $snmp_option['id'], '', 'right');
+			form_selectable_cell($snmp_option['v1entries'], $snmp_option['id'], '', 'right');
+			form_selectable_cell($snmp_option['v2entries'], $snmp_option['id'], '', 'right');
+			form_selectable_cell($snmp_option['v3entries'], $snmp_option['id'], '', 'right');
 			form_checkbox_cell($snmp_option['name'], $snmp_option['id']);
 
 			form_end_row();
 		}
 	} else {
-		print '<tr class="tableRow"><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No SNMP Option Sets Found') . '</em></td></tr>';
+		print '<tr class="tableRow odd"><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No SNMP Option Sets Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);

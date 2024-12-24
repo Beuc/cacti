@@ -2904,7 +2904,6 @@ function graphs() {
 
 	if (cacti_sizeof($graph_list)) {
 		foreach ($graph_list as $graph) {
-			/* we're escaping strings here, so no need to escape them on form_selectable_cell */
 			$template_details = get_graph_template_details($graph['local_graph_id']);
 
 			if ($graph['graph_source'] == '0') { //Not Templated, customize graph source and template details.

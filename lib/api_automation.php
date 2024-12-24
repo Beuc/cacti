@@ -642,7 +642,7 @@ function display_matching_graphs($rule, $rule_type, $url) {
 
 			form_alternate_row('line' . $graph['local_graph_id'], true);
 
-			form_selectable_cell(filter_value(title_trim($graph['title_cache'], read_config_option('max_title_length')), get_request_var('filter'), 'graphs.php?action=graph_edit&id=' . $graph['local_graph_id']), $graph['local_graph_id']);
+			form_selectable_cell(filter_value($graph['title_cache'], get_request_var('filter'), 'graphs.php?action=graph_edit&id=' . $graph['local_graph_id']), $graph['local_graph_id']);
 			form_selectable_cell($graph['local_graph_id'], $graph['local_graph_id']);
 			form_selectable_cell(filter_value($template_name, get_request_var('filter')), $graph['local_graph_id']);
 			form_selectable_cell(filter_value($graph['description'], get_request_var('filter'), 'host.php?action=edit&id=' . $graph['host_id']), $graph['local_graph_id']);
@@ -1195,7 +1195,7 @@ cacti_log($rows_query);
 			form_selectable_cell(filter_value($template['hostname'], get_request_var('filter')), $template['host_id']);
 			form_selectable_cell(filter_value($template['host_template_name'], get_request_var('filter')), $template['host_id']);
 			form_selectable_cell(get_colored_device_status(($template['disabled'] == 'on' ? true : false), $template['status']), $template['host_id']);
-			form_selectable_cell($template['source'], $template['host_id']);
+			form_selectable_ecell($template['source'], $template['host_id']);
 			form_selectable_cell($repl, $template['host_id']);
 
 			form_end_row();
@@ -1287,7 +1287,7 @@ function display_match_rule_items($title, $rule, $rule_type, $module) {
 			form_selectable_cell(filter_value(__('Item # %d', $i+1), '', $url), $i);
 			form_selectable_cell($item['sequence'], $i);
 			form_selectable_cell($operation, $i);
-			form_selectable_cell(html_escape($item['field']), $i);
+			form_selectable_ecell($item['field'], $i);
 
 			if (isset($item['operator']) && $item['operator'] > 0) {
 				form_selectable_cell($automation_op_array['display'][$item['operator']], $i);
@@ -1295,7 +1295,7 @@ function display_match_rule_items($title, $rule, $rule_type, $module) {
 				form_selectable_cell('', $i);
 			}
 
-			form_selectable_cell(html_escape($item['pattern']), $i);
+			form_selectable_ecell($item['pattern'], $i);
 
 			$form_data = '';
 

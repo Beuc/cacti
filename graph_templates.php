@@ -1669,7 +1669,7 @@ function graph_templates() {
 			form_selectable_cell(filter_value($template['name'], get_request_var('filter'), 'graph_templates.php?action=template_edit&id=' . $template['id']), $template['id']);
 			form_selectable_cell($template['id'], $template['id'], '', 'right');
 			form_selectable_cell($graph_template_classes[$template['class']], $template['id'], '', 'right');
-			form_selectable_cell($template['version'], $template['id'], '', 'right');
+			form_selectable_ecell($template['version'], $template['id'], '', 'right');
 			form_selectable_cell($disabled ? __('No'):__('Yes'), $template['id'], '', 'right');
 			form_selectable_cell(number_format_i18n($template['graph_items'], '-1'), $template['id'], '', 'right');
 			form_selectable_cell(number_format_i18n($template['graphs'], '-1'), $template['id'], '', 'right');

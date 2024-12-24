@@ -239,7 +239,7 @@ function display_template_data(&$templates) {
 
 			form_alternate_row('line_' . $id);
 
-			form_selectable_cell($path, $id);
+			form_selectable_ecell($path, $id);
 			form_selectable_cell($status, $id);
 
 			form_end_row();
@@ -297,8 +297,8 @@ function display_template_data(&$templates) {
 
 			form_alternate_row('line_import_' . $detail['status'] . '_' . $id);
 
-			form_selectable_cell($detail['type_name'], $id);
-			form_selectable_cell($detail['name'], $id);
+			form_selectable_ecell($detail['type_name'], $id);
+			form_selectable_ecell($detail['name'], $id);
 			form_selectable_cell($status, $id);
 
 			if (isset($detail['deps'])) {

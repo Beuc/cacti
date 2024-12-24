@@ -569,19 +569,21 @@ function color() {
 
 			form_alternate_row('line' . $color['id'], false, $disabled);
 
-			form_selectable_cell("<a class='linkEditMain' href='" . html_escape('color.php?action=edit&id=' . $color['id']) . "'>" . $color['hex'] . '</a>', $color['id']);
+			$url = 'color.php?action=edit&id=' . $color['id'];
+
+			form_selectable_cell(filter_value($color['hex'], '', $url), $color['id']);
 			form_selectable_cell(filter_value($color['name'], get_request_var('filter')), $color['id']);
 			form_selectable_cell($color['read_only'] == 'on' ? __('Yes'):__('No'), $color['id']);
 			form_selectable_cell('', $color['id'], '', 'text-align:right;background-color:#' . $color['hex'] . ';min-width:30%');
 			form_selectable_cell($disabled ? __('No'):__('Yes'), $color['id'], '', 'text-align:right');
-			form_selectable_cell(number_format_i18n($color['graphs'], '-1'), $color['id'], '', 'text-align:right');
-			form_selectable_cell(number_format_i18n($color['templates'], '-1'), $color['id'], '', 'text-align:right');
+			form_selectable_cell(number_format_i18n($color['graphs'], '-1'), $color['id'], '', 'right');
+			form_selectable_cell(number_format_i18n($color['templates'], '-1'), $color['id'], '', 'right');
 			form_checkbox_cell($color['name'], $color['id'], $disabled);
 
 			form_end_row();
 		}
 	} else {
-		print "<tr class='tableRow'><td colspan='7'><em>" . __('No Colors Found') . "</em></td></tr>\n";
+		print "<tr class='tableRow odd'><td colspan='7'><em>" . __('No Colors Found') . "</em></td></tr>\n";
 	}
 
 	html_end_box(false);

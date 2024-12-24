@@ -494,7 +494,7 @@ function repos() {
 			form_selectable_cell(filter_value($repo['name'], get_request_var('filter'), 'package_repos.php?action=edit&id=' . $repo['id']), $repo['id']);
 			form_selectable_cell($types[$repo['repo_type']], $repo['id']);
 			form_selectable_cell(filter_value($repo['repo_location'], get_request_var('filter')), $repo['id']);
-			form_selectable_cell($repo['repo_type'] == 0 ? ($repo['repo_branch'] != '' ? $repo['repo_branch']:__('default')):__('N/A'), $repo['id'], '', 'center');
+			form_selectable_ecell($repo['repo_type'] == 0 ? ($repo['repo_branch'] != '' ? $repo['repo_branch']:__('default')):__('N/A'), $repo['id'], '', 'center');
 			form_selectable_cell($repo['enabled'] == 'on' ? __('Yes'):__('No'), $repo['id'], '', 'center');
 			form_selectable_cell($repo['default'] == 'on' ? __('Yes'):__('No'), $repo['id'], '', 'center');
 

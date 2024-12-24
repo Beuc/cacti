@@ -2101,11 +2101,11 @@ class Installer implements JsonSerializable {
 					}
 
 					form_alternate_row('php_' . $recommend['name'], true);
-					form_selectable_cell($recommend['name'], '');
-					form_selectable_cell($recommend['current'], '');
-					form_selectable_cell('>= ' . $recommend['value'], '');
+					form_selectable_ecell($recommend['name'], '');
+					form_selectable_ecell($recommend['current'], '');
+					form_selectable_ecell('>= ' . $recommend['value'], '');
 					form_selectable_cell("<font color='$status_font'>$status_text</font>", '');
-					form_selectable_cell($recommend['description'], '');
+					form_selectable_ecell($recommend['description'], '');
 					form_end_row();
 				}
 
@@ -2780,10 +2780,10 @@ class Installer implements JsonSerializable {
 			}
 
 			form_alternate_row('line' . $id, true);
-			form_selectable_cell($name, $id);
-			form_selectable_cell($description, $id);
-			form_selectable_cell($author, $id);
-			form_selectable_cell($homepage, $id);
+			form_selectable_ecell($name, $id);
+			form_selectable_ecell($description, $id);
+			form_selectable_ecell($author, $id);
+			form_selectable_ecell($homepage, $id);
 			form_checkbox_cell($p['name'], 'template_'  . str_replace('.', '_',  $p['filename']));
 			form_end_row();
 		}

@@ -479,9 +479,9 @@ function utilities_view_snmp_cache() {
 			form_selectable_cell(filter_value($item['description'], get_request_var('filter')), $i);
 			form_selectable_cell(filter_value($item['name'], get_request_var('filter')), $i);
 			form_selectable_ecell($item['snmp_index'], $i);
-			form_selectable_ecell(filter_value($item['field_name'], get_request_var('filter')), $i);
-			form_selectable_ecell(filter_value($item['field_value'], get_request_var('filter')), $i);
-			form_selectable_ecell(filter_value($item['oid'], get_request_var('filter')), $i);
+			form_selectable_cell(filter_value($item['field_name'], get_request_var('filter')), $i);
+			form_selectable_cell(filter_value($item['field_value'], get_request_var('filter')), $i);
+			form_selectable_cell(filter_value($item['oid'], get_request_var('filter')), $i);
 
 			form_end_row();
 		}
@@ -1626,7 +1626,7 @@ function snmpagent_utilities_run_cache() {
 	if (cacti_sizeof($snmp_cache)) {
 		foreach ($snmp_cache as $item) {
 			$oid        = filter_value($item['oid'], get_request_var('filter'));
-			$name       = filter_value($item['name'], get_request_var('filter'));
+			$name       = $item['name'];
 			$mib        = filter_value($item['mib'], get_request_var('filter'));
 			$max_access = filter_value($item['max-access'], get_request_var('filter'));
 
@@ -1635,13 +1635,13 @@ function snmpagent_utilities_run_cache() {
 			form_selectable_cell($oid, $item['oid']);
 
 			if ($item['description']) {
-				form_selectable_cell(filter_value($name, '', '#', $item['description']), $item['oid']);
+				form_selectable_cell(filter_value($name, get_request_var('filter'), '#', $item['description']), $item['oid']);
 			} else {
-				form_selectable_cell($name, $item['oid']);
+				form_selectable_ecell($name, $item['oid']);
 			}
 
 			form_selectable_cell($mib, $item['oid']);
-			form_selectable_cell($item['kind'], $item['oid']);
+			form_selectable_ecell($item['kind'], $item['oid']);
 			form_selectable_cell($max_access, $item['oid']);
 			form_selectable_ecell((in_array($item['kind'], array(__('Scalar'), __('Column Data')), true) ? $item['value'] : __('N/A')), $item['oid']);
 

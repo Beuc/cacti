@@ -1171,7 +1171,7 @@ function template_edit() {
 
 				form_alternate_row($id, true);
 
-				form_selectable_cell($rule['name'], $id);
+				form_selectable_ecell($rule['name'], $id);
 				form_selectable_cell($rule['sequence'], $id, '', 'right');
 
 				$action = '';
@@ -1196,7 +1196,7 @@ function template_edit() {
 				$i++;
 			}
 		} else {
-			print '<tr class="tableRow"><td colspan="3"><em>' . __('No Associated Graph Rules') . '</em></td></tr>';
+			print '<tr class="tableRow odd"><td colspan="3"><em>' . __('No Associated Graph Rules') . '</em></td></tr>';
 		}
 
 		html_end_box();
@@ -1270,17 +1270,17 @@ function template_edit() {
 			foreach($tree_rules as $rule) {
 				$id = "tr{$rule['id']}";
 
-				$exit_on_url = html_escape(CACTI_PATH_URL . 'automation_templates.php' .
+				$exit_on_url = CACTI_PATH_URL . 'automation_templates.php' .
 					'?action=exitonchange' .
 					'&template_id='. get_request_var('id') .
 					'&id='         . $rule['id'] .
-					'&current='    . $rule['exit_rules']);
+					'&current='    . $rule['exit_rules'];
 
 				$exit_text   = $rule['exit_rules'] == 0 ? __('No'):__('Yes');
 
 				form_alternate_row($id, true);
 
-				form_selectable_cell($rule['name'], $id);
+				form_selectable_ecell($rule['name'], $id);
 				form_selectable_cell(filter_value($exit_text, '', $exit_on_url), $id);
 				form_selectable_cell($rule['sequence'], $id, '', 'right');
 
@@ -1306,7 +1306,7 @@ function template_edit() {
 				$i++;
 			}
 		} else {
-			print '<tr class="tableRow"><td colspan="3"><em>' . __('No Associated Tree Rules') . '</em></td></tr>';
+			print '<tr class="tableRow odd"><td colspan="3"><em>' . __('No Associated Tree Rules') . '</em></td></tr>';
 		}
 
 		$field_label  = __('Add Tree Rule');
@@ -1366,14 +1366,14 @@ function template_edit() {
 
 					form_alternate_row($id, true);
 
-					form_selectable_cell($rule['name'], $id);
+					form_selectable_ecell($rule['name'], $id);
 
 					form_selectable_cell("$action<a class='delete deleteMarker fa fa-times' title='" . __esc('Delete') . "' href='" . html_escape('automation_templates.php?action=item_remove_ttr_confirm&id=' . get_request_var('id') . '&template_id=' . $template['host_template'] . '&rule_id=' . $rule['rule_id']) . "'></a>", $id, '40', 'right');
 
 					form_end_row();
 				}
 			} else {
-				print '<tr class="tableRow"><td colspan="2"><em>' . __('No Associated Threshold Template Rules') . '</em></td></tr>';
+				print '<tr class="tableRow odd"><td colspan="2"><em>' . __('No Associated Threshold Template Rules') . '</em></td></tr>';
 			}
 
 			$host_template_id = db_fetch_cell_prepared('SELECT host_template
@@ -1666,7 +1666,7 @@ function template() {
 			$i++;
 		}
 	} else {
-		print '<tr class="tableRow"><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No Automation Device Templates Found') . '</em></td></tr>';
+		print '<tr class="tableRow odd"><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No Automation Device Templates Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);

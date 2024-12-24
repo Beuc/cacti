@@ -440,11 +440,11 @@ function show_database_processes() {
 
 			form_selectable_cell($p['id'], $p['id']);
 			form_selectable_cell($p['query_id'], $p['id']);
-			form_selectable_cell($p['user'], $p['id']);
+			form_selectable_ecell($p['user'], $p['id']);
 			form_selectable_cell(number_format_i18n($p['runtime'], 2), $p['id'], '', 'right');
 			form_selectable_cell(number_format_i18n($p['query_len']), $p['id'], '', 'right');
-			form_selectable_cell($p['state'], $p['id'], '', 'center');
-			form_selectable_cell($p['info'], $p['id'], '', 'white-space:pre-wrap');
+			form_selectable_ecell($p['state'], $p['id'], '', 'center');
+			form_selectable_ecell($p['info'], $p['id'], '', 'white-space:pre-wrap');
 
 			form_end_row();
 		}

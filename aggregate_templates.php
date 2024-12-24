@@ -623,15 +623,22 @@ function aggregate_template() {
 			}
 
 			form_alternate_row('line' . $template['id'], true, $disabled);
+
 			form_selectable_cell(filter_value($template['name'], get_request_var('filter'), 'aggregate_templates.php?action=edit&id=' . $template['id'] . '&page=1'), $template['id']);
 			form_selectable_cell($disabled ? __('No') : __('Yes'), $template['id'], '', 'right');
-			form_selectable_cell('<a class="linkEditMain" href="' . html_escape('aggregate_graphs.php?reset=true&template_id=' . $template['id']) . '">' . number_format_i18n($template['graphs'], '-1') . '</a>', $template['id'], '', 'right');
+
+			$url = 'aggregate_graphs.php?reset=true&template_id=' . $template['id'];
+
+			form_selectable_cell(filter_value(number_format_i18n($template['graphs'], '-1'), '', $url), $template['id'], '', 'right');
+
 			form_selectable_cell(filter_value($template['graph_template_name'], get_request_var('filter')), $template['id']);
+
 			form_checkbox_cell($template['graph_template_name'], $template['id'], $disabled);
+
 			form_end_row();
 		}
 	} else {
-		print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Aggregate Templates Found') . "</em></td></tr>\n";
+		print "<tr class='tableRow odd'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Aggregate Templates Found') . "</em></td></tr>\n";
 	}
 
 	html_end_box(false);

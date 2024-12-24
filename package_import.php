@@ -977,12 +977,12 @@ function import_display_package_data($templates, $files, $package_name, $filenam
 			form_selectable_cell(__('Unknown'), $id);
 		}
 
-		form_selectable_cell($details['version'], $id, '', 'center');
-		form_selectable_cell($details['copyright'], $id);
+		form_selectable_ecell($details['version'], $id, '', 'center');
+		form_selectable_ecell($details['copyright'], $id);
 
-		form_selectable_cell($details['author'], $id);
-		form_selectable_cell($details['email'], $id);
-		form_selectable_cell($details['homepage'], $id);
+		form_selectable_ecell($details['author'], $id);
+		form_selectable_ecell($details['email'], $id);
+		form_selectable_ecell($details['homepage'], $id);
 
 		form_end_row();
 
@@ -1022,8 +1022,8 @@ function import_display_package_data($templates, $files, $package_name, $filenam
 				);
 
 				form_alternate_row('line_' . $id);
-				form_selectable_cell($file_package_name, $id);
-				form_selectable_cell($pfile, $id);
+				form_selectable_ecell($file_package_name, $id);
+				form_selectable_ecell($pfile, $id);
 
 				$status  = explode(',', $status);
 				$nstatus = '';
@@ -1134,11 +1134,11 @@ function import_display_package_data($templates, $files, $package_name, $filenam
 			form_alternate_row('line_' . $id);
 
 			if ($multipackage) {
-				form_selectable_cell($detail['package'], $id);
+				form_selectable_ecell($detail['package'], $id);
 			}
 
-			form_selectable_cell($detail['type_name'], $id);
-			form_selectable_cell($detail['name'], $id);
+			form_selectable_ecell($detail['type_name'], $id);
+			form_selectable_ecell($detail['name'], $id);
 			form_selectable_cell($status, $id);
 
 			if (isset($detail['vals'])) {
@@ -1599,12 +1599,13 @@ function package_import() {
 					$class = __('Unknown');
 				}
 
-				form_selectable_cell($repo['name'], $subid);
-				form_selectable_cell($class, $subid);
-				form_selectable_cell($repo['metadata']['version'], $subid);
-				form_selectable_cell($copyright, $subid);
-				form_selectable_cell($repo['metadata']['author'], $subid);
-				form_selectable_cell($repo['metadata']['email'], $subid);
+				form_selectable_ecell($repo['name'], $subid);
+				form_selectable_ecell($class, $subid);
+				form_selectable_ecell($repo['metadata']['version'], $subid);
+				form_selectable_ecell($copyright, $subid);
+				form_selectable_ecell($repo['metadata']['author'], $subid);
+				form_selectable_ecell($repo['metadata']['email'], $subid);
+
 				form_checkbox_cell($repo['name'], $subid);
 
 				form_end_row();
