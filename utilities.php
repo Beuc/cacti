@@ -311,8 +311,7 @@ function create_data_query_filter() {
 				'snmp_query_id' => array(
 					'method'         => 'drop_array',
 					'friendly_name'  => __('Data Query'),
-					'filter'        => FILTER_VALIDATE_INT,
-					'filter_options' => array('options' => 'sanitize_search_string'),
+					'filter'         => FILTER_VALIDATE_INT,
 					'default'        => '-1',
 					'pageset'        => true,
 					'array'          => $data_queries,
@@ -1530,7 +1529,6 @@ function create_snmp_agent_cache_filter() {
 			)
 		)
 	);
-	get_filter_request_var('mib', FILTER_CALLBACK, array('options' => 'sanitize_search_string'));
 }
 
 function process_sanitize_draw_snmp_agent_cache_filter($render = false) {
@@ -1736,7 +1734,6 @@ function create_snmp_agent_events_filter() {
 			)
 		)
 	);
-	get_filter_request_var('mib', FILTER_CALLBACK, array('options' => 'sanitize_search_string'));
 }
 
 function process_sanitize_draw_snmp_agent_events_filter($render = false) {
