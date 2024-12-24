@@ -693,6 +693,7 @@ label {
 	border-color: #222;
 	text-align: right;
 	padding: 4px;
+	padding-right: 14px;
 }
 
 .saveRow > input.ui-button {
@@ -909,7 +910,7 @@ label {
 
 .cactiLogo {
 	background: transparent url('./images/cacti_logo.svg') no-repeat 30px;
-	display: table;
+	display: none;
 	cursor: pointer;
 	padding-bottom: 140px;
 	margin-bottom: 60px;
@@ -917,6 +918,7 @@ label {
 	margin-top: 10px;
 	margin-left: 2px;
 	margin-right: 2px;
+	height: 100px;
 }
 
 .cactiAuthLeft {
@@ -1029,7 +1031,7 @@ legend {
 	vertical-align: top;
 	float: right;
 	margin-left: 3px;
-	margin-right: 6px;
+	padding-right: 14px;
 	display: table-cell;
 }
 

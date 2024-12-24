@@ -765,6 +765,7 @@ label.ui-state-hover > span {
 	border-color: rgba(255,255,255,0.2);
 	text-align: right;
 	padding: 4px;
+	margin-right: 20px;
 }
 
 .treeArea, .treeItemsArea {
@@ -1064,7 +1065,7 @@ legend {
 	float: right;
 	margin-top: 0px;
 	margin-left: 3px;
-	margin-right: 6px;
+	margin-right: 16px;
 	display: table-cell;
 }
 

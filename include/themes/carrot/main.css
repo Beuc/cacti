@@ -613,6 +613,7 @@ label {
 	background-color: #EAEAEA;
 	text-align: right;
 	padding: 4px;
+	margin-right: 14px;
 }
 
 .treeArea, .treeItemsArea {
@@ -895,6 +896,7 @@ legend {
 	vertical-align: top;
 	float: right;
 	margin-left: 3px;
+	margin-right: 14px;
 	display: table-cell;
 }
 
@@ -1000,7 +1002,7 @@ legend {
 	overflow-y: auto !important;
 	overflow-x: hidden !important;
 	padding-left: 10px;
-	margin-right: 5px;
+	padding-right: 0px;
 }
 
 .cactiConsoleContentArea>div:last-child {
@@ -1171,7 +1173,7 @@ legend {
 	width: 100%;
 	font-size: 1em;
 	font-weight: 700;
-	background: rgba(255,150,98,0.9);
+	background: rgba(255,57,13,0.7);
 }
 
 .cactiTableTitle {
@@ -1182,7 +1184,6 @@ legend {
 	display: table-column;
 	font-size: 1em;
 	font-weight: 700;
-	background: rgba(255,57,13,0.7);
 }
 
 .cactiTableButton {
@@ -1190,7 +1191,6 @@ legend {
 	line-height: 22px;
 	display: table-column;
 	text-align: right;
-	background: rgba(255,57,13,0.7);
 	white-space: nowrap;
 }
 
@@ -1961,6 +1961,14 @@ div.submenu span {
 	list-style: none;
 	margin: 0;
 	padding: 0;
+}
+
+tr td:last-child .checkbox {
+	margin-right: 14px !important;
+}
+
+tr th:last-child .checkbox {
+	margin-right: 14px !important;
 }
 
 /* Navigation Area */

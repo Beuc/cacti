@@ -623,6 +623,7 @@ label {
 	background-color: #EAEAEA;
 	text-align: right;
 	padding: 4px;
+	padding-right: 14px;
 }
 
 .treeArea, .treeItemsArea {
@@ -808,6 +809,7 @@ label {
 	vertical-align: top;
 	float: right;
 	margin-left: 3px;
+	margin-right: 14px;
 	display: table-cell;
 }
 
@@ -994,7 +996,7 @@ legend {
 	overflow-y: auto !important;
 	overflow-x: hidden !important;
 	padding-left: 10px;
-	margin-right: 5px;
+	padding-right: 0px;
 }
 
 .cactiConsoleContentArea>div:last-child {
@@ -1955,6 +1957,14 @@ div.submenu span {
 	list-style: none;
 	margin: 0;
 	padding: 0;
+}
+
+tr td:last-child .checkbox {
+	margin-right: 14px !important;
+}
+
+tr th:last-child .checkbox {
+	margin-right: 14px !important;
 }
 
 /* Navigation Area */

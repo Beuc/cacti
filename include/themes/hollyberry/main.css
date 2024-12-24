@@ -625,6 +625,7 @@ label {
 	background-color: #EAEAEA;
 	text-align: right;
 	padding: 4px;
+	padding-right: 14px;
 }
 
 .treeArea, .treeItemsArea {
@@ -910,8 +911,9 @@ legend {
 .actionsDropdownButton {
 	vertical-align: top;
 	float: right;
-	margin-left: 3px;
+	padding-left: 3px;
 	display: table-cell;
+	padding-right: 14px;
 }
 
 .actionsDropdownArrow {
@@ -1016,7 +1018,6 @@ legend {
 	overflow-y: auto !important;
 	overflow-x: hidden !important;
 	padding-left: 10px;
-	margin-right: 5px;
 }
 
 .cactiConsoleContentArea>div:last-child {
@@ -2020,6 +2021,14 @@ div.submenu span {
 	list-style: none;
 	margin: 0;
 	padding: 0;
+}
+
+tr td:last-child .checkbox {
+	margin-right: 10px !important;
+}
+
+tr th:last-child .checkbox {
+	margin-right: 10px !important;
 }
 
 /* Navigation Area */
