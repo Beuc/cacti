@@ -981,7 +981,7 @@ function host_edit() {
 			$dbg_copy_uid = generate_hash();
 			?>
 			<div id='dqdebug' class='cactiTable'>
-				<div id='clipboardHeader<?php print $dbg_copy_uid; ?>'>
+				<div class='cactiTableTitleRow' id='clipboardHeader<?php print $dbg_copy_uid; ?>'>
 					<div class='cactiTableTitle'>
 						<span style='padding:3px;'><?php print __('Data Query Debug Information'); ?></span>
 					</div>
