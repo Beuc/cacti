@@ -1087,7 +1087,7 @@ function host_edit() {
 					form_end_row();
 			}
 		} else {
-			print "<tr class='tableRow'><td colspan='4'><em>" . __('No Associated Data Queries.') . '</em></td></tr>';
+			print "<tr class='tableRow odd'><td colspan='4'><em>" . __('No Associated Data Queries.') . '</em></td></tr>';
 		}
 
 		if ($host['snmp_version'] == 0) {
@@ -1815,7 +1815,7 @@ function host() {
 			form_end_row();
 		}
 	} else {
-		print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Devices Found') . '</em></td></tr>';
+		print "<tr class='tableRow odd'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Devices Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);

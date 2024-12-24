@@ -746,6 +746,7 @@ function data_query_item_edit() {
 							</table>
 						</td>
 						<?php
+
 						form_end_row();
 					}
 				}
@@ -820,7 +821,7 @@ function data_query_item_edit() {
 				$i++;
 			}
 		} else {
-			print "<tr><td colspan='4'><em>" . __('No Suggested Values Found') . '</em></td></tr>';
+			print "<tr class='tableRow odd'><td colspan='4'><em>" . __('No Suggested Values Found') . '</em></td></tr>';
 		}
 
 		form_alternate_row();
@@ -929,7 +930,7 @@ function data_query_item_edit() {
 						$i++;
 					}
 				} else {
-					print "<tr><td colspan='4'><em>" . __('No Suggested Values Found') . '</em></td></tr>';
+					print "<tr class='tableRow odd'><td colspan='4'><em>" . __('No Suggested Values Found') . '</em></td></tr>';
 				}
 
 				form_alternate_row();
@@ -1134,15 +1135,32 @@ function data_query_edit() {
 		print "<tr class='tableRow debug'><td>$text</td></tr>";
 		html_end_box(false);
 
+		$display_text = array(
+			array(
+				'display' => __('Name'),
+				'align'   => 'left'
+			),
+			array(
+				'display' => __('Graph Template Name'),
+				'align'   => 'left'
+			),
+			array(
+				'display' => __('Graphs Using'),
+				'align'   => 'right'
+			),
+			array(
+				'display' => __('Mapping ID'),
+				'align'   => 'right'
+			),
+			array(
+				'display' => __('Action'),
+				'align' => 'right'
+			)
+		);
+
 		html_start_box(__('Associated Graph Templates'), '100%', '', '3', 'center', 'data_queries.php?action=item_edit&snmp_query_id=' . $snmp_query['id']);
 
-		print "<tr class='tableHeader'>
-			<th class='tableSubHeaderColumn'>" . __('Name') . "</th>
-			<th class='tableSubHeaderColumn'>" . __('Graph Template Name') . "</th>
-			<th class='tableSubHeaderColumn right'>" . __('Graphs Using') . "</th>
-			<th class='tableSubHeaderColumn right'>" . __('Mapping ID') . "</th>
-			<th class='tableSubHeaderColumn right' style='width:60px;'>" . __('Action') . '</th>
-		</tr>';
+		html_header($display_text, 1);
 
 		$snmp_query_graphs = db_fetch_assoc_prepared('SELECT sqg.id,
 			gt.name AS graph_template_name, sqg.name, COUNT(gl.id) AS graphs
@@ -1158,38 +1176,38 @@ function data_query_edit() {
 			array($snmp_query['id']));
 
 		if (cacti_sizeof($snmp_query_graphs)) {
+			$i = 0;
+
 			foreach ($snmp_query_graphs as $snmp_query_graph) {
-				form_alternate_row();
-				?>
-					<td>
-					<?php if ($xml_file_exists) {?>
-						<a class='linkEditMain' href="<?php print html_escape('data_queries.php?action=item_edit&id=' . $snmp_query_graph['id'] . '&snmp_query_id=' . $snmp_query['id']);?>"><?php print html_escape($snmp_query_graph['name']);?></a>
-					<?php } else { ?>
-						<span class='noLinkEditMain' title='<?php print __esc('Association Read Only until XML file located');?>'><?php print html_escape($snmp_query_graph['name']);?></span>
-					<?php } ?>
-					</td>
-					<td>
-						<?php print html_escape($snmp_query_graph['graph_template_name']);?>
-					</td>
-					<td class='right'>
-						<?php print number_format_i18n($snmp_query_graph['graphs'], '-1');?>
-					</td>
-					<td class='right'>
-						<?php print $snmp_query_graph['id'];?>
-					</td><?php if ($snmp_query_graph['graphs'] == 0) {?>
-					<td class='right'>
-						<a class='delete deleteMarker fa fa-times' title='<?php print __('Delete');?>' href='<?php print html_escape('data_queries.php?action=item_remove_confirm&id=' . $snmp_query_graph['id'] . '&snmp_query_id=' . $snmp_query['id']);?>'></a>
-					</td>
-					<?php } else { ?>
-					<td class='right'>
-						<a class='deleteMarkerDisabled fa fa-times' title='<?php print __('Mapped Graph Templates with Graphs are read only');?>' href='#'></a>
-					</td>
-					<?php } ?>
-				</tr>
-				<?php
+				form_alternate_row('line' . $i, true);
+
+				if ($xml_file_exists) {
+					$url = 'data_queries.php?action=item_edit&id=' . $snmp_query_graph['id'] . '&snmp_query_id=' . $snmp_query['id'];
+
+					form_selectable_cell(filter_value($snmp_query_graph['name'], '', $url), $i);
+				} else {
+					form_selectable_cell(filter_value($snmp_query_graph['name'], '', '', __('Association Read Only until XML file located')), $i);
+				}
+
+				form_selectable_ecell($snmp_query_graph['graph_template_name'], $i);
+
+				form_selectable_cell(number_format_i18n($snmp_query_graph['graphs'], '-1'), $i, '', 'right');
+				form_selectable_cell($snmp_query_graph['id'], $i, '', 'right');
+
+				if ($snmp_query_graph['graphs'] == 0) {
+					$url = html_escape('data_queries.php?action=item_remove_confirm&id=' . $snmp_query_graph['id'] . '&snmp_query_id=' . $snmp_query['id']);
+
+					form_selectable_cell("<a class='delete deleteMarker fa fa-times' title='" . __('Delete') . "' href='" . $url . "'</a>", $i, '', 'right');
+				} else {
+					form_selectable_cell("<a class='deleteMarkerDisabled fa fa-times' title='" . __esc('Mapped Graph Templates with Graphs are read only') . "' href='#'></a>", $i, '', 'right');
+				}
+
+				form_end_row();
+
+				$i++;
 			}
 		} else {
-			print "<tr class='tableRow'><td><em>" . __('No Graph Templates Defined.') . '</em></td></tr>';
+			print "<tr class='tableRow odd'><td colspan='" . cacti_sizeof($display_text) . "'><em>" . __('No Graph Templates Defined.') . '</em></td></tr>';
 		}
 
 		html_end_box();
@@ -1355,7 +1373,7 @@ function data_query() {
 			form_end_row();
 		}
 	} else {
-		print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Data Queries Found') . '</em></td></tr>';
+		print "<tr class='tableRow odd'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Data Queries Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);

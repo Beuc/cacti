@@ -174,7 +174,7 @@ function draw_color_template_items_list($item_list, $filename, $url_data, $disab
 			$i++;
 		}
 	} else {
-		print "<tr><td colspan='7'><em>" . __('No Items') . '</em></td></tr>';
+		print "<tr class='tableRow odd'><td colspan='7'><em>" . __('No Items') . '</em></td></tr>';
 	}
 }
 

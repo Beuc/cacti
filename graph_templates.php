@@ -1372,7 +1372,7 @@ function item() {
 		<?php
 		}
 	} else {
-		print "<tr><td colspan='2'><em>" . __('No Inputs') . '</em></td></tr>';
+		print "<tr class='tableRow odd'><td colspan='2'><em>" . __('No Inputs') . '</em></td></tr>';
 	}
 
 	?>
@@ -1676,6 +1676,7 @@ function graph_templates() {
 			form_selectable_cell($image_types[$template['image_format_id']], $template['id'], '', 'right');
 			form_selectable_ecell($template['size'], $template['id'], '', 'right');
 			form_selectable_ecell($template['vertical_label'], $template['id'], '', 'right');
+
 			form_checkbox_cell($template['name'], $template['id'], $disabled);
 
 			form_end_row();

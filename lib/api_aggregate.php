@@ -1946,7 +1946,7 @@ function draw_aggregate_graph_items_list($_graph_id = 0, $_graph_template_id = 0
 			$i++;
 		}
 	} else {
-		print "<tr><td colspan='7'><em>" . __('No Items') . '</em></td></tr>';
+		print "<tr class='tableRow odd'><td colspan='7'><em>" . __('No Items') . '</em></td></tr>';
 	}
 
 	html_end_box();

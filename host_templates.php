@@ -563,7 +563,7 @@ function template_edit() {
 				$i++;
 			}
 		} else {
-			print '<tr><td><em>' . __('No associated graph templates.') . '</em></td></tr>';
+			print '<tr class="tableRow odd"><td colspan="2"><em>' . __('No Associated Graph Templates.') . '</em></td></tr>';
 		}
 
 		?>
@@ -621,7 +621,7 @@ function template_edit() {
 				$i++;
 			}
 		} else {
-			print '<tr><td><em>' . __('No associated data queries.') . '</em></td></tr>';
+			print '<tr class="tableRow odd"><td colspan="2"><em>' . __('No Associated Data Queries.') . '</em></td></tr>';
 		}
 
 		?>

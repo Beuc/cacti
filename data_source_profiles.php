@@ -1121,27 +1121,25 @@ function profile_edit() {
 		if (cacti_sizeof($profile_rras)) {
 			foreach ($profile_rras as $rra) {
 				form_alternate_row('line' . $rra['id']);
-				$i++;?>
-				<td>
-					<?php print "<a class='linkEditMain' href='" . html_escape('data_source_profiles.php?action=item_edit&id=' . $rra['id'] . '&profile_id=' . $rra['data_source_profile_id']) . "'>" . html_escape($rra['name']) . '</a>';?>
-				</td>
-				<td>
-					<em><?php print get_span($profile['step'] * $rra['steps'] * $rra['rows']);?></em>
-				</td>
-				<td>
-					<em><?php print isset($timespans[$rra['timespan']]) ? $timespans[$rra['timespan']]:get_span($rra['timespan']);?></em>
-				</td>
-				<td>
-					<em><?php print $rra['steps'];?></em>
-				</td>
-				<td>
-					<em><?php print $rra['rows'];?></em>
-				</td>
-				<td class='right'>
-					<?php print(!$readonly ? "<a id='" . $profile['id'] . '_' . $rra['id'] . "' class='delete deleteMarker fa fa-times' title='" . __esc('Delete') . "' href='#'></a>":'');?>
-				</td>
-				<?php
+
+				$url = 'data_source_profiles.php?action=item_edit&id=' . $rra['id'] . '&profile_id=' . $rra['data_source_profile_id'];
+
+				form_selectable_cell(filter_value($rra['name'], '', $url), $i);
+
+				form_selectable_cell('<em>' . get_span($profile['step'] * $rra['steps'] * $rra['rows']) . '</em>', $i);
+				form_selectable_cell('<em>' . isset($timespans[$rra['timespan']]) ? $timespans[$rra['timespan']]:get_span($rra['timespan']) . '</em>', $i);
+				form_selectable_cell('<em>' . $rra['steps'] . '</em>', $i);
+				form_selectable_cell('<em>' . $rra['rows'] . '</em>', $i);
+
+				if (!$readonly) {
+					form_selectable_cell("<a id='" . $profile['id'] . '_' . $rra['id'] . "' class='delete deleteMarker fa fa-times' title='" . __esc('Delete') . "' href='#'></a>", $i, '', 'right');
+				} else {
+					form_selectable_cell('', $i, '', 'right');
+				}
+
 				form_end_row();
+
+				$i++;
 			}
 		}
 
@@ -1456,6 +1454,7 @@ function profile() {
 			}
 
 			form_alternate_row('line' . $profile['id'], false, $disabled);
+
 			form_selectable_cell(filter_value($profile['name'], get_request_var('filter'), 'data_source_profiles.php?action=edit&id=' . $profile['id']), $profile['id']);
 			form_selectable_cell($profile['default'] == 'on' ? __('Yes'):'', $profile['id'], '', 'right');
 			form_selectable_cell($disabled ? __('No'):__('Yes'), $profile['id'], '', 'right');
@@ -1464,11 +1463,13 @@ function profile() {
 			form_selectable_cell($heartbeats[$profile['heartbeat']], $profile['id'], '', 'right');
 			form_selectable_cell($ds, $profile['id'], '', 'right');
 			form_selectable_cell($dt, $profile['id'], '', 'right');
+
 			form_checkbox_cell($profile['name'], $profile['id'], $disabled);
+
 			form_end_row();
 		}
 	} else {
-		print "<tr class='tableRow'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Data Source Profiles Found') . "</em></td></tr>\n";
+		print "<tr class='tableRow odd'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Data Source Profiles Found') . "</em></td></tr>\n";
 	}
 
 	html_end_box(false);

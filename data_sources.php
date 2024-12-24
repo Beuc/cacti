@@ -698,7 +698,7 @@ function data_edit($incform = true) {
 				$i++;
 			}
 		} else {
-			print '<tr><td><em>' . __('No Input Fields for the Selected Data Input Source') . '</em></td></tr>';
+			print '<tr class="tableRow odd"><td><em>' . __('No Input Fields for the Selected Data Input Source') . '</em></td></tr>';
 		}
 
 		html_end_box();

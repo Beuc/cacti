@@ -555,13 +555,15 @@ function data_edit() {
 			$url = '';
 		}
 
+		$display_text = array(
+			__('Name'),
+			__('Friendly Name'),
+			__('Field Order')
+		);
+
 		html_start_box(__('Input Fields'), '100%', '', '3', 'center', $url);
 
-		print "<tr class='tableHeader'>";
-		DrawMatrixHeaderItem(__('Name'), '', 1);
-		DrawMatrixHeaderItem(__('Friendly Name'), '', 1);
-		DrawMatrixHeaderItem(__('Field Order'), '', 2);
-		print '</tr>';
+		html_header($display_text, 2);
 
 		$fields = db_fetch_assoc_prepared("SELECT id, data_name, name, sequence
 			FROM data_input_fields
@@ -597,38 +599,41 @@ function data_edit() {
 
 		if (cacti_sizeof($fields)) {
 			foreach ($fields as $field) {
-				form_alternate_row('', true);
-				?>
-				<td>
-					<a class="linkEditMain" href="<?php print html_escape('data_input.php?action=field_edit&id=' . $field['id'] . '&data_input_id=' . get_request_var('id'));?>"><?php print html_escape($field['data_name']);?></a>
-				</td>
-				<td>
-					<?php print html_escape($field['name']);?>
-				</td>
-				<td>
-					<?php print $field['sequence'];
+				form_alternate_row('line' . $i, true);
+
+				$url = 'data_input.php?action=field_edit&id=' . $field['id'] . '&data_input_id=' . get_request_var('id');
+
+				form_selectable_cell(filter_value($field['data_name'], '', $url), $i);
+
+				form_selectable_ecell($field['name'], $i);
 
 				if ($field['sequence'] == '0') {
-					print ' ' . __('(Not In Use)');
-				}?>
-				</td>
-				<td class="right">
-					<a class='delete deleteMarker fa fa-times' href='<?php print html_escape('data_input.php?action=field_remove_confirm&id=' . $field['id'] . '&data_input_id=' . get_request_var('id'));?>' title='<?php print __esc('Delete');?>'></a>
-				</td>
-				<?php
+					$field['sequence'] .= ' ' . __('(Not In Use)');
+				}
+
+				form_selectable_cell($field['sequence'], $i);
+
+				form_selectable_cell("<a class='delete deleteMarker fa fa-times' href='" . html_escape('data_input.php?action=field_remove_confirm&id=' . $field['id'] . '&data_input_id=' . get_request_var('id')) . "' title='" . __esc('Delete') . "'></a>", $i, '', 'right');
+
 				form_end_row();
+
+				$i++;
 			}
 		} else {
-			print '<tr><td colspan="4"><em>' . __('No Input Fields') . '</em></td></tr>';
+			print '<tr class="tableRow odd"><td colspan="4"><em>' . __('No Input Fields') . '</em></td></tr>';
 		}
+
 		html_end_box();
 
+		$display_text = array(
+			__('Name'),
+			__('Friendly Name'),
+			__('Update RRA')
+		);
+
 		html_start_box(__('Output Fields'), '100%', '', '3', 'center', 'data_input.php?action=field_edit&type=out&data_input_id=' . get_request_var('id'));
-		print "<tr class='tableHeader'>";
-		DrawMatrixHeaderItem(__('Name'),'',1);
-		DrawMatrixHeaderItem(__('Friendly Name'),'',1);
-		DrawMatrixHeaderItem(__('Update RRA'),'',2);
-		print '</tr>';
+
+		html_header($display_text, 2);
 
 		$fields = db_fetch_assoc_prepared("SELECT id, name, data_name, update_rra, sequence
 			FROM data_input_fields
@@ -641,29 +646,30 @@ function data_edit() {
 
 		if (cacti_sizeof($fields)) {
 			foreach ($fields as $field) {
-				form_alternate_row('', true);
-				?>
-				<td>
-					<a class='linkEditMain' href='<?php print html_escape('data_input.php?action=field_edit&id=' . $field['id'] . '&data_input_id=' . get_request_var('id'));?>'><?php print html_escape($field['data_name']);?></a>
-				</td>
-				<td>
-					<?php print html_escape($field['name']);?>
-				</td>
-				<td>
-					<?php print html_boolean_friendly($field['update_rra']);?>
-				</td>
-				<td class='right'>
-					<?php if ($output_disabled) {?>
-					<a class='deleteMarkerDisabled fa fa-times' href='#' title='<?php print __esc('Output Fields can not be removed when Data Sources are present');?>'></a>
-					<?php } else { ?>
-					<a class='delete deleteMarker fa fa-times' href='<?php print html_escape('data_input.php?action=field_remove_confirm&id=' . $field['id'] . '&data_input_id=' . get_request_var('id'));?>' title='<?php print __esc('Delete');?>'></a>
-					<?php } ?>
-				</td>
-				<?php
+				form_alternate_row('line' . $i, true);
+
+				$url = 'data_input.php?action=field_edit&id=' . $field['id'] . '&data_input_id=' . get_request_var('id');
+
+				form_selectable_cell(filter_value($field['data_name'], '', $url), $i);
+
+				form_selectable_ecell($field['name'], $i);
+
+				form_selectable_cell(html_boolean_friendly($field['update_rra']), $i);
+
+				if ($output_disabled) {
+					form_selectable_cell("<a class='deleteMarkerDisabled fa fa-times' href='#' title='" . __esc('Output Fields can not be removed when Data Sources are present') . "'></a>", $i);
+				} else {
+					$url = html_escape('data_input.php?action=field_remove_confirm&id=' . $field['id'] . '&data_input_id=' . get_request_var('id'));
+
+					form_selectable_cell("<a class='delete deleteMarker fa fa-times' href='$url' title='" . __esc('Delete') . "'></a>", $id, '', 'right');
+				}
+
 				form_end_row();
+
+				$i++;
 			}
 		} else {
-			print '<tr><td colspan="4"><em>' . __('No Output Fields') . '</em></td></tr>';
+			print '<tr class="tableRow odd"><td colspan="4"><em>' . __('No Output Fields') . '</em></td></tr>';
 		}
 
 		html_end_box();
@@ -807,12 +813,13 @@ function data() {
 			form_selectable_cell(number_format_i18n($data_input['data_sources'], '-1'), $data_input['id'],'', 'right');
 			form_selectable_cell(number_format_i18n($data_input['templates'], '-1'), $data_input['id'],'', 'right');
 			form_selectable_cell($input_types[$data_input['type_id']], $data_input['id'], '', 'right');
+
 			form_checkbox_cell($data_input['name'], $data_input['id'], $disabled);
 
 			form_end_row();
 		}
 	} else {
-		print '<tr class="tableRow"><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No Data Input Methods Found') . '</em></td></tr>';
+		print '<tr class="tableRow odd"><td colspan="' . (cacti_sizeof($display_text) + 1) . '"><em>' . __('No Data Input Methods Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);

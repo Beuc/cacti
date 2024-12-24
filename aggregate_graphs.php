@@ -1785,7 +1785,7 @@ function aggregate_items() {
 			form_end_row();
 		}
 	} else {
-		print '<tr><td><em>' . __('No Graphs Found') . '</em></td></tr>';
+		print '<tr class="tableRow odd"><td colspan="4"><em>' . __('No Graphs Found') . '</em></td></tr>';
 	}
 
 	html_end_box(false);
