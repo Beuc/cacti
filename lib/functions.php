@@ -8856,16 +8856,16 @@ function cacti_format_ipv6_colon($address) {
 }
 
 function text_substitute(null|array|string $text, bool $isHtml = true, bool $includeStandard = true,
-	?array $extraSubtitutions = null, ?array $extraMatches = null) {
+	?array $extraSubstitutions = null, ?array $extraMatches = null) {
 	if (!empty($text)) {
 		$parser = 'text_regex_parser' . ($isHtml ? '_html' : '');
 
-		$extraSubtitutions = $extraSubtitutions ?? array();
+		$extraSubstitutions = $extraSubstitutions ?? array();
 		$extraMatches      = $extraMatches ?? array();
 
 		/* Get parts for text substitution */
-		$extra_search = array_keys($extraSubtitutions);
-		$extra_values = array_values($extraSubtitutions);
+		$extra_search = array_keys($extraSubstitutions);
+		$extra_values = array_values($extraSubstitutions);
 
 		$regex_array = $includeStandard ? text_get_regex_array($extraMatches) : $extraMatches;
 
@@ -8913,12 +8913,12 @@ function text_substitute_line(string $source, string $regex, string $parser, arr
 	return $result;
 }
 
-function text_get_regex_array(?array $extraSubtitutions = array()) {
+function text_get_regex_array(?array $extraSubstitutions = array()) {
 	static $regex_array = array();
 	static $regex_extra = array();
 
-	if ($extraSubtitutions !== null) {
-		$regex_extra = $extraSubtitutions;
+	if ($extraSubstitutions !== null) {
+		$regex_extra = $extraSubstitutions;
 	}
 
 	if (!cacti_sizeof($regex_array)) {
