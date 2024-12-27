@@ -1331,7 +1331,7 @@ function grow_right_pane_tree($tree_id, $leaf_id, $host_group_data) {
 	}
 
 	if (get_request_var('graphs') == '-1') {
-		$graph_rows = read_user_setting('treeview_graphs_per_page', read_config_option('treeview_graphs_per_page', 10));
+		$graph_rows = read_user_setting('treeview_graphs_per_page', read_config_option('treeview_graphs_per_page'), 10);
 	} else {
 		$graph_rows = get_request_var('graphs');
 	}

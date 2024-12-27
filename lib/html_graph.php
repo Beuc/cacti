@@ -868,7 +868,7 @@ function html_graph_preview_view() {
 	}
 
 	if (get_request_var('graphs') == '-1') {
-		$graph_rows = read_user_setting('preview_graphs_per_page', read_config_option('preview_graphs_per_page', 20));
+		$graph_rows = read_user_setting('preview_graphs_per_page', read_config_option('preview_graphs_per_page'), 20);
 	} else {
 		$graph_rows = get_request_var('graphs');
 	}
