@@ -2445,7 +2445,9 @@ function html_graph_order_filter_array() {
 					'graph_source', 'graph_source'
 				);
 
-				if (get_nfilter_request_var('graph_source') == '' || get_nfilter_request_var('graph_source') == '-1') {
+				if (get_nfilter_request_var('graph_source') == '' ||
+					get_nfilter_request_var('graph_source') == '-1' ||
+					!in_array(get_nfilter_request_var('graph_source'), $data_sources)) {
 					if (cacti_sizeof($data_sources)) {
 						set_request_var('graph_source', array_keys($data_sources)[0]);
 						set_request_var('graph_order', 'desc');
