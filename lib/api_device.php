@@ -3002,6 +3002,137 @@ function api_clone_device_template($template_id, $template_name, $include_gt, $c
 	return $new_template;
 }
 
+function api_device_template_download($type, $ids) {
+	if (cacti_sizeof($ids) == 1) {
+		if ($type == 'templates') {
+			$name = clean_up_name(db_fetch_cell_prepared('SELECT name FROM host_template WHERE id = ?', $ids));
+		} else {
+			$name = clean_up_name(db_fetch_cell_prepared('SELECT name FROM host_template_archive WHERE id = ?', $ids));
+		}
+
+		$filename = 'device_package_' . strtolower($name) . '_download.tar';
+	} else {
+		$filename = 'device_package_multiple_download.tar';
+	}
+
+	//$directory = sys_get_temp_dir() . '/ht_download_' . rand() . '/';
+	//mkdir($directory, 0755);
+
+	$tmpfile = sys_get_temp_dir() . '/' . $filename;
+
+	$archive = new PharData($tmpfile);
+
+	foreach($ids as $id) {
+		if ($type == 'archives') {
+			$data = db_fetch_row_prepared('SELECT * FROM host_template_archive WHERE id = ?', array($id));
+
+			if (cacti_sizeof($data)) {
+				$name = 'device_template_' . clean_up_name($data['name']) . '.tgz';
+			}
+
+			$contents = base64_decode($data['archive']);
+
+			$archive->addFromString('./' . $name, $contents);
+		} else {
+			$data = db_fetch_row_prepared('SELECT * FROM host_template WHERE id = ?', array($id));
+
+			if (cacti_sizeof($data)) {
+				$name = 'device_template_' . clean_up_name($data['name']) . '.tgz';
+			}
+
+			$contents = api_device_template_archive_for_export($id);
+
+			$archive->addFromString('./' . $name, $contents);
+		}
+	}
+
+	$archive->compress(Phar::GZ);
+
+	$otmpfile  = $tmpfile;
+	$tmpfile  .= '.gz';
+	$filename .= '.gz';
+
+	header('Content-type: application/gzip');
+	header('Content-Disposition: attachment; filename=' . $filename);
+
+	print file_get_contents($tmpfile);
+
+	unlink($otmpfile);
+	unlink($tmpfile);
+}
+
+function api_device_template_archive_for_export($id) {
+	global $export_types, $export_errors, $debug, $package_file;
+
+	$export_okay = false;
+
+	$host_template = db_fetch_row_prepared('SELECT *
+		FROM host_template
+		WHERE id = ?',
+		array($id));
+
+	if (cacti_sizeof($host_template)) {
+		$xml_data = get_item_xml('host_template', $id, true);
+
+		$info                 = array();
+		$info['name']         = $host_template['name'];
+		$info['author']       = $host_template['author'];
+		$info['homepage']     = $host_template['homepage'];
+		$info['email']        = $host_template['email'];
+		$info['description']  = $host_template['name'] . ' Package';
+		$info['class']        = $host_template['class'];
+		$info['tags']         = $host_template['tags'];
+		$info['installation'] = $host_template['installation'];
+		$info['version']      = $host_template['version'];
+		$info['copyright']    = $host_template['copyright'];
+
+		// Let's store the Template information for subsequent exports
+		$hash = get_export_hash('host_template', $id);
+
+		$export_okay = save_packager_metadata($hash, $info);
+
+		$debug = '';
+
+		if ($export_okay) {
+			$files = find_dependent_files($xml_data);
+
+			/* search xml files for scripts */
+			if (cacti_sizeof($files)) {
+				foreach($files as $file) {
+					if (strpos($file['file'], '.xml') !== false) {
+						$files = array_merge($files, find_dependent_files(file_get_contents($file['file'])));
+					}
+				}
+			}
+
+			$success = package_template($xml_data, $info, $files, $debug);
+
+			if ($export_errors || !$success) {
+				raise_message('package_error_' . $id, __('There were errors packaging your Device Template: %s.  Errors Follow. ', $info['name']) . str_replace("\n", '<br>', $debug), MESSAGE_LEVEL_ERROR);
+				return false;
+			} elseif ($package_file != '' && file_exists($package_file)) {
+				$output = file_get_contents($package_file);
+
+				unlink($package_file);
+
+				return $output;
+			} else {
+				raise_message("package_error_$id", __('Unable to find Package file for Device Template: %s.', $info['name']), MESSAGE_LEVEL_ERROR);
+
+				return false;
+			}
+		} else {
+			raise_message("export_failed_$id", __('The Export Failed for %s!.  Check the Cacti Log for details', $info['name']), MESSAGE_LEVEL_ERROR);
+
+			return false;
+		}
+	} else {
+		raise_message("export_failed_$id", __('Export Could not find the Device Template with the ID %s!.  Check the Cacti Log for details', $id), MESSAGE_LEVEL_ERROR);
+
+		return false;
+	}
+}
+
 function api_device_template_archive($id, $archive_note) {
 	global $export_types, $export_errors, $debug, $package_file;
 

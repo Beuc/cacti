@@ -41,8 +41,8 @@ if (!isset_request_var('action') || get_nfilter_request_var('action') == 'templa
 		1 => __('Delete'),
 		2 => __('Duplicate'),
 		3 => __('Sync Devices'),
-		4 => __('Archive Device Packages'),
-		5 => __('Download Device Packages')
+		4 => __('Archive'),
+		5 => __('Download')
 	);
 
 	if (!file_exists(CACTI_PATH_PKI . '/package.pub')) {
@@ -52,7 +52,7 @@ if (!isset_request_var('action') || get_nfilter_request_var('action') == 'templa
 } elseif (get_nfilter_request_var('action') == 'archives' || get_nfilter_request_var('action_type') == 'archives') {
 	$actions = array(
 		1 => __('Delete'),
-		2 => __('Download Packages'),
+		2 => __('Download'),
 	);
 }
 
@@ -68,6 +68,13 @@ switch (get_request_var('action')) {
 		break;
 	case 'actions':
 		form_actions();
+
+		break;
+	case 'download':
+		$ids  = explode(',', get_nfilter_request_var('ids'));
+		$type = get_nfilter_request_var('action_type');
+
+		api_device_template_download($type, $ids);
 
 		break;
 	case 'item_add_gt':
@@ -200,7 +207,7 @@ function form_actions() {
 
 	/* if we are to save this form, instead of display it */
 	if (isset_request_var('selected_items')) {
-		if (get_request_var('action_type') == 'templates') {
+		if (get_nfilter_request_var('action_type') == 'templates') {
 			$selected_items = sanitize_unserialize_selected_items(get_nfilter_request_var('selected_items'));
 
 			if ($selected_items != false) {
@@ -225,6 +232,26 @@ function form_actions() {
 					foreach($selected_items as $id) {
 						api_device_template_archive($id, $archive_note);
 					}
+				} elseif (get_nfilter_request_var('drp_action') == '5') { // download package
+					top_header();
+
+					print '<script text="text/javascript">
+						function DownloadStart(url) {
+							document.getElementById("download_iframe").src = url;
+							setTimeout(function() {
+								loadUrl({ url: "host_templates.php?action_type=templates" });
+								Pace.stop();
+							}, 2000);
+						}
+
+						$(function() {
+							DownloadStart(\'host_templates.php?action=download&action_type=templates&ids=' . implode(',', $selected_items) . '\');
+						});
+					</script>
+					<iframe id="download_iframe" style="display:none;"></iframe>';
+
+					bottom_footer();
+					exit(0);
 				}
 			}
 
@@ -243,6 +270,26 @@ function form_actions() {
 
 						raise_message('archives_removed_' . $id, __('The Device Template Archive %s has been removed.', $name), MESSAGE_LEVEL_INFO);
 					}
+				} elseif (get_nfilter_request_var('drp_action') == 2) {
+					top_header();
+
+					print '<script text="text/javascript">
+						function DownloadStart(url) {
+							document.getElementById("download_iframe").src = url;
+							setTimeout(function() {
+								loadUrl({ url: "host_templates.php?action_type=archives" });
+								Pace.stop();
+							}, 1000);
+						}
+
+						$(function() {
+							DownloadStart(\'host_templates.php?action=download&action_type=archives&ids=' . implode(',', $selected_items) . '\');
+						});
+					</script>
+					<iframe id="download_iframe" style="display:none;"></iframe>';
+
+					bottom_footer();
+					exit(0);
 				}
 			}
 
@@ -261,7 +308,7 @@ function form_actions() {
 				input_validate_input_number($matches[1], 'chk[1]');
 				/* ==================================================== */
 
-				if (get_request_var('action_type') == 'templates') {
+				if (get_nfilter_request_var('action_type') == 'templates') {
 					$ilist .= '<li>' . html_escape(db_fetch_cell_prepared('SELECT name FROM host_template WHERE id = ?', array($matches[1]))) . '</li>';
 				} else {
 					$ilist .= '<li>' . html_escape(db_fetch_cell_prepared('SELECT name FROM host_template_archive WHERE id = ?', array($matches[1]))) . '</li>';
@@ -271,7 +318,7 @@ function form_actions() {
 			}
 		}
 
-		if (get_request_var('action_type') == 'templates') {
+		if (get_nfilter_request_var('action_type') == 'templates') {
 			$form_data = array(
 				'general' => array(
 					'page'       => 'host_templates.php?action_type=templates',
@@ -322,6 +369,12 @@ function form_actions() {
 							)
 						)
 					),
+					5 => array(
+						'smessage' => __('Click \'Continue\' to Download the following Device Template.'),
+						'pmessage' => __('Click \'Continue\' to Download the following Device Templates.'),
+						'scont'    => __('Download Device Template'),
+						'pcont'    => __('Download Device Templates')
+					),
 				)
 			);
 		} else {
@@ -339,6 +392,12 @@ function form_actions() {
 						'pmessage' => __('Click \'Continue\' to Delete following Device Template Archives.'),
 						'scont'    => __('Delete Device Template Archive'),
 						'pcont'    => __('Delete Device Templates Archives')
+					),
+					2 => array(
+						'smessage' => __('Click \'Continue\' to Download the following Device Template Archive.'),
+						'pmessage' => __('Click \'Continue\' to Download following Device Template Archives.'),
+						'scont'    => __('Download Device Template Archive'),
+						'pcont'    => __('Download Device Templates Archives')
 					)
 				)
 			);
