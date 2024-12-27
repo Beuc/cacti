@@ -886,9 +886,20 @@ class CactiTableFilter {
 		$buttonFunctions
 
 		$(function() {
-			refreshFunction = '$changeFunction';
-			refreshMSeconds = $refreshMSeconds;
-			setupPageTimeout();
+			if ($('#refresh').length) {
+				refreshFunction = '$changeFunction';
+				refreshMSeconds = $refreshMSeconds;
+				refreshIsLogout = false;
+				setupPageTimeout();
+
+				$('#refresh').on('selectmenuopen', function() {
+					if (myRefresh > 0) {
+						clearTimeout(myRefresh);
+					}
+				});
+			} else if (myRefresh > 0) {
+				clearTimeout(myRefresh);
+			}
 
 			$('#" . $this->form_id . "').submit(function(event) {
 				event.preventDefault();
