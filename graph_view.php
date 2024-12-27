@@ -31,6 +31,7 @@ include_once('./lib/api_tree.php');
 include_once('./lib/graphs.php');
 include_once('./lib/reports.php');
 include_once('./lib/timespan_settings.php');
+include_once('./lib/rrd.php');
 
 /* set the default graph action */
 set_default_graph_action();

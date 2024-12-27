@@ -1868,7 +1868,7 @@ function display_reports_items($report_id) {
 			$i++;
 		}
 	} else {
-		print '<tr><td colspan="9"><em>' . __('No Report Items') . '</em></td></tr>';
+		print '<tr class="tableRow odd"><td colspan="9"><em>' . __('No Report Items') . '</em></td></tr>';
 	}
 }
 
@@ -2119,7 +2119,7 @@ function reports() {
 			form_end_row();
 		}
 	} else {
-		print "<tr><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Reports Found') . "</em></td></tr>\n";
+		print "<tr class='tableRow odd'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Reports Found') . "</em></td></tr>\n";
 	}
 
 	html_end_box(false);
