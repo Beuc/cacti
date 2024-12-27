@@ -127,6 +127,30 @@ if ($auth_method != AUTH_METHOD_NONE) {
 	}
 
 	/**
+	 * Check to see if Cacti is locked out and if it is, block
+	 * users from accessing the site until lockout is cleared.
+	 */
+	if (CACTI_WEB && isset($_SESSION[SESS_USER_ID])) {
+		$lockout = read_config_option('cacti_lockout_status', true);
+
+		if ($lockout != '') {
+			$lockout    = json_decode($lockout, true);
+			$admin_user = read_config_option('admin_user');
+			$enabled    = read_config_option('auth_maint_lockout_type', true);
+
+			if ($lockout['session'] != session_id()) {
+				if (($enabled == 0 && $admin_user != $_SESSION[SESS_USER_ID]) || $enabled == 1) {
+					general_header();
+					print '<h1>' . __('Cacti is Locked Out for Maintenance') . '</h1>';
+					print '<p>'. __('The primary Cacti administrator has locked out the Cacti user interface for maintenance for activities such as upgrades.  If you feel this is in error, please contact your Cacti adminnistrator.  This lockout will stay in place for approximately 30 minutes.') . '</p>';
+					bottom_footer();
+					exit;
+				}
+			}
+		}
+	}
+
+	/**
 	 * If the special boolean $guest_account is set for a page, then the guest
 	 * account can be used.  Where this may not be the case is with basic auth
 	 * where to enter the Cacti website, you must first have a valid account.

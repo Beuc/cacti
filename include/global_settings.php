@@ -1833,6 +1833,22 @@ $settings['authentication'] = array(
 		'default'       => 'on',
 		'method'        => 'checkbox'
 	),
+	'maintenance_header' => array(
+		'friendly_name' => __('Maintenance Settings'),
+		'method'        => 'spacer',
+		'collapsible'   => 'true'
+	),
+	'auth_maint_lockout_type' => array(
+		'friendly_name' => __('Maintenance Lockout Type'),
+		'description'   => __('When the Cacti system is locked out for maintenance, how do you want the maintenance enforced?'),
+		'method'        => 'drop_array',
+		'default'       => '0',
+		'array'         => array(
+			'-1' => __('Disable Cacti Lockout Feature'),
+			'0'  => __('Primary Admin (all logins)'),
+			'1'  => __('Primary Admin (lockout session only)'),
+		)
+	),
 	'special_users_header' => array(
 		'friendly_name' => __('Special Users'),
 		'method'        => 'spacer',

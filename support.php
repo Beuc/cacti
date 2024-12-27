@@ -1156,19 +1156,25 @@ function show_tech_summary() {
 
 	html_section_header(__('General Information'), 2);
 
-	form_alternate_row();
 	$lockout = read_config_option('cacti_lockout_status', true);
+	$enabled = read_config_option('auth_maint_lockout_type', true);
+
+	form_alternate_row();
 
 	print '<td>' . __('Cacti Lockout Status') . '</td>';
-	if ($lockout !=  '') {
-		$lockout = json_decode($lockout, true);
+	if ($enabled >= 0) {
+		if ($lockout !=  '') {
+			$lockout = json_decode($lockout, true);
 
-		$unlock_time = $lockout['time'] + (30 * 60);
-		$unlock_hms = date('H:i', $unlock_time);
+			$unlock_time = $lockout['time'] + (30 * 60);
+			$unlock_hms = date('H:i', $unlock_time);
 
-		print '<td><input class="deviceDown" type="button" id="lockout" value="' . __('Cacti in Maintenance Mode until approximately %s!', $unlock_hms) . '" title="' . __('To Unlock, press this button again.') . '"></td>';
+			print '<td><input class="deviceDown" type="button" id="lockout" value="' . __('Cacti in Maintenance Mode until approximately %s!', $unlock_hms) . '" title="' . __('To Unlock, press this button again.') . '"></td>';
+		} else {
+			print '<td><input type="button" id="lockout" value="' . __('Lockout Cacti for Maintenance') . '" title="' . __('Press this button to Lockout Cacti for 30 minutes for maintenance.') . '"></td>';
+		}
 	} else {
-		print '<td><input type="button" id="lockout" value="' . __('Lockout Cacti for Maintenance') . '" title="' . __('Press this button to Lockout Cacti for 30 minutes for maintenance.') . '"></td>';
+		print '<td><input class="deviceDisabled" type="button" id="lockout" disabled="disabled" value="' . __('Cacti Maintenance Mode feature is disabled') . '" title="' . __('To enable this feature, goto Settings > Authentication.') . '"></td>';
 	}
 	form_end_row();
 
