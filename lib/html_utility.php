@@ -419,6 +419,12 @@ function form_process_visible_display_text($table_id, $display_text) {
 		$tableColumns[$table_id] = json_decode(read_user_setting("visible_columns_{$table_id}{$tableCount[$table_id]}"), true);
 	}
 
+	if (isset_request_var('clear') || isset_request_var('reset')) {
+		db_execute_prepared('DELETE FROM settings_user
+			WHERE user_id = ? AND name = ?',
+			array($_SESSION[SESS_USER_ID], "visible_columns_{$table_id}{$tableCount[$table_id]}"));
+	}
+
 	if (isset_request_var('columns_add')) {
 		$columns = get_nfilter_request_var('columns_add');
 
