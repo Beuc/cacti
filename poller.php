@@ -1325,14 +1325,14 @@ function poller_run_stats($loop_start) {
 		$count = db_fetch_cell('SELECT COUNT(total_time) FROM poller_time_stats');
 
 		if ($count > 0) {
-			$ratio = round($sum / $count,2);
+			$ratio = round($sum / $count, 2);
 
-			cacti_log(__("24 hours avg. poller run time is $ratio seconds, min: $min, max: $max") , true, 'POLLER');
+			cacti_log(sprintf("24 Hour Average Poller run time is %0.2f seconds, min: %s , max: %s", $ratio, $min, $max), true, 'POLLER');
 
 			if ($ratio / $poller_interval > $threshold_24h / 100 && $threshold_24h > 0) {
-				cacti_log(__("WARNING: 24 hours poller avg. run time reached more than $threshold_24h% of time limit") , true, 'POLLER');
+				cacti_log(sprintf("WARNING: 24 Hour Poller Average run time reached more than %s percent of time limit.", $threshold_24h), true, 'POLLER');
 
-				admin_email(__('Cacti System Warning'), __('WARNING: 24 hours Poller[%d] avg. run time is %f seconds (more than %d &#37; of time limit)', $poller_id, $ratio,$threshold_24h));
+				admin_email(__('Cacti System Warning'), __('WARNING: 24 Hour Poller[%d] Average run time threshold breached.  It is %f seconds (more than %d &#37; of threshold.)', $poller_id, $ratio, $threshold_24h));
 			}
 		}
 	}
@@ -1346,9 +1346,9 @@ function poller_run_stats($loop_start) {
 			array($poller_interval, $threshold_1h));
 
 		if ($count > $threshold_1h_count && $threshold_1h_count > 0) {
-			cacti_log(__("WARNING: In last hour poller run time $count times (limit $threshold_1h_count) reached more than $threshold_1h% of time limit") , true, 'POLLER');
+			cacti_log(sprintf("WARNING: In the last hour, the Poller run time exceeded the threshold %d times (limit %d) by %d percent of time limit.", $count, $threshold_1h_count, $threshold_1h) , true, 'POLLER');
 
-			admin_email(__('Cacti System Warning'), __('WARNING: In last hour Poller[%d] run time %d times reached more than %d &#37; of time limit', $poller_id, $threshold_1h_count, $threshold_1h));
+			admin_email(__('Cacti System Warning'), __('WARNING: In last hour Poller[%d] run time exceeded the threshold %d times (limit %d) by %d percent of the time limit.', $poller_id, $count, $threshold_1h_count, $threshold_1h));
 		}
 	}
 
