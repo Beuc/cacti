@@ -694,7 +694,7 @@ function create_poller_cache_filter() {
 
 	if ($host_id > 0) {
 		/* for the templates dropdown */
-		$sql_where    = ($sql_where != '' ? ' AND ':'WHERE ') . 'h.id = ?';
+		$sql_where   .= ' AND h.id = ?';
 		$sql_params[] = $host_id;
 
 		$hostname = db_fetch_cell_prepared('SELECT description
@@ -710,7 +710,7 @@ function create_poller_cache_filter() {
 	}
 
 	if (get_filter_request_var('site_id') >= 0) {
-		$sql_where    = 'AND site_id = ?';
+		$sql_where   .= ' AND site_id = ?';
 		$sql_params[] = get_request_var('site_id');
 	}
 
