@@ -1170,7 +1170,7 @@ function log_cacti_stats($loop_start, $method, $concurrent_processes, $max_threa
 	db_execute_prepared('UPDATE host AS h
 		LEFT JOIN host_errors AS e
 		ON h.id = e.host_id
-		SET errors = e.errors
+		SET h.current_errors = e.errors
 		WHERE h.poller_id = ?',
 		array($poller_id));
 
