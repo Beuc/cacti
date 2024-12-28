@@ -1740,58 +1740,63 @@ $settings['poller'] = array(
 			'28800' => __('%s Hours', 8)
 		)
 	),
-	'data_collector_header' => array(
-		'friendly_name' => __('Data Collector Defaults'),
-		'description'   => __('These settings are maintained at the Data Collector level.  The values here are only defaults used when first creating a Data Collector.'),
+	'runtime_variation_header' => array(
+		'friendly_name' => __('Runtime Variation/Deviance Settings'),
 		'collapsible'   => 'true',
 		'method'        => 'spacer',
 	),
 	'poller_warning_1h_count' => array(
 		'friendly_name' => __('One Hour Count Warning Threshold'),
-		'description'   => __('When the count of the Poller Guarded Ratio (below) is reached in one hour, a warning will be written to log and email will be sent to the Primary Cact Administraror.'),
+		'description'   => __('When the Poller Guarded Ratio (below) is reached breached more than this many times in an hour, a warning will be written to the Cacti log and an Email will be sent to the Primary Cact Administraror notifying them of the Poller runtime deviation.'),
 		'method'        => 'drop_array',
 		'default'       => '3',
 		'array'         => array(
 			'0'  => __('Disabled'),
-			'1'  => __('%d Poller Intervals', 1),
-			'2'  => __('%d Poller Intervals', 2),
-			'3'  => __('%d Poller Intervals', 3),
-			'4'  => __('%d Poller Intervals', 4),
-			'5'  => __('%d Poller Intervals', 5),
-			'6'  => __('%d Poller Intervals', 6),
-			'7'  => __('%d Poller Intervals', 7),
-			'8'  => __('%d Poller Intervals', 8),
-			'9'  => __('%d Poller Intervals', 9),
-			'10' => __('%d Poller Intervals', 10),
+			'1'  => __('%d Poller Cycle', 1),
+			'2'  => __('%d Poller Cycles', 2),
+			'3'  => __('%d Poller Cycles', 3),
+			'4'  => __('%d Poller Cycles', 4),
+			'5'  => __('%d Poller Cycles', 5),
+			'6'  => __('%d Poller Cycles', 6),
+			'7'  => __('%d Poller Cycles', 7),
+			'8'  => __('%d Poller Cycles', 8),
+			'9'  => __('%d Poller Cycles', 9),
+			'10' => __('%d Poller Cycles', 10),
 		)
 	),
 	'poller_warning_1h_ratio' => array(
-		'friendly_name' => __('One Hour Guarded Poller Ratio run/max'),
-		'description'   => __('Define a Guarded Poller Ratio run/max time (in percent).'),
+		'friendly_name' => __('One Hour Guarded Poller Ratio average/max Runtime'),
+		'description'   => __('Define a Guarded Poller Ratio average/max runtime (in percent).  Cacti will track breaches in these statistics and issue warnings to the Primary Cacti Administrator via Email when they happen.'),
 		'method'        => 'drop_array',
 		'default'       => '70',
 		'array'         => array(
 			'0'  => __('Disabled'),
-			'50' => '50',
-			'60' => '60',
-			'70' => '70',
-			'80' => '80',
-			'90' => '90'
+			'50' => __('%d Percent', '50'),
+			'60' => __('%d Percent', '60'),
+			'70' => __('%d Percent', '70'),
+			'80' => __('%d Percent', '80'),
+			'90' => __('%d Percent', '90')
 		)
 	),
 	'poller_warning_24h_ratio' => array(
-		'friendly_name' => __('24 Hour Guarded Poller Ratio run/max'),
-		'description'   => __('Define a Guarded average Ratio Poller run/max time (in percent). When it is reached, warning will be written to log and email will be sent to the Primary Cacti administrator.'),
+		'friendly_name' => __('24 Hour Guarded Poller Ratio average/max Runtime'),
+		'description'   => __('Define a Guarded Poller Ratio average/max runtime (in percent).  Cacti will track breaches in these statistics and issue warnings to the Primary Cacti Administrator via Email when they happen.'),
 		'method'        => 'drop_array',
 		'default'       => '60',
 		'array'         => array(
 			'0'  => __('Disabled'),
-			'50' => '50',
-			'60' => '60',
-			'70' => '70',
-			'80' => '80',
-			'90' => '90'
+			'50' => __('%d Percent', '50'),
+			'60' => __('%d Percent', '60'),
+			'70' => __('%d Percent', '70'),
+			'80' => __('%d Percent', '80'),
+			'90' => __('%d Percent', '90')
 		),
+	),
+	'data_collector_header' => array(
+		'friendly_name' => __('Data Collector Defaults'),
+		'description'   => __('These settings are maintained at the Data Collector level.  The values here are only defaults used when first creating a Data Collector.'),
+		'collapsible'   => 'true',
+		'method'        => 'spacer',
 	),
 	'concurrent_processes' => array(
 		'friendly_name' => __('Data Collector Processes'),
