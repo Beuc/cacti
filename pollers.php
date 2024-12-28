@@ -672,6 +672,7 @@ function poller_edit() {
 			unset($fields_poller_edit['dbpass']);
 			unset($fields_poller_edit['dbport']);
 			unset($fields_poller_edit['dbretries']);
+			unset($fields_poller_edit['spacerssl']);
 			unset($fields_poller_edit['dbssl']);
 			unset($fields_poller_edit['dbsslkey']);
 			unset($fields_poller_edit['dbsslcert']);
