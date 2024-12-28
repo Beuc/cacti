@@ -1308,7 +1308,7 @@ CREATE TABLE `data_local` (
   KEY `snmp_index` (`snmp_index`),
   KEY `data_template_id` (`data_template_id`),
   KEY `snmp_query_id` (`snmp_query_id`),
-  KEY `orphans` (`orphans`),
+  KEY `orphan` (`orphan`),
   KEY `errored` (`errored`)
 ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;
 
