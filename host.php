@@ -1659,6 +1659,12 @@ function host() {
 			'sort'    => 'DESC',
 			'tip'     => __('The total number of Data Sources generated from this Device.')
 		),
+		'current_errors' => array(
+			'display' => __('Errors'),
+			'align'   => 'right',
+			'sort'    => 'DESC',
+			'tip'     => __('The total number current data collection errors on this Device.  Enable Device Debug to track them.')
+		),
 		'status' => array(
 			'display' => __('Status'),
 			'align'   => 'center',
@@ -1760,6 +1766,7 @@ function host() {
 			$sites_url       = CACTI_PATH_URL . 'host.php?site_id=' . $host['site_id'];
 			$graphs_url      = CACTI_PATH_URL . 'graphs.php?reset=1&host_id=' . $host['id'];
 			$data_source_url = CACTI_PATH_URL . 'data_sources.php?reset=1&host_id=' . $host['id'];
+			$errors_url      = CACTI_PATH_URL . 'data_sources.php?reset=1&errored=true&host_id=' . $host['id'];
 
 			if (empty($host['graphs'])) {
 				$host['graphs'] = 0;
@@ -1767,6 +1774,10 @@ function host() {
 
 			if (empty($host['data_sources'])) {
 				$host['data_sources'] = 0;
+			}
+
+			if (empty($host['current_errors'])) {
+				$host['current_errors'] = 0;
 			}
 
 			form_alternate_row('line' . $host['id'], true);
@@ -1781,6 +1792,8 @@ function host() {
 			form_selectable_cell(filter_value(number_format_i18n($host['graphs'], '-1'), '', $graphs_url), $host['id'], '', 'right');
 
 			form_selectable_cell(filter_value(number_format_i18n($host['data_sources'], '-1'), '', $data_source_url), $host['id'], '', 'right');
+
+			form_selectable_cell(filter_value(number_format_i18n($host['current_errors'], '-1'), '', $errors_url), $host['id'], '', 'right');
 
 			form_selectable_cell($host_status, $host['id'], '', 'center');
 

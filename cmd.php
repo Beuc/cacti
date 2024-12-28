@@ -387,15 +387,14 @@ if (cacti_sizeof($poller_items) && read_config_option('poller_enabled') == 'on')
 					$output_count = 0;
 				}
 
-				db_execute_prepared(
-					'UPDATE host
-					SET polling_time = ?
+				$errors = cacti_sizeof($error_ds);
+
+				db_execute_prepared('UPDATE host
+					SET polling_time = ?, current_errors = ?
 					WHERE id = ?
 					AND deleted = ""',
-					array(($host_end - $host_start), $last_host)
+					array(($host_end - $host_start), $errors, $last_host)
 				);
-
-				$errors = cacti_sizeof($error_ds);
 
 				cacti_log(sprintf('Device[%d] Time[%3.2f] Items[%d] Errors[%d]', $last_host, $host_end - $host_start, $itemcnt, $errors), $print_data_to_stdout, 'POLLER', $hmedium);
 
@@ -405,6 +404,11 @@ if (cacti_sizeof($poller_items) && read_config_option('poller_enabled') == 'on')
 					}
 
 					$tot_errors += $errors;
+
+					db_execute_prepared('INSERT INTO host_errors
+						(host_id, poller_id, errors, local_data_ids)
+						VALUES (?, ?, ?, ?)',
+						array($last_host, $poller_id, $errors, implode(',', $error_ds)));
 				}
 			}
 
@@ -487,15 +491,14 @@ if (cacti_sizeof($poller_items) && read_config_option('poller_enabled') == 'on')
 		}
 	}
 
-	db_execute_prepared(
-		'UPDATE host
-		SET polling_time = ?
+	$errors = cacti_sizeof($error_ds);
+
+	db_execute_prepared('UPDATE host
+		SET polling_time = ?, current_errors = ?
 		WHERE id = ?
 		AND deleted = ""',
-		array(($host_end - $host_start), $host_id)
+		array(($host_end - $host_start), $errors, $host_id)
 	);
-
-	$errors = cacti_sizeof($error_ds);
 
 	cacti_log(sprintf('Device[%d] Time[%3.2f] Items[%d] Errors[%d]', $last_host, $host_end - $host_start, $itemcnt, $errors), $print_data_to_stdout, 'POLLER', $hmedium);
 
@@ -505,6 +508,11 @@ if (cacti_sizeof($poller_items) && read_config_option('poller_enabled') == 'on')
 		}
 
 		$tot_errors += $errors;
+
+		db_execute_prepared('INSERT INTO host_errors
+			(host_id, poller_id, errors, local_data_ids)
+			VALUES (?, ?, ?, ?)',
+			array($last_host, $poller_id, $errors, implode(',', $error_ds)));
 	}
 
 	if (cacti_sizeof($width_dses)) {

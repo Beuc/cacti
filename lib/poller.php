@@ -1666,6 +1666,12 @@ function replicate_out($remote_poller_id = 1, $class = 'all') {
 			array($remote_poller_id));
 		replicate_out_table($rcnn_id, $data, 'host', $remote_poller_id);
 
+		$data = db_fetch_assoc_prepared('SELECT h.*
+			FROM host_errors AS h
+			WHERE h.poller_id = ?',
+			array($remote_poller_id));
+		replicate_out_table($rcnn_id, $data, 'host_errors', $remote_poller_id);
+
 		$data = db_fetch_assoc_prepared('SELECT hsc.*
 			FROM host_snmp_cache AS hsc
 			INNER JOIN host AS h
@@ -2236,6 +2242,18 @@ function poller_push_data_to_main() {
 		);
 
 		poller_push_table($remote_db_cnn_id, $poller_item_records, 'poller_item', true, $updates);
+
+		$host_errors = db_fetch_assoc_prepared('SELECT *
+			FROM host_errors
+			WHERE poller_id = ?',
+			array($config['poller_id']));
+
+		$updates = array(
+			'errors',
+			'local_data_ids'
+		);
+
+		poller_push_table($remote_db_cnn_id, $host_errors, 'host_errors', true, $updates);
 	}
 }
 

@@ -1295,19 +1295,22 @@ INSERT INTO `data_input_fields` VALUES (46,'3a33d4fc65b8329ab2ac46a36da26b72',2,
 -- Table structure for table `data_local`
 --
 
-CREATE TABLE data_local (
-  id int(10) unsigned NOT NULL auto_increment,
-  data_template_id mediumint(8) unsigned NOT NULL default '0',
-  host_id mediumint(8) unsigned NOT NULL default '0',
-  snmp_query_id mediumint(8) NOT NULL default '0',
-  snmp_index varchar(255) NOT NULL default '',
-  orphan tinyint(3) unsigned NOT NULL default '0',
-  PRIMARY KEY (id),
-  KEY data_template_id (data_template_id),
-  KEY snmp_query_id (snmp_query_id),
-  KEY snmp_index (snmp_index),
-  KEY host_id_snmp_query_id (host_id, snmp_query_id)
-) ENGINE=InnoDB ROW_FORMAT=Dynamic;
+CREATE TABLE `data_local` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `data_template_id` mediumint(8) unsigned NOT NULL DEFAULT 0,
+  `host_id` mediumint(8) unsigned NOT NULL DEFAULT 0,
+  `snmp_query_id` mediumint(8) NOT NULL DEFAULT 0,
+  `snmp_index` varchar(255) NOT NULL DEFAULT '',
+  `orphan` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  `errored` tinyint(3) unsigned NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`),
+  KEY `host_id_snmp_query_id` (`host_id`,`snmp_query_id`),
+  KEY `snmp_index` (`snmp_index`),
+  KEY `data_template_id` (`data_template_id`),
+  KEY `snmp_query_id` (`snmp_query_id`),
+  KEY `orphans` (`orphans`),
+  KEY `errored` (`errored`)
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC;
 
 --
 -- Dumping data for table `data_local`
@@ -2036,6 +2039,7 @@ CREATE TABLE host (
   cur_time decimal(10,5) default '0.00000',
   avg_time decimal(10,5) default '0.00000',
   polling_time DOUBLE default '0',
+  current_errors int(10) unsigned default '0',
   total_polls int(10) unsigned default '0',
   failed_polls int(10) unsigned default '0',
   availability decimal(8,5) NOT NULL default '100.00000',
@@ -2046,6 +2050,7 @@ CREATE TABLE host (
   KEY external_id (external_id),
   KEY disabled (disabled),
   KEY status (status),
+  KEY current_errors (current_errors),
   KEY site_id_location (site_id, location),
   KEY hostname (hostname),
   KEY poller_id_last_updated (poller_id, last_updated)
@@ -2053,6 +2058,23 @@ CREATE TABLE host (
 
 --
 -- Dumping data for table `host`
+--
+
+--
+-- Table structure for table `host_errors`
+--
+
+CREATE TABLE `host_errors` (
+  `host_id` mediumint(8) unsigned NOT NULL DEFAULT 0,
+  `poller_id` int(10) unsigned NOT NULL DEFAULT 1,
+  `errors` mediumint(8) unsigned NOT NULL DEFAULT 0,
+  `local_data_ids` text DEFAULT NULL,
+  PRIMARY KEY (`host_id`),
+  KEY `poller_id` (`poller_id`)
+) ENGINE=InnoDB ROW_FORMAT=DYNAMIC COMMENT='Holds Device Error buffer for Spine';
+
+--
+-- Dumping data for table `host_errors`
 --
 
 --

@@ -657,6 +657,13 @@ while ($poller_runs_completed < $poller_runs) {
 		}
 	}
 
+	/**
+	 * Empty the host_errors table for the current poller.
+	 * This table is required due to spine using multiple
+	 * threads per device.
+	 */
+	db_execute_prepared('DELETE FROM host_errors WHERE poller_id = ?', array($poller_id));
+
 	// mainline
 	if (read_config_option('poller_enabled') == 'on') {
 		// determine the number of hosts to process per file
@@ -796,6 +803,7 @@ while ($poller_runs_completed < $poller_runs) {
 
 					log_cacti_stats($loop_start, $method, $concurrent_processes, $max_threads,
 						($poller_id == '1' ? $total_polling_hosts - 1 : $total_polling_hosts), $hosts_per_process, $num_polling_items, $rrds_processed);
+
 					poller_run_stats($loop_start);
 
 					break;
@@ -822,8 +830,10 @@ while ($poller_runs_completed < $poller_runs) {
 						snmpagent_poller_exiting();
 
 						api_plugin_hook_function('poller_exiting');
+
 						log_cacti_stats($loop_start, $method, $concurrent_processes, $max_threads,
 							($poller_id == '1' ? $total_polling_hosts - 1 : $total_polling_hosts), $hosts_per_process, $num_polling_items, $rrds_processed);
+
 						poller_run_stats($loop_start);
 
 						break;
@@ -842,6 +852,7 @@ while ($poller_runs_completed < $poller_runs) {
 			if ($poller_id > 1) {
 				log_cacti_stats($loop_start, $method, $concurrent_processes, $max_threads,
 					($poller_id == '1' ? $total_polling_hosts - 1 : $total_polling_hosts), $hosts_per_process, $num_polling_items, $rrds_processed);
+
 				poller_run_stats($loop_start);
 
 				// Mark the poller done immediately due to lack of devices
@@ -947,6 +958,7 @@ while ($poller_runs_completed < $poller_runs) {
 	if (!$logged) {
 		log_cacti_stats($loop_start, $method, $concurrent_processes, $max_threads,
 			($poller_id == '1' ? $total_polling_hosts - 1 : $total_polling_hosts), $hosts_per_process, $num_polling_items, $rrds_processed);
+
 		poller_run_stats($loop_start);
 	}
 }
@@ -1154,6 +1166,74 @@ function log_cacti_stats($loop_start, $method, $concurrent_processes, $max_threa
 		WHERE id = ?',
 		array($poller_id), true, $poller_db_cnn_id);
 
+	/* update the host table error count first */
+	db_execute_prepared('UPDATE host AS h
+		LEFT JOIN host_errors AS e
+		ON h.id = e.host_id
+		SET errors = e.errors
+		WHERE h.poller_id = ?',
+		array($poller_id));
+
+	if ($poller_id == 1) {
+		$error_lines = db_fetch_assoc("SELECT * FROM host_errors");
+
+		db_execute('CREATE TEMPORARY TABLE IF NOT EXISTS host_errors_normalized (
+			`host_id` mediumint(8) unsigned NOT NULL DEFAULT 0,
+  			`local_data_id` int(10) unsigned NOT NULL DEFAULT 0,
+			PRIMARY KEY (`host_id`,`local_data_id`))
+			ENGINE=InnoDB ROW_FORMAT=Dynamic');
+
+		$sql = 'INSERT INTO host_errors_normalized (host_id, local_data_id) VALUES ';
+
+		$i = 0;
+		$params = array();
+		if (cacti_sizeof($error_lines)) {
+			foreach($error_lines as $l) {
+				$local_data_ids = array_unique(preg_split('/\s+/', $l['local_data_ids']), SORT_NUMERIC);
+
+				foreach($local_data_ids as $ldi) {
+					$sql .= ($i == 0 ? '':',') . '(?, ?)';
+					$params[] = $l['host_id'];
+					$params[] = $ldi;
+
+					$i++;
+				}
+			}
+
+			if ($i > 0) {
+				db_execute_prepared($sql, $params);
+			}
+		}
+
+		db_execute_prepared('UPDATE data_local AS dl
+			LEFT JOIN host_errors_normalized AS e
+			ON dl.host_id = e.host_id
+			AND dl.id = e.local_data_id
+			SET dl.errored = IF(e.local_data_id IS NULL, 0, 1)');
+
+		db_execute('DROP TEMPORARY TABLE host_errors_normalized');
+	}
+
+	set_config_option('time_last_change_data_source', time());
+
+	$errors = db_fetch_row_prepared('SELECT COUNT(DISTINCT host_id) AS errorHosts, SUM(errors) AS totalErrors
+		FROM host_errors
+		WHERE poller_id = ?',
+		array($poller_id));
+
+	if (cacti_sizeof($errors)) {
+		$errorHosts  = $errors['errorHosts'] ?? 0;
+
+		if ($errors['totalErrors'] > 0) {
+			$totalErrors = $errors['totalErrors'];
+		} else {
+			$totalErrors = 0;
+		}
+	} else {
+		$errorHosts  = 0;
+		$totalErrors = 0;
+	}
+
 	// take time and log performance data
 	$loop_end = microtime(true);
 
@@ -1165,10 +1245,12 @@ function log_cacti_stats($loop_start, $method, $concurrent_processes, $max_threa
 		$num_hosts,
 		$hosts_per_process,
 		$num_polling_items,
-		$rrds_processed
+		$rrds_processed,
+		$errorHosts,
+		$totalErrors
 	);
 
-	$cacti_stats = vsprintf('Time:%01.4f Method:%s Processes:%s Threads:%s Hosts:%s HostsPerProcess:%s DataSources:%s RRDsProcessed:%s', $perf_data);
+	$cacti_stats = vsprintf('Time:%01.4f Method:%s Processes:%s Threads:%s Hosts:%s HostsPerProcess:%s DataSources:%s RRDsProcessed:%s ErrorHosts:%s TotalErrors:%s', $perf_data);
 	cacti_log('STATS: ' . $cacti_stats , true, 'SYSTEM');
 
 	// insert poller stats into the settings table

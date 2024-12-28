@@ -1277,6 +1277,10 @@ function data_sources() {
 		$sql_params2[] = get_request_var('host_id');
 	}
 
+	if (isset_request_var('errored') && get_request_var('errored') == 'true') {
+		$sql_where1 .= ($sql_where1 != '' ? ' AND':'WHERE') . ' dl.errored = 1';
+	}
+
 	if (isempty_request_var('site_id')) {
 		$sql_where1 .= ($sql_where1 != '' ? ' AND':'WHERE') . ' (h.site_id=0 OR h.site_id IS NULL)';
 		$sql_where2 .= ' AND (h.site_id=0 OR h.site_id IS NULL)';
@@ -1700,6 +1704,15 @@ function create_filter() {
 					'default'        => '',
 					'pageset'        => true,
 					'value'          => get_nfilter_request_var('orphans')
+				),
+				'errored' => array(
+					'method'         => 'filter_checkbox',
+					'friendly_name'  => __('Errored'),
+					'filter'         => FILTER_VALIDATE_REGEXP,
+					'filter_options' => array('options' => array('regexp' => '(true|false)')),
+					'default'        => '',
+					'pageset'        => true,
+					'value'          => get_nfilter_request_var('errored')
 				)
 			),
 			array(

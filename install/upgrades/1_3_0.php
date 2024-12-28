@@ -38,8 +38,11 @@ function upgrade_to_1_3_0() {
 	db_install_add_column('host', array('name' => 'created', 'type' => 'timestamp', 'default' => 'CURRENT_TIMESTAMP'));
 	db_install_add_column('host', array('name' => 'snmp_options', 'type' => 'tinyint(3)', 'unsigned' => true, 'NULL' => false, 'default' => '0', 'after' => 'external_id'));
 	db_install_add_column('host', array('name' => 'status_options_date', 'type' => 'timestamp', 'NULL' => false, 'default' => '0000-00-00', 'after' => 'status_rec_date'));
-
 	db_install_add_column('host', array('name' => 'snmp_retries', 'type' => 'tinyint(3) unsigned', 'NULL' => false, 'default' => '3', 'after' => 'snmp_timeout'));
+	db_install_add_column('host', array('name' => 'current_errors', 'type' => 'int(10)', 'unsigned' => true, 'default' => '0', 'after' => 'polling_time'));
+
+	db_add_index('host', 'INDEX', 'current_errors', array('current_errors'));
+
 	db_install_add_column('poller_item', array('name' => 'snmp_retries', 'type' => 'tinyint(3) unsigned', 'NULL' => false, 'default' => '3', 'after' => 'snmp_timeout'));
 
 	db_execute_prepared('UPDATE host SET snmp_retries = ?', array(read_config_option('snmp_retries')));
@@ -516,6 +519,39 @@ function upgrade_to_1_3_0() {
 	$data['comment'] = 'Holds Scheduled Reports';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('reports_queued', $data);
+
+	$data = array();
+	$data['columns'][] = array('name' => 'host_id', 'unsigned' => true, 'type' => 'mediumint(8)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'poller_id', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'default' => '1');
+	$data['columns'][] = array('name' => 'errors', 'unsigned' => true, 'type' => 'mediumint(8)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'local_data_ids', 'type' => 'text', 'NULL' => true);
+	$data['primary'] = 'host_id';
+	$data['keys'][] = array('name' => 'poller_id', 'columns' => array('poller_id'));
+	$data['type'] = 'InnoDB';
+	$data['charset'] = 'utf8mb4';
+	$data['comment'] = 'Holds Device Error buffer for Spine';
+	$data['row_format'] = 'Dynamic';
+	db_update_table('host_errors', $data);
+
+	$data = array();
+	$data['columns'][] = array('name' => 'id', 'unsigned' => true, 'type' => 'int(10)', 'NULL' => false, 'auto_increment' => true);
+	$data['columns'][] = array('name' => 'data_template_id', 'unsigned' => true, 'type' => 'mediumint(8)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'host_id', 'unsigned' => true, 'type' => 'mediumint(8)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'snmp_query_id', 'type' => 'mediumint(8)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'snmp_index', 'type' => 'varchar(255)', 'NULL' => false, 'default' => '');
+	$data['columns'][] = array('name' => 'orphan', 'unsigned' => true, 'type' => 'tinyint(3)', 'NULL' => false, 'default' => '0');
+	$data['columns'][] = array('name' => 'errored', 'unsigned' => true, 'type' => 'tinyint(3)', 'NULL' => false, 'default' => '0');
+	$data['primary'] = 'id';
+	$data['keys'][] = array('name' => 'host_id_snmp_query_id', 'columns' => array('host_id','snmp_query_id'));
+	$data['keys'][] = array('name' => 'snmp_index', 'columns' => array('snmp_index'));
+	$data['keys'][] = array('name' => 'data_template_id', 'columns' => array('data_template_id'));
+	$data['keys'][] = array('name' => 'snmp_query_id', 'columns' => array('snmp_query_id'));
+	$data['keys'][] = array('name' => 'orphan', 'columns' => array('orphan'));
+	$data['keys'][] = array('name' => 'errored', 'columns' => array('errored'));
+	$data['type'] = 'InnoDB';
+	$data['charset'] = 'utf8mb4';
+	$data['row_format'] = 'Dynamic';
+	db_update_table('data_local', $data);
 
 	/* clear up setting change */
 	$exists = db_fetch_cell_prepared('SELECT name FROM settings WHERE name = "business_hours_hideWeekends"');
