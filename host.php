@@ -883,8 +883,7 @@ function host_edit() {
 			array(
 				array('display' => __('Graph Template Name'), 'align' => 'left', 'nohide' => true),
 				array('display' => __('Status'), 'align' => 'left', 'nohide' => true)
-			),
-			2
+			), 2, false
 		);
 
 		$selected_graph_templates = db_fetch_assoc_prepared('SELECT result.id, result.name, graph_local.id AS graph_local_id
@@ -1011,7 +1010,7 @@ function host_edit() {
 				array('display' => __('Re-Index Method'), 'align' => 'left', 'nohide' => true),
 				array('display' => __('Status'), 'align' => 'left'),
 				array('display' => __('Actions'), 'align' => 'right')
-			)
+			), 1, false
 		);
 
 		$sql_params2 = array();

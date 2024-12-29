@@ -1069,7 +1069,7 @@ function html_header_sort_checkbox($header_items, $sort_column, $sort_direction,
  *
  * @return void
  */
-function html_header($header_items, $last_item_colspan = 1) {
+function html_header($header_items, $last_item_colspan = 1, $resizable = true) {
 	$table_id = form_get_table_id();
 
 	$header_items = form_process_visible_display_text($table_id, $header_items);
@@ -1079,7 +1079,7 @@ function html_header($header_items, $last_item_colspan = 1) {
 		'columns'  => $header_items
 	);
 
-	print "<thead><tr class='tableHeader " . (!$last_item_colspan > 1 ? 'tableFixed':'') . "' data-columns='" . base64_encode(json_encode($table_visibility)) . "'>";
+	print "<thead><tr class='tableHeader " . ($last_item_colspan > 1 || !$resizable ? 'tableFixed':'') . "' data-columns='" . base64_encode(json_encode($table_visibility)) . "'>";
 
 	$i = 0;
 
@@ -1129,8 +1129,8 @@ function html_header($header_items, $last_item_colspan = 1) {
  *
  * @return void
  */
-function html_section_header($header_item, $last_item_colspan = 1) {
-	print "<tr class='tableHeader " . (!$last_item_colspan > 1 ? 'tableFixed':'') . "'>";
+function html_section_header($header_item, $last_item_colspan = 1, $resizeable = true) {
+	print "<tr class='tableHeader " . ($last_item_colspan > 1 || !$resizable ? 'tableFixed':'') . "'>";
 
 	if (is_array($header_item) && isset($header_item['display'])) {
 		print '<th ' . (isset($header_item['align']) ? "style='text-align:" . $header_item['align'] . ";'":'') . " colspan='$last_item_colspan'>" . $header_item['display'] . '</th>';
