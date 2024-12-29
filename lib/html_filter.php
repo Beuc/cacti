@@ -58,6 +58,7 @@ class CactiTableFilter {
 	public $has_named      = false;
 	public $has_associated = false;
 	public $has_refresh    = false;
+	public $inject_content = false;
 
 	private $initialized   = false;
 
@@ -622,6 +623,10 @@ class CactiTableFilter {
 
 				print '</div>' . PHP_EOL;
 				print '</div>' . PHP_EOL;
+			}
+
+			if ($this->inject_content !== false) {
+				print $this->inject_content;
 			}
 
 			print '</form>' . PHP_EOL;

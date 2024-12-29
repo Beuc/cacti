@@ -372,6 +372,7 @@ function process_sanitize_draw_preview_filter($render = false, $page = '', $acti
 	$pageFilter->rows_label  = __('Graphs');
 	$pageFilter->form_method = $action;
 	$pageFilter->set_filter_array($filters);
+	$pageFilter->inject_content = inject_realtime_form();
 
 	if ($render) {
 		$pageFilter->render();
@@ -381,26 +382,28 @@ function process_sanitize_draw_preview_filter($render = false, $page = '', $acti
 }
 
 function inject_realtime_form() {
-	print "<div class='filterTable'>
+	global $graphs_per_page, $realtime_window, $realtime_refresh, $graph_timeshifts, $graph_timespans, $config;
+
+	$content = "<div class='filterTable'>
 		<div id='realtime' class='filterRow' style='display:none;'>
 			<div class='filterColumn'>" . __('Window') . "</div>
 			<div class='filterColumn'>
 				<select name='graph_start' id='graph_start' onChange='realtimeGrapher()' data-defaultLabel='" . __('Window') . "'>";
 
 				foreach ($realtime_window as $interval => $text) {
-					printf('<option value="%d"%s>%s</option>', $interval, $interval == $_SESSION['sess_realtime_window'] ? 'selected="selected"' : '', $text);
+					$content .= sprintf('<option value="%d"%s>%s</option>', $interval, $interval == $_SESSION['sess_realtime_window'] ? 'selected="selected"' : '', $text);
 				}
 
-				print "</select>
+				$content .= "</select>
 			</div>
 			<div class='filterColumn'>" . __('Interval') . "</div>
 			<div class='filterColumn'>
 				<select name='ds_step' id='ds_step' onChange='realtimeGrapher()' data-defaultLabel='" . __('Interval') . "'>";
 
 				foreach ($realtime_refresh as $interval => $text) {
-					printf('<option value="%d"%s>%s</option>', $interval, $interval == $_SESSION['sess_realtime_dsstep'] ? ' selected="selected"' : '', $text);
+					$content .= sprintf('<option value="%d"%s>%s</option>', $interval, $interval == $_SESSION['sess_realtime_dsstep'] ? ' selected="selected"' : '', $text);
 				}
-				print "</select>
+				$content .= "</select>
 			</div>
 			<div class='filterColumn'>
 				<input type='button' class='ui-button ui-corner-all ui-widget' id='realtimeoff' value='" . __esc('Stop') . "'>
@@ -413,6 +416,8 @@ function inject_realtime_form() {
 			</div>
 		</div>
 	</div>";
+
+	return $content;
 }
 
 /**

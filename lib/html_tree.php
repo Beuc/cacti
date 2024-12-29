@@ -1147,6 +1147,7 @@ function process_sanitize_draw_tree_filter($render = false) {
 	$pageFilter = new CactiTableFilter($header, 'graph_view.php', 'form_graph_view', 'sess_tview');
 	$pageFilter->rows_label = __('Graphs');
 	$pageFilter->set_filter_array($filters);
+	$pageFilter->inject_content = inject_realtime_form();
 
 	if ($render) {
 		$pageFilter->render();
