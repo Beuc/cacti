@@ -2921,20 +2921,18 @@ function html_spikekill_menu($local_graph_id) {
 function html_spikekill_js() {
 	?>
 	<script type='text/javascript'>
-	spikeKillOpen = false;
+	var spikeKillOpen = false;
+
 	$(function() {
 		$(document).click(function() {
-			if (spikeKillOpen) {
-				$(this).find('.spikekillMenu').menu('destroy').parent().remove();
-				spikeKillOpen = false;
-			}
+			spikeKillClose();
 		});
 
-		$('span.spikekill').children().contextmenu(function() {
+		$('div.spikekill').children().contextmenu(function() {
 			return false;
 		});
 
-		$('span.spikekill').unbind().click(function() {
+		$('div.spikekill').unbind().click(function() {
 			if (spikeKillOpen == false) {
 				local_graph_id = $(this).attr('data-graph');
 
@@ -2967,11 +2965,17 @@ function html_spikekill_js() {
 					});
 
 			} else {
-				spikeKillOpen = false;
-				$(this).find('.spikekillMenu').menu('destroy').parent().remove();
+				spikeKillClose();
 			}
 		});
 	});
+
+	function spikeKillClose() {
+		if (spikeKillOpen) {
+			$(document).find('.spikekillMenu').menu('destroy').parent().remove();
+			spikeKillOpen = false;
+		}
+	}
 
 	function spikeKillActions() {
 		$('.rstddev').unbind().click(function() {

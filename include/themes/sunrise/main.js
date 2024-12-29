@@ -173,6 +173,10 @@ function themeReady() {
 			element = $(this);
 			clearTimeout(graphMenuTimer);
 			graphMenuTimer = setTimeout(function() { hideGraphMenu(element); }, 400);
+
+			if (typeof spikeKillClose == 'function') {
+				spikeKillClose();
+			}
 		}
 	);
 
