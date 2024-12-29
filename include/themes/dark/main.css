@@ -1332,11 +1332,8 @@ legend {
 }
 
 .cactiTableTitleRow {
-	float: left;
+	display: table-row;
 	text-align: left;
-	padding-left: 5px;
-	display: block;
-	width: 100%;
 	height: 22px;
 	line-height: 22px;
 	background: -webkit-gradient( linear, left top, left bottom, color-stop(0, #252426), color-stop(1, #0C0D0D));
@@ -1360,7 +1357,6 @@ legend {
 	float: left;
 	text-align: left;
 	padding-left: 5px;
-	display: block;
 	height: 22px;
 	line-height: 22px;
 	background: -webkit-gradient( linear, left top, left bottom, color-stop(0, #252426), color-stop(1, #0C0D0D));
@@ -1374,7 +1370,6 @@ legend {
 .cactiTableButton {
 	float: right;
 	padding: 0px;
-	display: block;
 	text-align: right;
 	height: 22px;
 	line-height: 22px;
@@ -1704,7 +1699,6 @@ legend {
 
 .tableHeader th.sortable {
 	cursor: pointer !important;
-	line-height: 10px;
 }
 
 .tableHeader th.primarySort, th.tablesorter-headerDesc, th.tablesorter-headerAsc {
@@ -1721,8 +1715,7 @@ legend {
 	text-align: left;
 	font-size: 12px;
 	font-weight: normal;
-	padding: 4px !important;
-	line-height: 12px;
+	padding: 3px;
 }
 
 .tableHeader th div {

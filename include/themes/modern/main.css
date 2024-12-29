@@ -1362,7 +1362,6 @@ legend {
 .cactiTableTitleRow {
 	float: left;
 	text-align: left;
-	padding-left: 5px;
 	height: 25px;
 	line-height: 25px;
 	display: block;
@@ -1394,7 +1393,7 @@ legend {
 
 .cactiTableButton {
 	float: right;
-	padding: 0px;
+	padding-left: 5px;
 	height: 25px;
 	line-height: 25px;
 	display: block;
@@ -1599,7 +1598,7 @@ legend {
 }
 
 .formHeaderText {
-	padding-left: 10px;
+	padding-left: 5px;
 	color: snow;
 	line-height: 25px;
 }
