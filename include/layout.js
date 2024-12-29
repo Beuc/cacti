@@ -1659,9 +1659,10 @@ function getCactiHelp(cactiPage) {
 }
 
 function responsiveResizeGraphs(initialize) {
-	var mainWidth = getMainWidth() - 30;
-	var myColumns = $('#columns').val();
-	var isThumb = $('#thumbnails').is(':checked');
+	var mainWidth  = getMainWidth() - 30;
+	var myColumns  = $('#columns').val();
+	var isThumb    = $('#thumbnails').is(':checked') || $('#thumbnails').val() == 'true';
+	var isBusiness = $('#business_hours').is(':checked') || $('#business_hours').val() == 'true';
 
 	if ($('.tableRowGraph:first').length) {
 		var graphRow = $('.tableRowGraph:first').width();
@@ -3546,6 +3547,9 @@ function setSelectMenus() {
 		}
 	});
 
+	/* shrink down */
+	msWidth -= 20;
+
 	$('#graph_template_id.graph-multiselect').hide().multiselect({
 		menuHeight: $(window).height()*.7,
 		menuWidth: 'auto',
@@ -4250,8 +4254,8 @@ function dryRunAbsolute(local_graph_id) {
 
 function redrawGraph(graph_id) {
 	var mainWidth  = getMainWidth() - 30;
-	var isThumb    = $('#thumbnails').is(':checked');
-	var isBusiness = $('#business_hours').is(':checked');
+	var isThumb    = $('#thumbnails').is(':checked') || $('#thumbnails').val() == 'true';
+	var isBusiness = $('#business_hours').is(':checked') || $('#business_hours').val() == 'true';
 	var myColumns  = $('#columns').val();
 	var graphRow   = $('.tableRowGraph').width();
 	var drillDown  = $('.graphDrillDown:first').outerWidth() + 10;
@@ -4436,8 +4440,8 @@ function initializeGraphs(disable_cache) {
 
 	var mainWidth  = getMainWidth() - 30;
 	var myColumns  = $('#columns').val();
-	var isThumb    = $('#thumbnails').is(':checked');
-	var isBusiness = $('#business_hours').is(':checked');
+	var isThumb    = $('#thumbnails').is(':checked') || $('#thumbnails').val() == 'true';
+	var isBusiness = $('#business_hours').is(':checked') || $('#business_hours').val() == 'true';
 	var myWidth    = (mainWidth - (30 * myColumns)) / myColumns;
 	var numGraphs  = $('.graphWrapper').length;
 	var isSource   = $('#graph_source').length ? true:false;
