@@ -3159,3 +3159,79 @@ circle {
 	border: 2px solid rgba(0,0,0,0);
 }
 
+.actionHelp {
+	color:#00758F !important;
+}
+
+.plusAdd {
+	color:#CE3500 !important;
+}
+
+.actionCog {
+	color:#FDAC53 !important;
+}
+
+.fileCSV {
+	color:#9BB7D4 !important;
+}
+
+.threeBars {
+	color:#B55A30 !important;
+}
+
+.editDevice {
+	color:#F5DF4D !important;
+}
+
+.editTemplate {
+	color:#0072B5 !important;
+}
+
+.realTime {
+	color:#A0DAA9 !important;
+}
+
+.spikeKill {
+	color:#E9897E !important;
+}
+
+.newDevice {
+	color:#00A170 !important;
+}
+
+.newGraph {
+	color:#926AA6 !important;
+}
+
+.reindexDevice {
+	color:#D2386C !important;
+}
+
+.enableDebug {
+	color:#363945 !important;
+}
+
+.disableDebug {
+	color:#939597 !important;
+}
+
+.repopulateCache {
+	color:#EFE1CE !important;
+}
+
+.viewCache {
+	color:#E0B589 !important;
+}
+
+.viewGraphs {
+	color:#9A8B4F !important;
+}
+
+.viewSources {
+	color:#56C6A9 !important;
+}
+
+.expandAggregate {
+	color:#9BB7D4 !important;
+}
+
