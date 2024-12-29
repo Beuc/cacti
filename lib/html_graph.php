@@ -2089,17 +2089,12 @@ function html_graph_zoom() {
 		var props_on = false;
 		var graph_data_on = true;
 
-		/* turn off the page refresh */
-		var refreshMSeconds = 9999999;
-
 		function graphProperties() {
 			loadUrl({
 				url: urlPath + '<?php print $current_page;?>' + '?action=properties-' + suffix +
 					'&local_graph_id=' + graph_id +
 					'&rra_id=<?php print get_request_var('rra_id'); ?>' +
 					'&view_type=<?php print get_request_var('view_type'); ?>' +
-					'&graph_start=' + $('#graph_start').val() +
-					'&graph_end=' + $('#graph_end').val() +
 					'&business_hours=' + $('#business_hours').val() +
 					'&thumbnails=' + $('#thumbnails').val(),
 				noState: true,
@@ -2224,6 +2219,11 @@ function html_graph_zoom() {
 
 		$(function() {
 			pageAction = 'graph';
+
+			/* turn off the page refresh */
+			refreshMSeconds = 9999999;
+			clearTimeout(myRefresh);
+
 			initializeGraph();
 			$('#navigation').show();
 			$('#navigation_right').show();
