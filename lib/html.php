@@ -130,16 +130,16 @@ function html_start_box($title, $width, $div, $cell_padding, $align, $add_url_or
 		}
 
 		if ($help_file !== false && $help_count == 0 && is_realm_allowed(28)) {
-			print "<span class='cactiHelp' title='" . __esc('Get Page Help') . "'><a class='linkOverDark helpPage' data-page='" . html_escape(basename($help_file)) . "' href='#'><i class='far fa-question-circle'></i></a></span>";
+			print "<span class='cactiHelp' title='" . __esc('Get Page Help') . "'><a class='linkOverDark helpPage' data-page='" . html_escape(basename($help_file)) . "' href='#'><i class='far fa-question-circle actionHelp'></i></a></span>";
 			$help_count++;
 		}
 
 		if ($showcols) {
-			print "<span class='cactiFilterColumns' title='" . __esc('Select Columns for Display') . "'><a id='showColumns' href='#'><i class='fa fa-bars'></i></a></span>";
+			print "<span class='cactiFilterColumns' title='" . __esc('Select Columns for Display') . "'><a id='showColumns' href='#'><i class='fa fa-bars threeBars'></i></a></span>";
 		}
 
 		if ($add_url_or_buttons != '' && !is_array($add_url_or_buttons)) {
-			print "<span class='cactiFilterAdd' title='$add_label'><a class='linkOverDark' href='" . html_escape($add_url_or_buttons) . "'><i class='fa fa-plus'></i></a></span>";
+			print "<span class='cactiFilterAdd' title='$add_label'><a class='linkOverDark' href='" . html_escape($add_url_or_buttons) . "'><i class='fa fa-plus plusAdd'></i></a></span>";
 		} else {
 			if (is_array($add_url_or_buttons)) {
 				if (cacti_sizeof($add_url_or_buttons)) {
@@ -153,7 +153,7 @@ function html_start_box($title, $width, $div, $cell_padding, $align, $add_url_or
 						if (isset($icon['class']) && $icon['class'] !== '') {
 							$classi = $icon['class'];
 						} else {
-							$classi = 'fa fa-plus';
+							$classi = 'fa fa-plus plusAdd';
 						}
 
 						if (isset($icon['href'])) {
@@ -524,9 +524,9 @@ function graph_drilldown_icons($local_graph_id, $type = 'graph_buttons', $tree_i
 		array($local_graph_id));
 
 	print "<div class='iconWrapper'>";
-	print "<a class='iconLink utils' href='#' role='link' id='graph_" . $local_graph_id . "_util'><img class='drillDown' src='" . CACTI_PATH_URL . "images/cog.png' alt='' title='" . __esc('Graph Details, Zooming and Debugging Utilities') . "'></a><br>";
-	print "<a class='iconLink csvexport' href='#' role='link' id='graph_" . $local_graph_id . "_csv'><img class='drillDown' src='" . CACTI_PATH_URL . "images/table_go.png' alt='' title='" . __esc('CSV Export of Graph Data'). "'></a><br>";
-	print "<a class='iconLink mrtg' href='#' role='link' id='graph_" . $local_graph_id . "_mrtg'><img class='drillDown' src='" . CACTI_PATH_URL . "images/timeview.png' alt='' title='" . __esc('Time Graph View'). "'></a><br>";
+	print "<a class='iconLink utils' href='#' role='link' id='graph_" . $local_graph_id . "_util'><i class='drillDown fa fa-cog actionCog' title='" . __esc('Graph Details, Zooming and Debugging Utilities') . "'></i></a><br>";
+	print "<a class='iconLink csvexport' href='#' role='link' id='graph_" . $local_graph_id . "_csv'><i class='drillDown fa fa-file-csv fileCSV' title='" . __esc('CSV Export of Graph Data'). "'></i></a><br>";
+	print "<a class='iconLink mrtg' href='#' role='link' id='graph_" . $local_graph_id . "_mrtg'><i class='drillDown fa fa-bars threeBars' title='" . __esc('Time Graph View'). "'></i></a><br>";
 
 	if (is_realm_allowed(3)) {
 		$host_id = db_fetch_cell_prepared('SELECT host_id
@@ -535,27 +535,27 @@ function graph_drilldown_icons($local_graph_id, $type = 'graph_buttons', $tree_i
 			array($local_graph_id));
 
 		if ($host_id > 0) {
-			print "<a class='iconLink' href='" . html_escape(CACTI_PATH_URL . "host.php?action=edit&id=$host_id") . "' data-graph='" . $local_graph_id . "' id='graph_" . $local_graph_id . "_de'><img id='de" . $host_id . '_' . $rand . "' class='drillDown' src='" . CACTI_PATH_URL . "images/server_edit.png' title='" . __esc('Edit Device') . "'></a>";
-			print '<br/>';
+			print "<a class='iconLink' href='" . html_escape(CACTI_PATH_URL . "host.php?action=edit&id=$host_id") . "' data-graph='" . $local_graph_id . "' id='graph_" . $local_graph_id . "_de'><i id='de" . $host_id . '_' . $rand . "' class='drillDown fa fa-server editDevice' title='" . __esc('Edit Device') . "'></i></a>";
+			print '<br>';
 			$rand++;
 		}
 	}
 
 	if (is_realm_allowed(10) && $graph_template_id > 0) {
-		print "<a class='iconLink' role='link' title='" . __esc('Edit Graph Template') . "' href='" . html_escape(CACTI_PATH_URL . 'graph_templates.php?action=template_edit&id=' . $graph_template_id) . "'><img src='" . html_escape(CACTI_PATH_URL . 'images/template_edit.png') . "'></img></a>";
-		print '<br/>';
+		print "<a class='iconLink' role='link' href='" . html_escape(CACTI_PATH_URL . 'graph_templates.php?action=template_edit&id=' . $graph_template_id) . "'><i class='drillDown fa fa-pencil-ruler editTemplate' title='" . __esc('Edit Graph Template') . "'></i></a>";
+		print '<br>';
 	}
 
 	if (read_config_option('realtime_enabled') == 'on' && is_realm_allowed(25)) {
 		if (read_user_setting('realtime_mode') == '' || read_user_setting('realtime_mode') == '1') {
-			print "<a class='iconLink realtime' href='#' role='link' id='graph_" . $local_graph_id . "_realtime'><img class='drillDown' src='" . CACTI_PATH_URL . "images/chart_curve_go.png' alt='' title='" . __esc('Click to view just this Graph in Real-time'). "'></a><br/>";
+			print "<a class='iconLink realtime' href='#' role='link' id='graph_" . $local_graph_id . "_realtime'><i class='drillDown fa fa-chart-line realTime' title='" . __esc('Click to view just this Graph in Real-time'). "'></i></a><br>";
 		} else {
-			print "<a class='iconLink' href='#' onclick=\"window.open('" . CACTI_PATH_URL . 'graph_realtime.php?top=0&left=0&local_graph_id=' . $local_graph_id . "', 'popup_" . $local_graph_id . "', 'directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=yes,width=650,height=300');return false\"><img src='" . CACTI_PATH_URL . "images/chart_curve_go.png' alt='' title='" . __esc('Click to view just this Graph in Real-time') . "'></a><br/>";
+			print "<a class='iconLink' href='#' onclick=\"window.open('" . CACTI_PATH_URL . 'graph_realtime.php?top=0&left=0&local_graph_id=' . $local_graph_id . "', 'popup_" . $local_graph_id . "', 'directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=yes,width=650,height=300');return false\"><i class='drillDown fa fa-chart-line realTime' title='" . __esc('Click to view just this Graph in Real-time') . "'></i></a><br>";
 		}
 	}
 
 	if (is_realm_allowed(1043)) {
-		print "<div class='iconLink spikekill' data-graph='" . $local_graph_id . "' id='graph_" . $local_graph_id . "_sk'><img id='sk" . $local_graph_id . "' class='drillDown' src='" . get_theme_paths('%s', 'images/spikekill.gif') . "' title='" . __esc('Kill Spikes in Graphs') . "'></div>";
+		print "<div class='iconLink spikekill' data-graph='" . $local_graph_id . "' id='graph_" . $local_graph_id . "_sk'><i id='sk" . $local_graph_id . "' class='drillDown fa fa-paint-roller spikeKill' title='" . __esc('Kill Spikes in Graphs') . "'></i></div>";
 		print '<br/>';
 	}
 
@@ -3285,7 +3285,6 @@ function html_common_header($title, $selectedTheme = '') {
 	/* Global styles */
 	print get_md5_include_css('include/css/billboard.css');
 	print get_md5_include_css('include/fa/css/all.css');
-	print get_md5_include_css('include/fa/css/fontawesome.css');
 	print get_md5_include_css('include/vendor/flag-icons/css/flag-icons.css');
 	print get_md5_include_css('include/themes/' . $selectedTheme .'/main.css');
 

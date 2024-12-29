@@ -4610,7 +4610,7 @@ function initializeGraphs(disable_cache) {
 
 			if (realtimeArray[graph_id]) {
 				$('#wrapper_' + graph_id).html(keepRealtime[graph_id]).change();
-				$(this).html("<img class='drillDown' title='" + realtimeClickOn + "' alt='' src='" + urlPath + "images/chart_curve_go.png'>");
+				$(this).html("<i class='drillDown fa fa-chart-line realTime' title='" + realtimeClickOn + "'></i>");
 
 				$('graph_id' + graph_id).tooltip().zoom({
 					inputfieldStartTime: 'date1',
@@ -4622,7 +4622,7 @@ function initializeGraphs(disable_cache) {
 				setFilters();
 			} else {
 				keepRealtime[graph_id] = $('#wrapper_' + graph_id).html();
-				$(this).html("<i style='text-align:center;padding:0px;' title='" + realtimeClickOff + "' class='drillDown fa fa-circle-notch fa-spin'/>");
+				$(this).html("<i style='text-align:center;padding:0px;' title='" + realtimeClickOff + "' class='drillDown fa fa-circle-notch fa-spin'></i>");
 				$(this).find('i').tooltip();
 				realtimeArray[graph_id] = true;
 				setFilters();
@@ -4635,8 +4635,8 @@ function initializeGraphs(disable_cache) {
 $.widget('ui.tooltip', $.ui.tooltip, {
 	_create: function() {
 		this._on( {
-			mouseover: "open",
-			focusin: "open"
+			mouseover: 'open',
+			focusin: 'open'
 		} );
 
 		// IDs of generated tooltips, needed for destroy
@@ -4647,16 +4647,16 @@ $.widget('ui.tooltip', $.ui.tooltip, {
 
 		// Append the aria-live region so tooltips announce correctly,
 		// but only once !
-		let liveRegion = $("[role=log].ui-helper-hidden-accessible");
+		let liveRegion = $('[role=log].ui-helper-hidden-accessible');
 		if ( liveRegion.length === 0 ) {
-			this.liveRegion = $( "<div>" )
+			this.liveRegion = $( '<div>' )
 				.attr( {
-					role: "log",
-					"aria-live": "assertive",
-					"aria-relevant": "additions"
+					role: 'log',
+					'aria-live': 'assertive',
+					'aria-relevant': 'additions'
 				} )
 				.appendTo( this.document[ 0 ].body );
-			this._addClass( this.liveRegion, null, "ui-helper-hidden-accessible" );
+			this._addClass( this.liveRegion, null, 'ui-helper-hidden-accessible' );
 		}else{
 			this.liveRegion = liveRegion;
 		}
@@ -4674,7 +4674,7 @@ $.widget('ui.tooltip', $.ui.tooltip, {
 		// exists, then just update the content and bail.
 		tooltipData = this._find( target );
 		if ( tooltipData ) {
-			tooltipData.tooltip.find( ".ui-tooltip-content" ).html( content );
+			tooltipData.tooltip.find( '.ui-tooltip-content' ).html( content );
 			return;
 		}
 
@@ -4685,31 +4685,31 @@ $.widget('ui.tooltip', $.ui.tooltip, {
 		// We use removeAttr only for key events, to allow IE to export the correct
 		// accessible attributes. For mouse events, set to empty string to avoid
 		// native tooltip showing up (happens only when removing inside mouseover).
-		if ( target.is( "[title]" ) ) {
-			if ( event && event.type === "mouseover" ) {
-				target.attr( "title", "" );
+		if ( target.is( '[title]' ) ) {
+			if ( event && event.type === 'mouseover' ) {
+				target.attr( 'title', '' );
 			} else {
-				target.removeAttr( "title" );
+				target.removeAttr( 'title' );
 			}
 		}
 
 		tooltipData = this._tooltip( target );
 		tooltip = tooltipData.tooltip;
-		this._addDescribedBy( target, tooltip.attr( "id" ) );
-		tooltip.find( ".ui-tooltip-content" ).html( content );
+		this._addDescribedBy( target, tooltip.attr( 'id' ) );
+		tooltip.find( '.ui-tooltip-content' ).html( content );
 
 		// Support: Voiceover on OS X, JAWS on IE <= 9
 		// JAWS announces deletions even when aria-relevant="additions"
 		// Voiceover will sometimes re-read the entire log region's contents from the beginning
 		this.liveRegion.empty();
-		a11yContent = $( "<div>" ).html( tooltip.find( ".ui-tooltip-content" ).html() );
-		a11yContent.removeAttr( "name" ).find( "[name]" ).removeAttr( "name" );
-		a11yContent.removeAttr( "id" ).find( "[id]" ).removeAttr( "id" );
+		a11yContent = $( '<div>' ).html( tooltip.find( '.ui-tooltip-content' ).html() );
+		a11yContent.removeAttr( 'name' ).find( '[name]' ).removeAttr( 'name' );
+		a11yContent.removeAttr( 'id' ).find( '[id]' ).removeAttr( 'id' );
 		a11yContent.appendTo( this.liveRegion );
 
 		function position( event ) {
 			positionOption.of = event;
-			if ( tooltip.is( ":hidden" ) ) {
+			if ( tooltip.is( ':hidden' ) ) {
 				return;
 			}
 			tooltip.position( positionOption );
@@ -4737,18 +4737,16 @@ $.widget('ui.tooltip', $.ui.tooltip, {
 		// Adds the check to add the timers only when both delay and track options are set (#14682)
 		if ( this.options.track && this.options.show && this.options.show.delay ) {
 			delayedShow = this.delayedShow = setInterval( function() {
-				if ( tooltip.is( ":visible" ) ) {
+				if ( tooltip.is( ':visible' ) ) {
 					position( positionOption.of );
 					clearInterval( delayedShow );
 				}
 			}, 13 );
 		}
 
-		this._trigger( "open", event, { tooltip: tooltip } );
+		this._trigger( 'open', event, { tooltip: tooltip } );
 	},
 })
-
-
 
 $.widget('custom.languageselect', $.ui.selectmenu, {
 	_renderItem: function (ul, item) {

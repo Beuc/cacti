@@ -725,42 +725,42 @@ function create_host_edit_filter($host, $content = '') {
 			array(
 				'display' => __('Create New Device'),
 				'url'     => 'host.php?action=edit',
-				'class'   => 'fa fa-server deviceUp'
+				'class'   => 'fa fa-server newDevice'
 			),
 			array(
 				'display' => __('Create New Graphs'),
 				'url'     => 'graphs_new.php?reset=true&host_id=' . $host['id'],
-				'class'   => 'fa fa-chart-line deviceRecovering'
+				'class'   => 'fa fa-chart-line newGraph'
 			),
 			array(
 				'display' => __('Re-Index Device'),
 				'url'     => 'host.php?action=reindex&host_id=' . $host['id'],
-				'class'   => 'fa fa-sync deviceUp'
+				'class'   => 'fa fa-sync reindexDevice'
 			),
 			array(
 				'display' => ($debug ? __('Disable Device Debug'):__('Enable Device Debug')),
 				'url'     => 'host.php?action=' . ($debug ? 'disable_debug':'enable_debug') . '&host_id=' . $host['id'],
-				'class'   => ($debug ? 'fa fa-bug deviceRecovering':'fa fa-bug deviceUp')
+				'class'   => ($debug ? 'fa fa-bug disableDebug':'fa fa-bug enableDebug')
 			),
 			array(
 				'display' => __('Repopulate Poller Cache'),
 				'url'     => 'host.php?action=repopulate&host_id=' . $host['id'],
-				'class'   => 'fa fa-hammer'
+				'class'   => 'fa fa-hammer repopulateCache'
 			),
 			array(
 				'display' => __('View Poller Cache'),
 				'url'     => 'utilities.php?poller_action=-1&action=view_poller_cache&host_id=' . $host['id'] . '&template_id=-1&filter=&rows=-1',
-				'class'   => 'fa fa-search-plus deviceDisabled'
+				'class'   => 'fa fa-search-plus viewCache'
 			),
 			array(
 				'display' => __('View Data Source List'),
 				'url'     => 'data_sources.php?reset=true&host_id=' . $host['id'] . '&ds_rows=30&filter=&template_id=-1&method_id=-1&page=1',
-				'class'   => 'fa fa-th-large deviceUp'
+				'class'   => 'fa fa-th-large viewSources'
 			),
 			array(
 				'display' => __('View Graphs List'),
 				'url'     => 'graphs.php?reset=true&host_id=' . $host['id'] . '&graph_rows=30&filter=&template_id=-1&page=1',
-				'class'   => 'fa fa-th-large deviceRecovering'
+				'class'   => 'fa fa-th-large viewGraphs'
 			),
 		)
 	);

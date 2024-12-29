@@ -370,12 +370,12 @@ function create_filter($host, $snmp_queries) {
 			array(
 				'display' => __('Edit this Device'),
 				'url'     => 'host.php?action=edit&id=' . get_request_var('host_id'),
-				'class'   => 'fa fa-wrench'
+				'class'   => 'fa fa-wrench newDevice'
 			),
 			array(
 				'display' => __('Create New Device'),
 				'url'     => 'host.php?action=edit',
-				'class'   => 'fa fa-server deviceUp'
+				'class'   => 'fa fa-server editDevice'
 			),
 		)
 	);

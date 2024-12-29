@@ -435,7 +435,7 @@ class CactiTableFilter {
 					'href'     => $this->action_url,
 					'title'    => $this->action_label,
 					'callback' => true,
-					'class'    => 'fa fa-plus'
+					'class'    => 'fa fa-plus plusAdd'
 				);
 			}
 
