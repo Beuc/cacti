@@ -264,6 +264,27 @@ if ($output !== false && $output != '' && strpos($output, 'image = ') !== false)
 	if (cacti_sizeof($replacement_legend) && isset($oarray['meta']['legend'])) {
 		$oarray['meta']['legend'] = $replacement_legend;
 	}
+
+	/**
+	 * remove the unknown data and business hours columns from the
+	 * output data as it interferes with the hover output.
+	 */
+	if (isset($oarray['data']) && isset($xport_meta['ignoreItems'])) {
+		$new_data = array();
+		foreach($oarray['data'] as $index => $data) {
+			for ($i = 1; $i <= $xport_meta['ignoreItems']; $i++) {
+				unset($data[$i]);
+			}
+
+			$i = 0;
+			foreach($data as $value) {
+				$new_array[$index][$i] = $value;
+				$i++;
+			}
+		}
+
+		$oarray['data'] = $new_array;
+	}
 } else {
 	/* image type now png */
 	$oarray['type'] = 'png';

@@ -2730,8 +2730,8 @@ function rrdtool_function_graph($local_graph_id, $rra_id, $graph_data_array, $rr
 	if (!isset($graph_data_array['export_csv']) || $graph_data_array['export_csv'] != true) {
 		$graph_array = api_plugin_hook_function('rrd_graph_graph_options', array('graph_opts' => $graph_opts, 'graph_defs' => $graph_defs, 'txt_graph_items' => $txt_graph_items, 'graph_id' => $local_graph_id, 'start' => $graph_start, 'end' => $graph_end, 'defs' => $defs));
 
-		$graph_array = add_unknown_data($graph_array);
-		$graph_array = add_business_hours($graph_array);
+		$graph_array = add_unknown_data($graph_array, $xport_meta);
+		$graph_array = add_business_hours($graph_array, $xport_meta);
 
 		if (!empty($graph_array)) {
 			$graph_defs      = $graph_array['graph_defs'];
@@ -4623,13 +4623,21 @@ function colourBrightness($hex, $percent) {
  * add_unknown_data - Add unknown data area fills to graphs if selected by the admin
  *
  * @param  array  $data  - The graph_array data containing all rrdtool graph options
+ * @param  array  $xport_meta  - If the graph unknown data is true, set that in the
+ *   xport meta output.
  *
  * @return array  $data  - The graph_array modified to include unknown data ranges
  *
  */
-function add_unknown_data($graph_array) {
+function add_unknown_data($graph_array, &$xport_meta) {
 	/* add the cdef for unknown data */
 	if (read_config_option('graph_unknown_data') == 'on') {
+		if (isset($xport_meta['ignoreItems'])) {
+			$xport_meta['ignoreItems'] += 1;
+		} else {
+			$xport_meta['ignoreItems']  = 1;
+		}
+
 		if (cacti_sizeof($graph_array['defs'])) {
 			$tmp_def = '';
 			$pluscnt = cacti_sizeof($graph_array['defs']) - 1;
@@ -4670,7 +4678,7 @@ function add_unknown_data($graph_array) {
  * @return (array) - the graph_array containing AREA definitions for the business hours
  *
  */
-function add_business_hours($data) {
+function add_business_hours($data, &$xport_meta) {
 	if (read_config_option('business_hours_enable') == 'on' && get_nfilter_request_var('business_hours') == 'true') {
 		if ($data['start'] < 0) {
 			$bh_graph_start = time() + $data['start'];
@@ -4743,6 +4751,12 @@ function add_business_hours($data) {
 
 				if (date('N', $current_start_bh_time) > 5 && read_config_option('business_hours_hide_weekends') == '') {
 					$data['graph_defs'] .= 'AREA:dslimit' . $day . '#'. $bh_color . RRD_NL;
+				}
+
+				if (isset($xport_meta['ignoreItems'])) {
+					$xport_meta['ignoreItems'] += 1;
+				} else {
+					$xport_meta['ignoreItems']  = 1;
 				}
 			}
 		}
