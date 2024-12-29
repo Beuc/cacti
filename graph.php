@@ -39,11 +39,11 @@ api_plugin_hook_function('graph');
 
 switch (get_request_var('action')) {
 	case 'view':
-		html_graph_single_view($rras, $graph_title);
+		html_graph_single_view();
 
 		break;
 	case 'zoom':
-		html_graph_zoom($rras, $graph_title);
+		html_graph_zoom();
 
 		break;
 	case 'properties':
