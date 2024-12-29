@@ -2508,6 +2508,7 @@ function db_switch_main_to_local() {
  */
 function db_dump_data($database = '', $tables = '', $credentials = array(), $output_file = false, $options = '--extended-insert=FALSE') {
 	global $database_default, $database_username, $database_password;
+
 	$credentials_string = '';
 
 	if ($database == '') {
@@ -2554,15 +2555,24 @@ function db_dump_data($database = '', $tables = '', $credentials = array(), $out
 		$username = $database_username;
 	}
 
-	if (strstr($options, '--defaults-extra-file') !== false) {
-		exec("mysqldump $options $credentials_string $database $tables > " . $output_file, $output, $retval);
+	if (file_exists('/usr/bin/mariadb-dump')) {
+		$dump = '/usr/bin/mariadb-dump';
 	} else {
-		exec("mysqldump $options $credentials_string " . $database . ' version >/dev/null 2>&1', $output, $retval);
+		$dump = 'mysqldump';
+	}
+
+	if (strstr($options, '--defaults-extra-file') !== false) {
+print "1" . PHP_EOL;
+		exec("$dump $options $credentials_string $database $tables > $output_file", $output, $retval);
+	} else {
+		exec("$dump $options $credentials_string $database version >/dev/null 2>&1", $output, $retval);
 
 		if ($retval) {
-			exec("mysqldump $options $credentials_string -u" . $username . ' -p' . $password . ' ' . $database . " $tables > " . $output_file, $output, $retval);
+print "2" . PHP_EOL;
+			exec("$dump $options $credentials_string --user=" . $username . ' --password=' . $password . " $database $tables > $output_file", $output, $retval);
 		} else {
-			exec("mysqldump $options $credentials_string $database $tables > " . $output_file, $output, $retval);
+print "3" . PHP_EOL;
+			exec("$dump $options $credentials_string $database $tables > $output_file", $output, $retval);
 		}
 	}
 
