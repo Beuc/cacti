@@ -982,7 +982,7 @@ function import_display_package_data($templates, $files, $package_name, $filenam
 
 		form_selectable_ecell($details['author'], $id);
 		form_selectable_ecell($details['email'], $id);
-		form_selectable_ecell($details['homepage'], $id);
+		form_selectable_cell($details['homepage'], $id);
 
 		form_end_row();
 
