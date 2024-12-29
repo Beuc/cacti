@@ -1174,6 +1174,14 @@ function log_cacti_stats($loop_start, $method, $concurrent_processes, $max_threa
 		WHERE h.poller_id = ?',
 		array($poller_id));
 
+	if ($hosts_per_process == -1) {
+		$hosts_per_process = 0;
+	}
+
+	if ($num_hosts == -1) {
+		$num_hosts = 0;
+	}
+
 	if ($poller_id == 1) {
 		$error_lines = db_fetch_assoc("SELECT * FROM host_errors");
 
