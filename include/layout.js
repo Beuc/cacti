@@ -1562,7 +1562,7 @@ function setupResponsiveMenuAndTabs() {
 			event.preventDefault();
 		}
 
-		if ((userMenuNavigationExists(page) || page == 'graph_view.php') && ($(this).hasClass('selected') || (pageName == page && pageName != 'graph_view.php') && pageName != 'link.php')) {
+		if ((pageName != 'auth_profile.php') && (userMenuNavigationExists(page) || page == 'graph_view.php') && ($(this).hasClass('selected') || (pageName == page && pageName != 'graph_view.php') && pageName != 'link.php')) {
 			handleUserMenu(true);
 		} else {
 			var id = $(this).attr('id');
