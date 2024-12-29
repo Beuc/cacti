@@ -223,11 +223,17 @@ function process_poller_output_rt($rrdtool_pipe, $poller_id, $interval) {
 				/* replace path */
 				$command = str_replace($data_source_path, $rt_graph_path, $command);
 
-				/* minimum refresh interval */
-				$step = read_config_option('realtime_interval');
+				/**
+				 * minimum refresh interval - this will always have a value of 1
+				 * so that at the one second realtime interval, good numbers are
+				 * returned to the user.  We ignore the user setting.
+				 *
+				 * $step = read_config_option('realtime_interval');
+				 *
+				 */
 
 				/* replace step */
-				$command = preg_replace('/--step\s(\d+)/', '--step ' . $step, $command);
+				$command = preg_replace('/--step\s(\d+)/', '--step 1', $command);
 
 				/* WIN32: before sending this command off to rrdtool, get rid
 				of all of the '\' characters. Unix does not care; win32 does.
