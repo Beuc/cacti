@@ -67,10 +67,6 @@ th {
 	-webkit-user-select: none;
 }
 
-.tableRowGraph td span {
-	color: #FFF;
-}
-
 img {
 	border: none;
 	vertical-align: middle;
@@ -659,12 +655,6 @@ label {
 .odd.tableRow {
 	color: #000000;
 	background: none repeat scroll 0 0 #EBEDEF;
-}
-
-.tableRowGraph td {
-	padding: 3px;
-	vertical-align: top;
-	background: none repeat scroll 0 0 #FFFFFF;
 }
 
 .even {
@@ -2952,14 +2942,20 @@ circle {
 	fill: transparent !important;
 }
 
-[id*='_edit'] .tableRowGraph:hover, .tableRowGraph:hover td {
+[id*='_edit'] .tableHeader:hover, .tableHeader:hover td {
 	background: none repeat scroll 0 0 rgba(200,200,200,0.8) !important;
 }
 
-.tableRowGraph {
+.tableHeaderGraph {
 	color: rgb(157, 157, 157);
+	background-image: linear-gradient(to bottom, #3a3b3c 0%, #100000 100%);
+	background-repeat: repeat-x;
+}
+
+.tableHeaderGraph span {
+	color: rgb(157, 157, 157);
+	padding: 3px;
 	line-height: 22px;
-	border: 2px solid rgba(0,0,0,0);
 }
 
 .actionHelp {

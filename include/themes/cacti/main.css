@@ -1542,20 +1542,19 @@ th.sortable {
 	background: #3F75A2;
 }
 
-.tableRowGraph {
-	padding: 3px 0px;
-	line-height: 22px;
-	vertical-align: top;
+.tableHeaderGraph {
+	color: white;
+	height: 25px;
+	background: rgba(0,109,0,0.55);
 }
 
-.tableRowGraph td {
-	padding: 3px 0px;
+.tableHeaderGraph span {
+	padding: 3px;
 	line-height: 22px;
-	vertical-align: top;
 }
 
 .tableRow td {
-	line-height: 25px !important;
+	height: 25px !important;
 }
 
 .image_table {

@@ -375,7 +375,7 @@ function html_graph_area(&$graph_array, $no_graphs_message = '', $extra_url_args
 		}
 	} else {
 		if ($no_graphs_message != '') {
-			print "<div class='tableRowGraph'><em>$no_graphs_message</em></div>";
+			print "<div class='tableHeaderGraph'><span><em>$no_graphs_message</em></span></div>";
 		}
 	}
 
@@ -467,7 +467,7 @@ function html_graph_thumbnail_area(&$graph_array, $no_graphs_message = '', $extr
 				}
 
 				if ($print) {
-					print "<div class='tableRowGraph graphSubHeaderColumn textHeaderDark'>" . __('Data Query:') . ' ' . $graph['data_query_name'] . '</div>';
+					print "<div class='tableHeaderGraph graphSubHeaderColumn textHeaderDark'><span>" . __('Data Query:') . ' ' . html_escape($graph['data_query_name']) . '</span></div>';
 				}
 			}
 
@@ -487,7 +487,7 @@ function html_graph_thumbnail_area(&$graph_array, $no_graphs_message = '', $extr
 		}
 	} else {
 		if ($no_graphs_message != '') {
-			print "<div class='tableRowGraph'><em>$no_graphs_message</em></div>";
+			print "<div class='tableHeaderGraph'><span><em>$no_graphs_message</em></span></div>";
 		}
 	}
 
@@ -1469,9 +1469,9 @@ function draw_graph_items_list($item_list, $filename, $url_data, $disable_contro
 
 			/* alternating row color */
 			if ($use_custom_class == false) {
-				print "<tr id='{$item['id']}' class='tableRowGraph'>";
+				print "<tr id='{$item['id']}' class='tableRow selectable'>";
 			} else {
-				print "<tr id='{$item['id']}' class='tableRowGraph $customClass'>";
+				print "<tr id='{$item['id']}' class='tableRow  selectable $customClass'>";
 			}
 
 			if (empty($item['data_source_name'])) {

@@ -756,9 +756,12 @@ label.ui-state-hover > span {
 	padding: 4px 5px !important;
 }
 
-.tableRowGraph td {
+.tableHeaderGraph {
+}
+
+.tableHeaderGraph span {
 	padding: 3px;
-	vertical-align: top;
+	line-height: 22px;
 }
 
 .saveRow {
@@ -3148,15 +3151,10 @@ circle {
 	fill: transparent !important;
 }
 
-[id*='_edit'] .tableRowGraph:hover {
+[id*='_edit'] .tableHeader:hover {
      background-color: rgba(200, 100, 0, .3) !important;
      border-left: 2px solid yellow !important;
      border-right: 2px solid yellow !important;
-}
-
-.tableRowGraph {
-	line-height: 22px;
-	border: 2px solid rgba(0,0,0,0);
 }
 
 .actionHelp {

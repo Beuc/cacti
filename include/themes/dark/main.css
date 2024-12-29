@@ -914,12 +914,8 @@ ul#breadcrumbs {
 	display: block;
 }
 
-.tableRowGraph td {
-	padding: 3px 0px;
-}
-
 .tableRow {
-	line-height: 16px;
+	line-height: 22px;
 }
 
 .cactiConsoleNavigationArea {
@@ -2941,14 +2937,25 @@ circle {
 	fill: transparent !important;
 }
 
-[id*='_edit'] .tableRowGraph:hover {
+[id*='_edit'] .tableHeader:hover {
 	background-color: rgba(0, 200, 200, .1) !important;
 	border-left: 2px solid yellow !important;
 	border-right: 2px solid yellow !important;
 }
 
-.tableRowGraph {
-	border: 2px solid rgba(0,0,0,0);
+.tableHeaderGraph {
+	display: table-row;
+	background: -moz-linear-gradient(top,  #45484d 0%, #000000 100%);
+	background: -webkit-linear-gradient(top,  #45484d 0%,#000000 100%);
+	background: -o-linear-gradient(top,  #45484d 0%,#000000 100%);
+	background: -ms-linear-gradient(top,  #45484d 0%,#000000 100%);
+	height: 24px;
+	vertical-align: middle;
+}
+
+.tableHeaderGraph span {
+	padding: 5px;
+	line-height: 22px;
 }
 
 .actionHelp {

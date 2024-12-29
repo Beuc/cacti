@@ -98,9 +98,9 @@ img {
 }
 
 i.fa, i.fas, i.fab, i.far, i.fal {
-	padding: 0px 3px;
-	font-size: 13px;
-	vertical-align: middle;
+	font-size: 15px;
+	padding-bottom: 3px;
+	text-align: left;
 }
 
 .menu_parent i.fa, .menu_parent i.fas, .menu_parent i.fab, .menu_parent i.far, .menu_parent i.fal {
@@ -1599,13 +1599,13 @@ legend {
 }
 
 .formHeaderText {
-	padding-left: 3px;
+	padding-left: 10px;
 	color: snow;
+	line-height: 25px;
 }
 
 .formHeaderAnchor {
 	float: right;
-	padding-right: 8px;
 }
 
 .formConfirmRadio {
@@ -1739,7 +1739,7 @@ legend {
 	background: -o-linear-gradient(top, rgba(138,179,105,1) 0%, rgba(63,117,15,1) 100%);
 	background: -ms-linear-gradient(top, rgba(138,179,105,1) 0%, rgba(63,117,15,1) 100%);
 	color: snow;
-	height: 24px;
+	height: 25px;
 }
 
 .tableHeader th.sortable {
@@ -1810,10 +1810,21 @@ legend {
 	line-height: 20px;
 }
 
-.tableRowGraph td {
-	padding: 3px 0px;
-	line-height: 20px;
+.tableHeaderGraph {
+	display: table-row;
+	background: rgba(138,179,105,1);
+	background: -moz-linear-gradient(top, rgba(138,179,105,1) 0%, rgba(63,117,15,1) 100%);
+	background: -webkit-linear-gradient(top, rgba(138,179,105,1) 0%, rgba(63,117,15,1) 100%);
+	background: -o-linear-gradient(top, rgba(138,179,105,1) 0%, rgba(63,117,15,1) 100%);
+	background: -ms-linear-gradient(top, rgba(138,179,105,1) 0%, rgba(63,117,15,1) 100%);
+	color: snow;
+	height: 25px;
 	vertical-align: top;
+}
+
+.tableHeaderGraph span {
+	padding: 3px;
+	line-height: 22px;
 }
 
 .image_table {
@@ -2599,15 +2610,10 @@ tr#realtime td:first-child {
 .graphDrillDown {
 	display: inline-block;
 	vertical-align: top;
-	align-self: left;
 	z-index: 4;
 	padding: 10px 3px;
 	height: 200px;
-	width: 20px;
-}
-
-.drillDown {
-	cursor: pointer;
+	width: 30px;
 }
 
 .graphWrapper {
@@ -2855,15 +2861,85 @@ td.center > table {
 	z-index: 99;
 }
 
-[id*='_edit'] .tableRowGraph:hover {
+[id*='_edit'] .tableHeader:hover {
      background-color: rgba(0, 200, 0, .1) !important;
      border-left: 2px solid yellow !important;
      border-right: 2px solid yellow !important;
 }
 
-.tableRowGraph {
-	border: 2px solid rgba(0,0,0,0);
-	padding: 3px 0px;
-	line-height: 20px;
-	vertical-align: top;
+.drillDown {
+	cursor: pointer;
 }
+
+.actionHelp {
+	color:#00758F !important;
+}
+
+.plusAdd {
+	color:#CE3500 !important;
+}
+
+.actionCog {
+	color:#FDAC53 !important;
+}
+
+.fileCSV {
+	color:#9BB7D4 !important;
+}
+
+.threeBars {
+	color:#B55A30 !important;
+}
+
+.editServer {
+	color:#F5DF4D !important;
+}
+
+.editTemplate {
+	color:#0072B5 !important;
+}
+
+.realTime {
+	color:#A0DAA9 !important;
+}
+
+.spikeKill {
+	color:#E9897E !important;
+}
+
+.newDevice {
+	color:#00A170 !important;
+}
+
+.newGraph {
+	color:#926AA6 !important;
+}
+
+.reindexDevice {
+	color:#D2386C !important;
+}
+
+.enableDebug {
+	color:#363945 !important;
+}
+
+.disableDebug {
+	color:#939597 !important;
+}
+
+.repopulateCache {
+	color:#EFE1CE !important;
+}
+
+.viewCache {
+	color:#E0B589 !important;
+}
+
+.viewGraphs {
+	color:#9A8B4F !important;
+}
+
+.viewSources {
+	color:#56C6A9 !important;
+}
+

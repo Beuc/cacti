@@ -1030,7 +1030,7 @@ function create_tree_filter() {
 					'class'          => 'graph-multiselect',
 					'pageset'        => true,
 					'array'          => $normalized_templates,
-					'value'          => ''
+					'value'          => get_nfilter_request_var('graph_template_id')
 				),
 			),
 			array(
@@ -1547,7 +1547,7 @@ function grow_right_pane_tree($tree_id, $leaf_id, $host_group_data) {
 	html_start_box('', '100%', false, '3', 'center', '');
 
 	/* start graph display */
-	print "<div class='tableHeader tableRowGraph left'>$title</div>";
+	print "<div class='tableHeaderGraph left'><span>$title</span></div>";
 
 	$i = $graph_rows * (get_request_var('page') - 1);
 
