@@ -1935,7 +1935,7 @@ function html_graph_zoom() {
 	$rras = $info['rras'];
 	$graph_title = $info['title'];
 
-	if (strpos(get_request_var('action'), 'tree') !== false) {
+	if (strpos(get_nfilter_request_var('action'), 'tree') !== false) {
 		$suffix = 'tree';
 	} else {
 		$suffix = 'preview';
