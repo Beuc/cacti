@@ -982,7 +982,7 @@ function create_tables($load = true) {
 	$exists_indexes = db_table_exists('table_indexes');
 
 	if (!$exists_indexes) {
-		print "Failed to create 'table_indexes'";
+		print "ERROR: Failed to create 'table_indexes'" . PHP_EOL;
 
 		exit;
 	}
@@ -994,6 +994,18 @@ function create_tables($load = true) {
 			exit(1);
 		}
 
+		if (file_exists('/usr/bin/mariadb')) {
+			$mysql = '/usr/bin/mariadb';
+		} else {
+			$mysql = 'mysql';
+		}
+
+		if ($database_hostname != 'localhost') {
+			$port = ' --port=' . cacti_escapeshellarg($database_port);
+		} else {
+			$port = '';
+		}
+
 		db_execute('TRUNCATE table_columns');
 		db_execute('TRUNCATE table_indexes');
 
@@ -1001,20 +1013,15 @@ function create_tables($load = true) {
 		$error  = 0;
 
 		if (file_exists(CACTI_PATH_DOCS . '/audit_schema.sql')) {
-			if ($config['cacti_server_os'] == 'win32') {
-				$unix_pass  = '';
-				$win32_pass = ' -p' . cacti_escapeshellarg($database_password);
-			} else {
-				$unix_pass  = 'MYSQL_PWD=' . cacti_escapeshellarg($database_password) . ' ';
-				$win32_pass = '';
-			}
+			$password = ' --password=' . cacti_escapeshellarg($database_password);
 
-			$cmd = $unix_pass . 'mysql -u' . cacti_escapeshellarg($database_username) .
-				$win32_pass .
-				' -h' . cacti_escapeshellarg($database_hostname) .
-				' -P' . cacti_escapeshellarg($database_port) .
+			$cmd = $mysql . ' --user=' . cacti_escapeshellarg($database_username) .
+				$password .
+				' --host=' . cacti_escapeshellarg($database_hostname) .
+				$port .
 				' ' . cacti_escapeshellarg($database_default) .
 				' < ' . CACTI_PATH_DOCS . '/audit_schema.sql';
+
 			exec($cmd, $output, $error);
 
 			if ($debug) {
