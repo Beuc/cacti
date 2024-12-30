@@ -402,6 +402,7 @@ class CactiTableFilter {
 				'method'  => 'button',
 				'display' => __('Export'),
 				'title'   => __('Export Data'),
+				'callback' => 'document.location = \'' . get_current_page() . '?action=export\'',
 			);
 		}
 
