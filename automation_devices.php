@@ -508,7 +508,7 @@ function get_discovery_results(&$total_rows = 0, $rows = 0, $export = false) {
 		$sql_order = get_order_string();
 		$sql_limit = ' LIMIT ' . ($rows * ($page - 1)) . ',' . $rows;
 
-		$sql_query = "SELECT *,sysUptime snmp_sysUpTimeInstance, FROM_UNIXTIME(time) AS mytime
+		$sql_query = "SELECT *,sysUpTime snmp_sysUpTimeInstance, FROM_UNIXTIME(time) AS mytime
 			FROM automation_devices
 			$sql_where
 			$sql_order
@@ -650,9 +650,9 @@ function export_discovery_results() {
 
 	if (cacti_sizeof($results)) {
 		foreach ($results as $host) {
-			if ($host['sysUptime'] != 0) {
-				$days   = intval($host['sysUptime'] / 8640000);
-				$hours  = intval(($host['sysUptime'] - ($days * 8640000)) / 360000);
+			if (isset($host['sysUpTime']) && $host['sysUpTime'] != 0) {
+				$days   = intval($host['sysUpTime'] / 8640000);
+				$hours  = intval(($host['sysUpTime'] - ($days * 8640000)) / 360000);
 				$uptime = $days . ' days ' . $hours . ' hours';
 			} else {
 				$uptime = '';
@@ -661,6 +661,7 @@ function export_discovery_results() {
 			foreach ($host as $h=>$r) {
 				$host['$h'] = str_replace(',','',$r);
 			}
+
 			print($host['hostname'] == '' ? __('Not Detected'):$host['hostname']) . ',';
 			print $host['ip'] . ',';
 			print export_data($host['sysName']) . ',';
