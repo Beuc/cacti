@@ -755,11 +755,27 @@ function discoverDevices($network_id, $thread) {
 										$shortname   = $device['dnsname_short'];
 										$sysLocation = $device['snmp_sysLocation'];
 
-										$pattern = str_replace('|sysName|', $sysName, $fos['description_pattern']);
-										$pattern = str_replace('|ipAddress|', $ip_address, $pattern);
-										$pattern = str_replace('|dnsName|', $dnsname, $pattern);
-										$pattern = str_replace('|dnsShortName|', $shortname, $pattern);
-										$pattern = str_replace('|sysLocation|', $sysLocation, $pattern);
+										if ($sysName != '') {
+											$pattern = str_replace('|sysName|', $sysName, $fos['description_pattern']);
+										} else {
+											$pattern = $fos['description_pattern'];
+										}
+
+										if ($ip_address != '') {
+											$pattern = str_replace('|ipAddress|', $ip_address, $pattern);
+										}
+
+										if ($dnsname != '') {
+											$pattern = str_replace('|dnsName|', $dnsname, $pattern);
+										}
+
+										if ($shortname != '') {
+											$pattern = str_replace('|dnsShortName|', $shortname, $pattern);
+										}
+
+										if ($sysLocation != '') {
+											$pattern = str_replace('|sysLocation|', $sysLocation, $pattern);
+										}
 
 										$description = db_fetch_cell("SELECT $pattern");
 
