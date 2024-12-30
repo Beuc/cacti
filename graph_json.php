@@ -270,16 +270,13 @@ if ($output !== false && $output != '' && strpos($output, 'image = ') !== false)
 	 * output data as it interferes with the hover output.
 	 */
 	if (isset($oarray['data']) && isset($xport_meta['ignoreItems'])) {
-		$new_data = array();
-		foreach($oarray['data'] as $index => $data) {
-			for ($i = 1; $i <= $xport_meta['ignoreItems']; $i++) {
-				unset($data[$i]);
-			}
+		$new_array = array();
 
-			$i = 0;
-			foreach($data as $value) {
-				$new_array[$index][$i] = $value;
-				$i++;
+		foreach($oarray['data'] as $index => $data) {
+			foreach($data as $i => $value) {
+				if ($i == 0 || $i > $xport_meta['ignoreItems']) {
+					$new_array[$index][] = $value;
+				}
 			}
 		}
 
