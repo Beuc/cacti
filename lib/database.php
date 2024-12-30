@@ -2562,16 +2562,13 @@ function db_dump_data($database = '', $tables = '', $credentials = array(), $out
 	}
 
 	if (strstr($options, '--defaults-extra-file') !== false) {
-print "1" . PHP_EOL;
 		exec("$dump $options $credentials_string $database $tables > $output_file", $output, $retval);
 	} else {
 		exec("$dump $options $credentials_string $database version >/dev/null 2>&1", $output, $retval);
 
 		if ($retval) {
-print "2" . PHP_EOL;
 			exec("$dump $options $credentials_string --user=" . $username . ' --password=' . $password . " $database $tables > $output_file", $output, $retval);
 		} else {
-print "3" . PHP_EOL;
 			exec("$dump $options $credentials_string $database $tables > $output_file", $output, $retval);
 		}
 	}
