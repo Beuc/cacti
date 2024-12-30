@@ -2448,7 +2448,7 @@ td.center > table {
 }
 
 .ui-button {
-    padding: .4em .4em;
+	padding: .4em .4em;
 }
 
 .cactiLogo {
@@ -2456,15 +2456,15 @@ td.center > table {
 }
 
 .actionHelp {
-	color:#00758F !important;
+	color:#00a1c2 !important;
 }
 
 .plusAdd {
-	color:#CE3500 !important;
+	color:#ffb5bA !important;
 }
 
 .actionCog {
-	color:#FDAC53 !important;
+	color:#fff !important;
 }
 
 .fileCSV {
@@ -2484,7 +2484,7 @@ td.center > table {
 }
 
 .realTime {
-	color:#A0DAA9 !important;
+	color:#f3c300 !important;
 }
 
 .spikeKill {
@@ -2492,11 +2492,11 @@ td.center > table {
 }
 
 .newDevice {
-	color:#00A170 !important;
+	color:#f38400 !important;
 }
 
 .newGraph {
-	color:#926AA6 !important;
+	color:#8db600 !important;
 }
 
 .reindexDevice {
@@ -2504,11 +2504,11 @@ td.center > table {
 }
 
 .enableDebug {
-	color:#363945 !important;
+	color:#8db600 !important;
 }
 
 .disableDebug {
-	color:#939597 !important;
+	color:#be0032 !important;
 }
 
 .repopulateCache {
@@ -2520,14 +2520,14 @@ td.center > table {
 }
 
 .viewGraphs {
-	color:#9A8B4F !important;
+	color:#8db600 !important;
 }
 
 .viewSources {
-	color:#56C6A9 !important;
+	color:#9a4eae !important;
 }
 
 .expandAggregate {
-	color:#9BB7D4 !important;
+	color:#ffb7a5 !important;
 }
 
