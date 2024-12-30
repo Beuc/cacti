@@ -215,7 +215,7 @@ CREATE TABLE `automation_devices` (
   `snmp_password` varchar(50) default NULL,
   `snmp_auth_protocol` char(6) default '',
   `snmp_priv_passphrase` varchar(200) default '',
-  `snmp_priv_protocol` char(6) default '',
+  `snmp_priv_protocol` char(7) default '',
   `snmp_context` varchar(64) default '',
   `snmp_engine_id` varchar(64) default '',
   `sysName` varchar(100) NOT NULL default '',
@@ -416,7 +416,7 @@ CREATE TABLE `automation_snmp_items` (
   `snmp_password` varchar(50) default NULL,
   `snmp_auth_protocol` char(6) default '',
   `snmp_priv_passphrase` varchar(200) default '',
-  `snmp_priv_protocol` char(6) default '',
+  `snmp_priv_protocol` char(7) default '',
   `snmp_context` varchar(64) default '',
   `snmp_engine_id` varchar(64) default '',
   PRIMARY KEY (`id`,`snmp_id`)
