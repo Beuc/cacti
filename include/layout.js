@@ -2526,7 +2526,8 @@ function loadUrl(options) {
 
 		$.ajaxQ.abortAll();
 
-		return $.get(options.url)
+		if (options.json == true) {
+			return $.getJSON(options.url)
 			.done(function (html) {
 				handleAjaxResponse(html, options);
 				return false;
@@ -2534,6 +2535,16 @@ function loadUrl(options) {
 			.fail(function (html) {
 				getPresentHTTPError(html);
 			});
+		} else {
+			return $.get(options.url)
+			.done(function (html) {
+				handleAjaxResponse(html, options);
+				return false;
+			})
+			.fail(function (html) {
+				getPresentHTTPError(html);
+			});
+		}
 	}
 
 	return false;
@@ -2584,6 +2595,7 @@ function sanitizeAjaxOptions(check) {
 	options = {
 		force: false,
 		scroll: false,
+		json: false,
 		elementId: 'main',
 		tabId: '',
 		loadType: 'noheader',
@@ -2647,6 +2659,10 @@ function sanitizeAjaxOptions(check) {
 		options.force = check.force;
 	}
 
+	if (typeof check.json == 'boolean') {
+		options.json = check.json;
+	}
+
 	if (options.elementId.trim() == '') {
 		options.elementId = 'main';
 	}
@@ -2659,80 +2675,82 @@ function handleAjaxResponse(html, options) {
 
 	options = sanitizeAjaxOptions(options);
 
-	if (html.indexOf('cactiAuthArea') > 0) {
-		document.location = 'index.php';
-	}
-
-	if (options.handle && options.redirect.trim() == '') {
-		elementId = '#' + options.elementId;
-
-		var htmlObject = null;
-		try {
-			htmlObject = $(html);
-		} catch (Exception) {
-			htmlObject = null;
+	if (!options.json || options.json == false) {
+		if (html.indexOf('cactiAuthArea') > 0) {
+			document.location = 'index.php';
 		}
 
-		var matches = null;
-		if (typeof html.match !== 'undefined') {
-			matches = html.match(/<title>(.*?)<\/title>/);
-		}
+		if (options.handle && options.redirect.trim() == '') {
+			elementId = '#' + options.elementId;
 
-		if (matches != null) {
-			var htmlTitle = matches[1];
-			var breadCrumbs = findElement(htmlObject, '#breadcrumbs').html();
-			var htmlContent = findElement(htmlObject, elementId).html();
-
-			$('title').text(htmlTitle);
-			$('#breadcrumbs').html(breadCrumbs);
-
-			myTitle = htmlTitle;
-		}
-
-		if (typeof htmlContent == 'undefined') {
-			htmlContent = html;
-		}
-
-		// No need to check noState on options
-		// as this is handled inside pushState();
-		pushState(myTitle, options);
-
-		if (html !== null && html.length > 0) {
-			$(elementId).hide().empty().hide();
-			$(elementId).html(htmlContent);
-			$(elementId).show();
-		}
-
-		if (options.pageName != '') {
-			// Workaround for Create Device
-			if (options.pageName == 'host.php') {
-				if (options.url.indexOf('create') >= 0) {
-					$('#menu').find('.pic').removeClass('selected');
-					$('#menu').find("a[href='" + escapeString(options.url) + "']").addClass('selected');
-				} else {
-					$('#menu').find('.pic').removeClass('selected');
-					$('#menu').find("a[href$='host.php']").addClass('selected');
-				}
-			} else if ($('#menu').find("a[href^='" + escapeString(options.url) + "']").length > 0) {
-				$('#menu').find('.pic').removeClass('selected');
-				$('#menu').find("a[href^='" + escapeString(options.url) + "']").addClass('selected');
-			} else if ($('#menu').find("a[href*='/" + options.pageName + "']").length > 0) {
-				$('#menu').find('.pic').removeClass('selected');
-				$('#menu').find("a[href*='/" + options.pageName + "']").addClass('selected');
+			var htmlObject = null;
+			try {
+				htmlObject = $(html);
+			} catch (Exception) {
+				htmlObject = null;
 			}
+
+			var matches = null;
+			if (typeof html.match !== 'undefined') {
+				matches = html.match(/<title>(.*?)<\/title>/);
+			}
+
+			if (matches != null) {
+				var htmlTitle = matches[1];
+				var breadCrumbs = findElement(htmlObject, '#breadcrumbs').html();
+				var htmlContent = findElement(htmlObject, elementId).html();
+
+				$('title').text(htmlTitle);
+				$('#breadcrumbs').html(breadCrumbs);
+
+				myTitle = htmlTitle;
+			}
+
+			if (typeof htmlContent == 'undefined') {
+				htmlContent = html;
+			}
+
+			// No need to check noState on options
+			// as this is handled inside pushState();
+			pushState(myTitle, options);
+
+			if (html !== null && html.length > 0) {
+				$(elementId).hide().empty().hide();
+				$(elementId).html(htmlContent);
+				$(elementId).show();
+			}
+
+			if (options.pageName != '') {
+				// Workaround for Create Device
+				if (options.pageName == 'host.php') {
+					if (options.url.indexOf('create') >= 0) {
+						$('#menu').find('.pic').removeClass('selected');
+						$('#menu').find("a[href='" + escapeString(options.url) + "']").addClass('selected');
+					} else {
+						$('#menu').find('.pic').removeClass('selected');
+						$('#menu').find("a[href$='host.php']").addClass('selected');
+					}
+				} else if ($('#menu').find("a[href^='" + escapeString(options.url) + "']").length > 0) {
+					$('#menu').find('.pic').removeClass('selected');
+					$('#menu').find("a[href^='" + escapeString(options.url) + "']").addClass('selected');
+				} else if ($('#menu').find("a[href*='/" + options.pageName + "']").length > 0) {
+					$('#menu').find('.pic').removeClass('selected');
+					$('#menu').find("a[href*='/" + options.pageName + "']").addClass('selected');
+				}
+			}
+
+			var scrollTop = (isMobile.any() != null) ? 1 : 0;
+
+			if (options.scroll) {
+				scrollTop = options.scroll;
+			}
+
+			window.scrollTo(0, scrollTop);
+
+			handleConsole(options.pageName);
+
+			Pace.stop();
 		}
-
-		var scrollTop = (isMobile.any() != null) ? 1 : 0;
-
-		if (options.scroll) {
-			scrollTop = options.scroll;
-		}
-
-		window.scrollTo(0, scrollTop);
-
-		handleConsole(options.pageName);
-
-		Pace.stop();
 	}
 
 	if (options.funcEnd != '') {
@@ -4126,8 +4144,15 @@ function clearGraphTimespanFilter() {
 
 function finalizeSpikeKillResults(options, data) {
 	redrawGraph(local_graph_id);
+
 	$('#spikeresults').remove();
-	$('body').append('<div id="spikeresults" style="overflow-y:scroll;" title="' + spikeKillResults + '"></div>');
+
+	if ($('#spikeresults').length == 0) {
+		$('body').append('<div id="spikeresults" style="overflow-y:scroll;" title="' + spikeKillResults + '"></div>');
+	} else {
+		$('#spikeresults').empty();
+	}
+
 	$('#spikeresults').html(data.results);
 	$('#spikeresults').dialog({ width: 1100, maxHeight: 600 });
 }
@@ -4139,6 +4164,7 @@ function removeSpikesStdDev(local_graph_id) {
 
 	loadUrl({
 		url: href,
+		json: true,
 		funcEnd: 'finalizeSpikeKillResults',
 	});
 }
@@ -4150,6 +4176,7 @@ function removeSpikesVariance(local_graph_id) {
 
 	loadUrl({
 		url: href,
+		json: true,
 		funcEnd: 'finalizeSpikeKillResults',
 	});
 }
@@ -4163,6 +4190,7 @@ function removeSpikesInRange(local_graph_id) {
 
 	loadUrl({
 		url: href,
+		json: true,
 		funcEnd: 'finalizeSpikeKillResults',
 	});
 }
@@ -4176,6 +4204,7 @@ function removeRangeFill(local_graph_id) {
 
 	loadUrl({
 		url: href,
+		json: true,
 		funcEnd: 'finalizeSpikeKillResults',
 	});
 }
@@ -4185,6 +4214,7 @@ function removeSpikesAbsolute(local_graph_id) {
 
 	loadUrl({
 		url: href,
+		json: true,
 		funcEnd: 'finalizeSpikeKillResults',
 	});
 }
@@ -4197,6 +4227,7 @@ function dryRunStdDev(local_graph_id) {
 
 	loadUrl({
 		url: href,
+		json: true,
 		funcEnd: 'finalizeSpikeKillResults',
 	});
 }
@@ -4209,6 +4240,7 @@ function dryRunVariance(local_graph_id) {
 
 	loadUrl({
 		url: href,
+		json: true,
 		funcEnd: 'finalizeSpikeKillResults',
 	});
 }
@@ -4225,6 +4257,7 @@ function dryRunSpikesInRange(local_graph_id) {
 
 	loadUrl({
 		url: href,
+		json: true,
 		funcEnd: 'finalizeSpikeKillResults',
 	});
 }
@@ -4239,6 +4272,7 @@ function dryRunRangeFill(local_graph_id) {
 
 	loadUrl({
 		url: href,
+		json: true,
 		funcEnd: 'finalizeSpikeKillResults',
 	});
 }
@@ -4248,6 +4282,7 @@ function dryRunAbsolute(local_graph_id) {
 
 	loadUrl({
 		url: href,
+		json: true,
 		funcEnd: 'finalizeSpikeKillResults',
 	});
 }

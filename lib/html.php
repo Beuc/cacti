@@ -3035,9 +3035,9 @@ function html_spikekill_js() {
 
 			strURL = '?action=spikesave&setting=ravgnan&id='+$(this).attr('id').replace('method_','');
 			$.get(strURL)
-				.fail(function(data) {
-					getPresentHTTPError(data);
-				});
+			.fail(function(data) {
+				getPresentHTTPError(data);
+			});
 		});
 
 		$('.skills').unbind().click(function() {
@@ -3047,9 +3047,9 @@ function html_spikekill_js() {
 
 			strURL = '?action=spikesave&setting=rkills&id='+$(this).attr('id').replace('kills_','');
 			$.get(strURL)
-				.fail(function(data) {
-					getPresentHTTPError(data);
-				});
+			.fail(function(data) {
+				getPresentHTTPError(data);
+			});
 		});
 
 		$('.skstddev').unbind().click(function() {
@@ -3059,9 +3059,9 @@ function html_spikekill_js() {
 
 			strURL = '?action=spikesave&setting=rstddev&id='+$(this).attr('id').replace('stddev_','');
 			$.get(strURL)
-				.fail(function(data) {
-					getPresentHTTPError(data);
-				});
+			.fail(function(data) {
+				getPresentHTTPError(data);
+			});
 		});
 
 		$('.skvarpct').unbind().click(function() {
@@ -3071,9 +3071,9 @@ function html_spikekill_js() {
 
 			strURL = '?action=spikesave&setting=rvarpct&id='+$(this).attr('id').replace('varpct_','');
 			$.get(strURL)
-				.fail(function(data) {
-					getPresentHTTPError(data);
-				});
+			.fail(function(data) {
+				getPresentHTTPError(data);
+			});
 		});
 
 		$('.skvarout').unbind().click(function() {
@@ -3083,9 +3083,9 @@ function html_spikekill_js() {
 
 			strURL = '?action=spikesave&setting=rvarout&id='+$(this).attr('id').replace('varout_','');
 			$.get(strURL)
-				.fail(function(data) {
-					getPresentHTTPError(data);
-				});
+			.fail(function(data) {
+				getPresentHTTPError(data);
+			});
 		});
 
 		$('.skabsmax').unbind().click(function() {
@@ -3095,9 +3095,9 @@ function html_spikekill_js() {
 
 			strURL = '?action=spikesave&setting=rabsmax&id='+$(this).attr('id').replace('absmax_','');
 			$.get(strURL)
-				.fail(function(data) {
-					getPresentHTTPError(data);
-				});
+			.fail(function(data) {
+				getPresentHTTPError(data);
+			});
 		});
 	}
 	</script>
