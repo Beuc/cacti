@@ -921,6 +921,7 @@ $device_change_fields = array(
 		'site_id',
 		'host_template_id',
 		'availability_method',
+		'bulk_walk_size',
 		'device_threads',
 		'location',
 		'max_oids'
