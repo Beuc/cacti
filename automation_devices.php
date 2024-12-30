@@ -591,26 +591,27 @@ function create_filter() {
 		),
 		'buttons' => array(
 			'go' => array(
-				'method'  => 'submit',
-				'display' => __('Go'),
-				'title'   => __('Apply filter to table'),
+				'method'   => 'submit',
+				'display'  => __('Go'),
+				'title'    => __('Apply filter to table'),
 			),
 			'clear' => array(
-				'method'  => 'button',
-				'display' => __('Clear'),
-				'title'   => __('Reset filter to default values'),
+				'method'   => 'button',
+				'display'  => __('Clear'),
+				'title'    => __('Reset filter to default values'),
 			),
 			'export' => array(
-				'method'  => 'button',
-				'display' => __('Export'),
-				'action'  => 'default',
-				'title'   => __('Export the Discovered Devices to CSV'),
+				'method'   => 'button',
+				'display'  => __('Export'),
+				'action'   => 'default',
+				'title'    => __('Export the Discovered Devices to CSV'),
+				'callback' => 'document.location = \'automation_devices.php?action=export\''
 			),
 			'purge' => array(
-				'method'  => 'button',
-				'display' => __('Purge'),
-				'action'  => 'default',
-				'title'   => __('Purge the Discovered Devices from the Database'),
+				'method'   => 'button',
+				'display'  => __('Purge'),
+				'action'   => 'default',
+				'title'    => __('Purge the Discovered Devices from the Database'),
 			)
 		),
 		'sort' => array(
