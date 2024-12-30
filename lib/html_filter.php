@@ -664,6 +664,7 @@ class CactiTableFilter {
 
 				$buttonFunction .= PHP_EOL . "\t\tfunction {$buttonId}Function () {" . $func_nl .
 					$callbackFunction . ";" . $func_el .
+					"Pace.stop();" . $func_el .
 				"};" . PHP_EOL;
 			} else {
 				if (isset($buttonArray['callback'])) {
@@ -676,6 +677,7 @@ class CactiTableFilter {
 					"$('#text').text('{$field_array['status']}');" . $func_nl .
 					"pulsate('#text');" . $func_nl .
 					$callbackFunction . ";" . $func_el .
+					"Pace.stop();" . $func_el .
 					"};" . PHP_EOL;
 			}
 		}
@@ -701,22 +703,6 @@ class CactiTableFilter {
 
 		$changeChain   = '';
 		$clickChain    = '';
-
-		if (!$this->has_save) {
-			$saveFilter = "'#'";
-		}
-
-		if (!$this->has_import) {
-			$importFilter = "'#'";
-		}
-
-		if (!$this->has_export && !isset($this->filter_array['buttons']['export'])) {
-			$exportFilter = "'#'";
-		}
-
-		if (!$this->has_purge && !isset($this->filter_array['buttons']['purge'])) {
-			$purgeFilter = "'#'";
-		}
 
 		if (isset($this->filter_array['buttons']['go']['callback'])) {
 			$changeFunction = $this->filter_array['buttons']['go']['callback'];

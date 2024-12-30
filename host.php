@@ -595,7 +595,7 @@ function form_actions() {
 }
 
 function host_export() {
-	host_validate_vars();
+	process_sanitize_draw_filter(false);
 
 	$hosts = get_device_records($total_rows, 9999999);
 
@@ -2022,9 +2022,10 @@ function create_filter() {
 				'title'   => __('Reset filter to default values'),
 			),
 			'export' => array(
-				'method'  => 'button',
-				'display' => __('Export'),
-				'title'   => __('Export the filtered Devices'),
+				'method'   => 'button',
+				'display'  => __('Export'),
+				'title'    => __('Export the filtered Devices'),
+				'callback' => 'document.location = \'host.php?action=export\''
 			)
 		),
 		'sort' => array(
