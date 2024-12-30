@@ -2880,7 +2880,7 @@ td.center > table {
 }
 
 .actionCog {
-	color:#fff !important;
+	color: rgba(16, 16, 16, 0.6) !important;
 }
 
 .fileCSV {
