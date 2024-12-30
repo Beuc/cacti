@@ -3354,7 +3354,7 @@ CREATE TABLE `snmpagent_managers` (
   `snmp_password` varchar(50) NOT NULL,
   `snmp_auth_protocol` char(6) NOT NULL,
   `snmp_priv_passphrase` varchar(200) NOT NULL,
-  `snmp_priv_protocol` char(6) NOT NULL,
+  `snmp_priv_protocol` char(7) NOT NULL,
   `snmp_engine_id` varchar(64) default NULL,
   `snmp_port` mediumint(8) unsigned NOT NULL default '161',
   `snmp_message_type` tinyint(4) NOT NULL,
