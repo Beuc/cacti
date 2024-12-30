@@ -368,7 +368,7 @@ function process_sanitize_draw_preview_filter($render = false, $page = '', $acti
 
 	/* create the page filter */
 	$filters    = create_preview_filter();
-	$pageFilter = new CactiTableFilter($header, $page, 'form_graph_view', 'sess_pview');
+	$pageFilter = new CactiTableFilter($header, $page, 'form_graph_view', 'sess_pview', '', false, false);
 	$pageFilter->rows_label  = __('Graphs');
 	$pageFilter->form_method = $action;
 	$pageFilter->set_filter_array($filters);
