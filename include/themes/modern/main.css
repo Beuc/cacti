@@ -1708,11 +1708,13 @@ legend {
 .next {
 	padding-right: 6px;
 	padding-left: 6px;
+	vertical-align: -2px;
 }
 
 .previous {
 	padding-right: 6px;
 	padding-left: 6px;
+	vertical-align: -2px;
 }
 
 .cactiNavBarTop {
