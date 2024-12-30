@@ -555,8 +555,8 @@ function graph_drilldown_icons($local_graph_id, $type = 'graph_buttons', $tree_i
 	}
 
 	if (is_realm_allowed(1043)) {
-		print "<div class='iconLink spikekill' data-graph='" . $local_graph_id . "' id='graph_" . $local_graph_id . "_sk'><i id='sk" . $local_graph_id . "' class='drillDown fa fa-paint-roller spikeKill' title='" . __esc('Kill Spikes in Graphs') . "'></i></div>";
-		print '<br/>';
+		print "<a href='#' class='iconLink spikekill' data-graph='" . $local_graph_id . "' id='graph_" . $local_graph_id . "_sk'><i id='sk" . $local_graph_id . "' class='drillDown fa fa-paint-roller spikeKill' title='" . __esc('Kill Spikes in Graphs') . "'></i></a>";
+		print '<br>';
 	}
 
 	if ($aggregate_url != '') {
@@ -2928,11 +2928,11 @@ function html_spikekill_js() {
 			spikeKillClose();
 		});
 
-		$('div.spikekill').children().contextmenu(function() {
+		$('a.spikekill').children().contextmenu(function() {
 			return false;
 		});
 
-		$('div.spikekill').unbind().click(function() {
+		$('a.spikekill').unbind().click(function() {
 			if (spikeKillOpen == false) {
 				local_graph_id = $(this).attr('data-graph');
 
