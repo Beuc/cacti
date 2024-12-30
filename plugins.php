@@ -1713,8 +1713,10 @@ function format_archive_plugin_row($plugin, $table) {
 
 	if ($plugin['last_updated'] == '0000-00-00 00:00:00') {
 		$last_updated = __('N/A');
-	} else {
+	} elseif (!empty($plugin['last_updated'])) {
 		$last_updated = substr($plugin['last_updated'], 0, 16);
+	} else {
+		$last_updated = __('N/A');
 	}
 
 	$archive_date = substr($plugin['archive_date'], 0, 16);
