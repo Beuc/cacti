@@ -183,31 +183,31 @@ if (is_array($xport_array['meta']) && isset($xport_array['meta']['start'])) {
 		print "<table class='cactiTable selectable'>";
 
 		print "<tr class='even'>";
-		print '<td>' . __('Title') . '</td>';
-		print '<td>' . html_escape($xport_array['meta']['title_cache']) . '</td>';
-		print '<td>' . __('Vertical Label') . '</td>';
-		print '<td>' . html_escape($xport_array['meta']['vertical_label']) . '</td>';
+		print '<td style="width:25%">' . __('Title') . '</td>';
+		print '<td style="width:25%">' . html_escape($xport_array['meta']['title_cache']) . '</td>';
+		print '<td style="width:25%">' . __('Vertical Label') . '</td>';
+		print '<td style="width:25%">' . html_escape($xport_array['meta']['vertical_label']) . '</td>';
 		print '</tr>';
 
 		print "<tr class='odd'>";
-		print '<td>' . __('Start Date') . '</td>';
-		print '<td>' . date('Y-m-d H:i:s', $xport_array['meta']['start']) . '</td>';
-		print '<td>' . __('End Date') . '</td>';
-		print '<td>' . date('Y-m-d H:i:s', ($xport_array['meta']['end'] == $xport_array['meta']['start']) ? $xport_array['meta']['start'] + $xport_array['meta']['step'] * ($xport_array['meta']['rows'] - 1) : $xport_array['meta']['end']) . '</td>';
+		print '<td style="width:25%">' . __('Start Date') . '</td>';
+		print '<td style="width:25%">' . date('Y-m-d H:i:s', $xport_array['meta']['start']) . '</td>';
+		print '<td style="width:25%">' . __('End Date') . '</td>';
+		print '<td style="width:25%">' . date('Y-m-d H:i:s', ($xport_array['meta']['end'] == $xport_array['meta']['start']) ? $xport_array['meta']['start'] + $xport_array['meta']['step'] * ($xport_array['meta']['rows'] - 1) : $xport_array['meta']['end']) . '</td>';
 		print '</tr>';
 
 		print "<tr class='even'>";
-		print '<td>' . __('Step') . '</td>';
-		print '<td>' . $xport_array['meta']['step'] . '</td>';
-		print '<td>' . __('Total Rows') . '</td>';
-		print '<td>' . $xport_array['meta']['rows'] . '</td>';
+		print '<td style="width:25%">' . __('Step') . '</td>';
+		print '<td style="width:25%">' . $xport_array['meta']['step'] . '</td>';
+		print '<td style="width:25%">' . __('Total Rows') . '</td>';
+		print '<td style="width:25%">' . $xport_array['meta']['rows'] . '</td>';
 		print '</tr>';
 
 		print "<tr class='odd'>";
-		print '<td>' . __('Graph ID') . '</td>';
-		print '<td>' . $xport_array['meta']['local_graph_id'] . '</td>';
-		print '<td>'  . __('Host ID') . '</td>';
-		print '<td>' . $xport_array['meta']['host_id'] . '</td>';
+		print '<td style="width:25%">' . __('Graph ID') . '</td>';
+		print '<td style="width:25%">' . $xport_array['meta']['local_graph_id'] . '</td>';
+		print '<td style="width:25%">'  . __('Host ID') . '</td>';
+		print '<td style="width:25%">' . $xport_array['meta']['host_id'] . '</td>';
 		print '</tr>';
 
 		$class = 'even';
@@ -228,8 +228,8 @@ if (is_array($xport_array['meta']) && isset($xport_array['meta']['start'])) {
 					print "<tr class='$class'>";
 				}
 
-				print '<td>' . __('Nth Percentile') . ' [ ' . html_escape($item['format']) . ' ]</td>';
-				print '<td>' . html_escape($item['value']) . '</td>';
+				print '<td style="width:25%">' . __('Nth Percentile') . ' [ ' . html_escape($item['format']) . ' ]</td>';
+				print '<td style="width:25%">' . html_escape($item['value']) . '</td>';
 			}
 
 			if ($index % 2 != 0) {
@@ -253,8 +253,8 @@ if (is_array($xport_array['meta']) && isset($xport_array['meta']['start'])) {
 					print "<tr class='$class'>";
 				}
 
-				print '<td>' . __('Summation') . ' [ ' . html_escape($item['format']) . ' ]</td>';
-				print '<td>' . html_escape($item['value']) . '</td>';
+				print '<td style="width:25%">' . __('Summation') . ' [ ' . html_escape($item['format']) . ' ]</td>';
+				print '<td style="width:25%">' . html_escape($item['value']) . '</td>';
 			}
 
 			if ($index % 2 != 0) {
