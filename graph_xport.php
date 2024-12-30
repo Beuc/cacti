@@ -175,7 +175,7 @@ if (is_array($xport_array['meta']) && isset($xport_array['meta']['start'])) {
 		print "<div class='cactiTableTitleRow'>
 			<div class='cactiTableTitle'>" . __('Summary Details') . "</div>
 			<div class='cactiTableButton'>
-				<a href='#' role='link' class='download linkOverDark' id='graph_" . $xport_array['meta']['local_graph_id'] . "'>" . __('Download') . "</a>
+				<span><a href='#' role='link' class='download linkOverDark' id='graph_" . $xport_array['meta']['local_graph_id'] . "'>" . __('Download as CSV') . "</a></span>
 			</div>
 		</div>";
 
