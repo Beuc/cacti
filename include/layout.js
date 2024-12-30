@@ -3538,7 +3538,7 @@ function setSelectMenus() {
 		}
 	});
 
-	var msWidth = 200;
+	var msWidth = 40;
 
 	$('#graph_template_id option').each(function() {
 		var curWidth = $(this).textWidth();
