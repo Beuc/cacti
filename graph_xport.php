@@ -148,196 +148,215 @@ if (is_array($xport_array['meta']) && isset($xport_array['meta']['start'])) {
 		for ($i = 1; $i <= $xport_array['meta']['columns']; $i++) {
 			$header .= ',"' . $xport_array['meta']['legend']['col' . $i] . '"';
 		}
+
 		$output .= $header . "\n";
+
+		if (isset($xport_array['data']) && is_array($xport_array['data'])) {
+			$j = 0;
+
+			foreach ($xport_array['data'] as $row) {
+				$data = '"' . date('Y-m-d H:i:s', (isset($row['timestamp']) ? $row['timestamp'] : $xport_array['meta']['start'] + $j * $xport_array['meta']['step'])) . '"';
+
+				for ($i = 1; $i <= $xport_array['meta']['columns']; $i++) {
+					$data .= ',"' . $row['col' . $i] . '"';
+				}
+
+				$output .= $data . "\n";
+				$j++;
+			}
+
+			// Full UTF-8 Output
+			print "\xEF\xBB\xBF";
+			print $output;
+		}
 	} else {
-		print "<table class='cactiTable' class='center'>\n";
+		print "<div class='cactiTable'>";
 
-		print "<tr class='tableHeader'>
-			<td>" . __('Summary Details') . "</td>
-			<td class='right'><a href='#' role='link' style='cursor:pointer;' class='download linkOverDark' id='graph_" . $xport_array['meta']['local_graph_id'] . "'>" . __('Download') . "</a></td>
-		</tr>\n";
+		print "<div class='cactiTableTitleRow'>
+			<div class='cactiTableTitle'>" . __('Summary Details') . "</div>
+			<div class='cactiTableButton'>
+				<a href='#' role='link' class='download linkOverDark' id='graph_" . $xport_array['meta']['local_graph_id'] . "'>" . __('Download') . "</a>
+			</div>
+		</div>";
 
-		print "<tr class='even'>
-			<td class='left' style='width:40%;'>" . __('Title') . "</td>
-			<td class='right'>" . html_escape($xport_array['meta']['title_cache']) . "</td>
-		</tr>\n";
+		/* print the header information */
+		print "<table class='cactiTable selectable'>";
 
-		print "<tr class='odd'>
-			<td class='left'>" . __('Vertical Label') . "</td>
-			<td class='right'>" . html_escape($xport_array['meta']['vertical_label']) . "</td>
-		</tr>\n";
+		print "<tr class='even'>";
+		print '<td>' . __('Title') . '</td>';
+		print '<td>' . html_escape($xport_array['meta']['title_cache']) . '</td>';
+		print '<td>' . __('Vertical Label') . '</td>';
+		print '<td>' . html_escape($xport_array['meta']['vertical_label']) . '</td>';
+		print '</tr>';
 
-		print "<tr class='even'>
-			<td class='left'>" . __('Start Date') . "</td>
-			<td class='right'>" . date('Y-m-d H:i:s', $xport_array['meta']['start']) . "</td>
-		</tr>\n";
+		print "<tr class='odd'>";
+		print '<td>' . __('Start Date') . '</td>';
+		print '<td>' . date('Y-m-d H:i:s', $xport_array['meta']['start']) . '</td>';
+		print '<td>' . __('End Date') . '</td>';
+		print '<td>' . date('Y-m-d H:i:s', ($xport_array['meta']['end'] == $xport_array['meta']['start']) ? $xport_array['meta']['start'] + $xport_array['meta']['step'] * ($xport_array['meta']['rows'] - 1) : $xport_array['meta']['end']) . '</td>';
+		print '</tr>';
 
-		print "<tr class='odd'>
-			<td class='left'>" . __('End Date') . "</td>
-			<td class='right'>" . date('Y-m-d H:i:s', ($xport_array['meta']['end'] == $xport_array['meta']['start']) ? $xport_array['meta']['start'] + $xport_array['meta']['step'] * ($xport_array['meta']['rows'] - 1) : $xport_array['meta']['end']) . "</td>
-		</tr>\n";
+		print "<tr class='even'>";
+		print '<td>' . __('Step') . '</td>';
+		print '<td>' . $xport_array['meta']['step'] . '</td>';
+		print '<td>' . __('Total Rows') . '</td>';
+		print '<td>' . $xport_array['meta']['rows'] . '</td>';
+		print '</tr>';
 
-		print "<tr class='even'>
-			<td class='left'>" . __('Step') . "</td>
-			<td class='right'>" . $xport_array['meta']['step'] . "</td>
-		</tr>\n";
-
-		print "<tr class='odd'>
-			<td class='left'>" . __('Total Rows') . "</td>
-			<td class='right'>" . $xport_array['meta']['rows'] . "</td>
-		</tr>\n";
-
-		print "<tr class='even'>
-			<td class='left'>" . __('Graph ID') . "</td>
-			<td class='right'>" . $xport_array['meta']['local_graph_id'] . "</td>
-		</tr>\n";
-
-		print "<tr class='odd'>
-			<td class='left'>"  . __('Host ID') . "</td>
-			<td class='right'>" . $xport_array['meta']['host_id'] . "</td>
-		</tr>\n";
+		print "<tr class='odd'>";
+		print '<td>' . __('Graph ID') . '</td>';
+		print '<td>' . $xport_array['meta']['local_graph_id'] . '</td>';
+		print '<td>'  . __('Host ID') . '</td>';
+		print '<td>' . $xport_array['meta']['host_id'] . '</td>';
+		print '</tr>';
 
 		$class = 'even';
 
 		if (isset($xport_meta['NthPercentile'])) {
-			foreach ($xport_meta['NthPercentile'] as $item) {
+			foreach ($xport_meta['NthPercentile'] as $index => $item) {
 				if ($class == 'even') {
 					$class = 'odd';
 				} else {
 					$class = 'even';
 				}
 
-				print "<tr class='$class'>
-					<td class='left'>" . __('Nth Percentile') . ' [ ' . html_escape($item['format']) . " ]</td>
-					<td class='right'>" . html_escape($item['value']) . "</td>
-				</tr>\n";
+				if ($index % 2 == 0) {
+					if ($index > 0) {
+						print '</tr>';
+					}
+
+					print "<tr class='$class'>";
+				}
+
+				print '<td>' . __('Nth Percentile') . ' [ ' . html_escape($item['format']) . ' ]</td>';
+				print '<td>' . html_escape($item['value']) . '</td>';
+			}
+
+			if ($index % 2 != 0) {
+				print '</tr>';
 			}
 		}
 
 		if (isset($xport_meta['Summation'])) {
-			foreach ($xport_meta['Summation'] as $item) {
+			foreach ($xport_meta['Summation'] as $index => $item) {
 				if ($class == 'even') {
 					$class = 'odd';
 				} else {
 					$class = 'even';
 				}
 
-				print "<tr class='$class'>
-					<td class='left'>" . __('Summation') . ' [ ' . html_escape($item['format']) . " ]</td>
-					<td class='right'>" . html_escape($item['value']) . "</td>
-				</tr>\n";
-			}
-		}
-
-		print "</table><br>\n";
-		print "<div class='wrapperTop'><div class='fake'></div></div>\n";
-		print "<div class='wrapperMain' style='display:none;'>\n";
-		print "<table id='csvExport' class='cactiTable'><thead>\n";
-
-		print "<tr class='tableHeader'>
-			<th class='tableSubHeaderColumn left ui-resizable'>" . __('Date') . "</th>\n";
-
-		for ($i = 1; $i <= $xport_array['meta']['columns']; $i++) {
-			print "<th class='{sorter: \"numberFormat\"} tableSubHeaderColumn right ui-resizable'>" . $xport_array['meta']['legend']['col' . $i] . "</th>\n";
-		}
-
-		print "</tr></thead>\n";
-	}
-}
-
-if (isset($xport_array['data']) && is_array($xport_array['data'])) {
-	if (!$html) {
-		$j = 0;
-
-		foreach ($xport_array['data'] as $row) {
-			$data = '"' . date('Y-m-d H:i:s', (isset($row['timestamp']) ? $row['timestamp'] : $xport_array['meta']['start'] + $j * $xport_array['meta']['step'])) . '"';
-
-			for ($i = 1; $i <= $xport_array['meta']['columns']; $i++) {
-				$data .= ',"' . $row['col' . $i] . '"';
-			}
-
-			$output .= $data . "\n";
-			$j++;
-		}
-
-		// Full UTF-8 Output
-		print "\xEF\xBB\xBF";
-		print $output;
-	} else {
-		$j = 0;
-
-		foreach ($xport_array['data'] as $row) {
-			print "<tr><td class='left'>" . date('Y-m-d H:i:s', (isset($row['timestamp']) ? $row['timestamp'] : $xport_array['meta']['start'] + $j * $xport_array['meta']['step'])) . '</td>';
-
-			for ($i = 1; $i <= $xport_array['meta']['columns']; $i++) {
-				$row_data = floatval($row['col'. $i]);
-
-				if ($row_data > 1) {
-					$row_data = trim(number_format_i18n(round($row_data, 3), 2, $graph_info['base_value']));
-				} elseif ($row_data == 0) {
-					$row_data = '-';
-
-					if (!is_numeric($row['col'.$i])) {
-						$row_data .= '(unexpected: ' . $row['col' . $i] . ')';
+				if ($index % 2 == 0) {
+					if ($index > 0) {
+						print '</tr>';
 					}
-				} elseif (is_numeric($row_data)) {
-					$row_data = trim(number_format_i18n(round($row_data, 5), 4));
-				} else {
-					$row_data = 'U';
+
+					print "<tr class='$class'>";
 				}
 
-				print "<td class='right'>$row_data</td>";
+				print '<td>' . __('Summation') . ' [ ' . html_escape($item['format']) . ' ]</td>';
+				print '<td>' . html_escape($item['value']) . '</td>';
 			}
 
-			print "</tr>\n";
-			$j++;
-		}
-
-		print "<tr><td>\n";
-
-		?>
-		<script type='text/javascript'>
-		$(function() {
-			$('#csvExport').tablesorter({
-				widgets: ['zebra'],
-				widgetZebra: { css: ['even', 'odd'] },
-				headerTemplate: '<div class="textSubHeaderDark">{content} {icon}</div>',
-				cssIconAsc: 'fa-sort-up',
-				cssIconDesc: 'fa-sort-down',
-				cssIconNone: 'fa-sort',
-				cssIcon: 'fa'
-			});
-
-  			$('.wrapperTop').on('scroll', function(){
-				$('.wrapperMain').scrollLeft($('.wrapperTop').scrollLeft());
-			});
-			$('.wrapperMain').on('scroll', function(){
-				$('.wrapperTop').scrollLeft($('.wrapperMain').scrollLeft());
-			});
-
-			$(window).resize(function() {
-				resizeWrapper();
-			});
-		});
-
-		function resizeWrapper() {
-			mainWidth = $(window).width() - $('#navigation').outerWidth() - 40;
-			csvWidth = $('.wrapperMain').outerWidth();
-
-			if (csvWidth > mainWidth) {
-				$('.wrapperMain, .wrapperTop').css('width', mainWidth).css('overflow-x', 'scroll');
-				$('.fake').css('width', csvWidth).css('height', '20px');
-				$('.wrapperTop').css('height', '20px');
-			} else {
-				$('.wrapperTop').hide();
-				$('.wrapperMain').css('width', '100%');
+			if ($index % 2 != 0) {
+				print '</tr>';
 			}
-			$('.wrapperMain').show();
 		}
-		</script>
-		<?php
 
-		print "</td></tr></table></div>\n";
+		print '</table>';
+		print '</div><br>';
+
+		/* end of CSV header information */
+
+		print "<div class='wrapperTop'><div class='fake'></div></div>";
+		print "<div class='wrapperMain' style='display:none;'>";
+
+		print "<table id='csvExport' class='cactiTable'><thead>";
+
+		print "<tr class='tableHeader'>
+			<th class='tableSubHeaderColumn left ui-resizable'>" . __('Date') . '</th>';
+
+		for ($i = 1; $i <= $xport_array['meta']['columns']; $i++) {
+			print "<th class='{sorter: \"numberFormat\"} tableSubHeaderColumn right ui-resizable'>" . $xport_array['meta']['legend']['col' . $i] . '</th>';
+		}
+
+		print '</tr></thead>';
+
+		if (isset($xport_array['data']) && is_array($xport_array['data'])) {
+			$j = 0;
+
+			foreach ($xport_array['data'] as $row) {
+				print "<tr><td class='left'>" . date('Y-m-d H:i:s', (isset($row['timestamp']) ? $row['timestamp'] : $xport_array['meta']['start'] + $j * $xport_array['meta']['step'])) . '</td>';
+
+				for ($i = 1; $i <= $xport_array['meta']['columns']; $i++) {
+					$row_data = floatval($row['col'. $i]);
+
+					if ($row_data > 1) {
+						$row_data = trim(number_format_i18n(round($row_data, 3), 2, $graph_info['base_value']));
+					} elseif ($row_data == 0) {
+						$row_data = '-';
+
+						if (!is_numeric($row['col'.$i])) {
+							$row_data .= '(unexpected: ' . $row['col' . $i] . ')';
+						}
+					} elseif (is_numeric($row_data)) {
+						$row_data = trim(number_format_i18n(round($row_data, 5), 4));
+					} else {
+						$row_data = 'U';
+					}
+
+					print "<td class='right'>$row_data</td>";
+				}
+
+				print '</tr>';
+				$j++;
+			}
+
+			print '<tr><td>';
+
+			?>
+			<script type='text/javascript'>
+			$(function() {
+				$('#csvExport').tablesorter({
+					widgets: ['zebra'],
+					widgetZebra: { css: ['even', 'odd'] },
+					headerTemplate: '<div class="textSubHeaderDark">{content} {icon}</div>',
+					cssIconAsc: 'fa-sort-up',
+					cssIconDesc: 'fa-sort-down',
+					cssIconNone: 'fa-sort',
+					cssIcon: 'fa'
+				});
+
+  				$('.wrapperTop').on('scroll', function(){
+					$('.wrapperMain').scrollLeft($('.wrapperTop').scrollLeft());
+				});
+				$('.wrapperMain').on('scroll', function(){
+					$('.wrapperTop').scrollLeft($('.wrapperMain').scrollLeft());
+				});
+
+				$(window).resize(function() {
+					resizeWrapper();
+				});
+			});
+
+			function resizeWrapper() {
+				mainWidth = $(window).width() - $('#navigation').outerWidth() - 40;
+				csvWidth = $('.wrapperMain').outerWidth();
+
+				if (csvWidth > mainWidth) {
+					$('.wrapperMain, .wrapperTop').css('width', mainWidth).css('overflow-x', 'scroll');
+					$('.fake').css('width', csvWidth).css('height', '20px');
+					$('.wrapperTop').css('height', '20px');
+				} else {
+					$('.wrapperTop').hide();
+					$('.wrapperMain').css('width', '100%');
+				}
+				$('.wrapperMain').show();
+			}
+			</script>
+			<?php
+
+			print '</td></tr></table></div>';
+		}
 	}
 }
 
