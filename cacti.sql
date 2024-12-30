@@ -1764,7 +1764,6 @@ CREATE TABLE graph_templates (
   `multiple` char(2) NOT NULL default '',
   `test_source` char(2) NOT NULL default '',
   `graphs` int(10) unsigned NOT NULL default '0',
-  `templates` int(10) unsigned NOT NULL default '0',
   PRIMARY KEY (`id`),
   KEY `multiple_name` (`multiple`, `name`),
   KEY `name` (`name`)
