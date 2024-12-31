@@ -1984,15 +1984,13 @@ function display_graphs() {
 		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . 'gl.host_id IN( ' . $host_ids . ')';
 	}
 
-	$graphs = db_fetch_assoc_prepared("SELECT
-		gtg.local_graph_id AS id,
-		gtg.title_cache AS title,
-		gt.name AS template_name,
-		hsc.field_name,
-		hsc.field_value
+	$graphs = db_fetch_assoc_prepared("SELECT gtg.local_graph_id AS id,
+		gtg.title_cache AS title, gt.name AS template_name,
+		GROUP_CONCAT(DISTINCT hsc.field_name) AS field_name,
+		GROUP_CONCAT(DISTINCT hsc.field_value) AS field_value
 		FROM graph_templates_graph AS gtg
 		LEFT JOIN graph_templates AS gt
-		ON gt.id=gtg.graph_template_id
+		ON gt.id = gtg.graph_template_id
 		LEFT JOIN graph_local AS gl
 		ON gtg.local_graph_id = gl.id
 		LEFT JOIN host as h
@@ -2000,15 +1998,29 @@ function display_graphs() {
 		LEFT JOIN host_snmp_cache AS hsc
 		ON hsc.host_id = h.id
 		AND hsc.snmp_query_id = gl.snmp_query_id
+		AND hsc.snmp_index = gl.snmp_index
 		$sql_where
+		GROUP BY gtg.local_graph_id
 		ORDER BY title_cache
 		LIMIT " . read_config_option('autocomplete_rows'),
 		$sql_params);
 
 	if (cacti_sizeof($graphs)) {
 		foreach ($graphs as $g) {
-			if ($g['field_value'] != '') {
-				$g['title'] .= ' [ ' . html_escape($g['field_name']) . ':' . html_escape($g['field_value']) . ' ]';
+			if (get_request_var('filter') != '') {
+				$title = $g['title'];
+
+				if (stripos($g['field_value'], get_request_var('filter')) !== false) {
+					$parts  = explode(',', $g['field_value']);
+					$nparts = explode(',', $g['field_name']);
+
+					foreach($parts as $index => $p) {
+						if (stripos($p, get_request_var('filter')) !== false) {
+							$g['title'] .= " [ {$nparts[$index]}:$p ]";
+						}
+					}
+
+				}
 			}
 
 			if (is_graph_allowed($g['id'])) {
