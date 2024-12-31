@@ -288,9 +288,14 @@ function device_recovery_sweep() {
 
 function update_graphs_data_source_templates_totals($force) {
 	// Don't run this script too often
-	$last_run = read_config_option('maintenance_totals_update');
+	$last_run   = read_config_option('maintenance_totals_update');
+	$last_graph = read_config_option('time_last_change_graph');
+	$cur_time   = time();
 
-	if (!empty($last_run) && time() - $last_run < 3600 && !$force) {
+	$gr_update = ($last_run < $last_graph ? true:false);
+	$tm_update = ($cur_time - $last_run > 3600 ? true:false);
+
+	if (!empty($last_run) && !$gr_update && !$tm_update && !$force) {
 		return false;
 	}
 

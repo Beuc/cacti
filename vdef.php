@@ -777,12 +777,16 @@ function vdef($refresh = true) {
 				$disabled = true;
 			}
 
+			$graphs_url    = 'graphs.php?reset=1&vdef_id=' . $vdef['id'];
+			$templates_url = 'graph_templates.php?reset=1&vdef_id=' . $vdef['id'];
+
 			form_alternate_row('line' . $vdef['id'], false, $disabled);
 
 			form_selectable_cell(filter_value($vdef['name'], get_request_var('filter'), 'vdef.php?action=edit&id=' . $vdef['id']), $vdef['id']);
 			form_selectable_cell($disabled ? __('No'):__('Yes'), $vdef['id'], '', 'right');
-			form_selectable_cell(number_format_i18n($vdef['graphs'], '-1'), $vdef['id'], '', 'right');
-			form_selectable_cell(number_format_i18n($vdef['templates'], '-1'), $vdef['id'], '', 'right');
+			form_selectable_cell(filter_value(number_format_i18n($vdef['graphs'], '-1'), '', $graphs_url), $vdef['id'], '', 'right');
+			form_selectable_cell(filter_value(number_format_i18n($vdef['templates'], '-1'), '', $templates_url), $vdef['id'], '', 'right');
+
 			form_checkbox_cell($vdef['name'], $vdef['id'], $disabled);
 
 			form_end_row();

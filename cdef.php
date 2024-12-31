@@ -775,12 +775,16 @@ function cdef() {
 				$disabled = true;
 			}
 
+			$graphs_url    = 'graphs.php?reset=1&cdef_id=' . $cdef['id'];
+			$templates_url = 'graph_templates.php?reset=1&cdef_id=' . $cdef['id'];
+
 			form_alternate_row('line' . $cdef['id'], false, $disabled);
 
 			form_selectable_cell(filter_value($cdef['name'], get_request_var('filter'), 'cdef.php?action=edit&id=' . $cdef['id']), $cdef['id']);
 			form_selectable_cell($disabled ? __('No'):__('Yes'), $cdef['id'], '', 'right');
-			form_selectable_cell(number_format_i18n($cdef['graphs'], '-1'), $cdef['id'], '', 'right');
-			form_selectable_cell(number_format_i18n($cdef['templates'], '-1'), $cdef['id'], '', 'right');
+			form_selectable_cell(filter_value(number_format_i18n($cdef['graphs'], '-1'), '', $graphs_url), $cdef['id'], '', 'right');
+			form_selectable_cell(filter_value(number_format_i18n($cdef['templates'], '-1'), '', $templates_url), $cdef['id'], '', 'right');
+
 			form_checkbox_cell($cdef['name'], $cdef['id'], $disabled);
 
 			form_end_row();
