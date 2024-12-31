@@ -253,7 +253,7 @@ function api_scheduler_is_time_to_start($schedule) {
 			break;
 		case SCHEDULE_HOURLY:
 		case SCHEDULE_DAILY:
-			if ($schedule['sched_type']] == SCHEDULE_HOURLY) {
+			if ($schedule['sched_type'] == SCHEDULE_HOURLY) {
 				$recur = $schedule['recur_every'] * 3600; // days
 			} else {
 				$recur = $schedule['recur_every'] * 86400; // days
