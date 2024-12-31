@@ -172,13 +172,14 @@ Cacti CHANGELOG
 -feature#6001: Extend SYSTEM STATS log entry
 -feature: Allow messages to be popup notifications
 -feature: Upgrade billboard.js to version 3.14.1
--feature: Upgrade jQueryUI to 1.14.1
+-feature: Upgrade jQueryUI to version 1.14.1
 -feature: Upgrade d3.js to version 7.8.2
 -feature: Upgrade ua-parser.js to version 1.0.35
+-feature: Upgrade jquery.tablednd.js to version 1.0.5
+-feature: Upgrade FontAwesome to version 6.7.2
 -feature: Add parsedown to vendor library for plugin CHANGELOG and README viewing support
 -feature: Add year display to get_daysfromtime function
 -feature: Add class and version columns to Graph Template to support Streams feature
--feature: Upgrade jquery.tablednd.js to 1.0.5
 
 1.2.29
 -issue#5843: Issue with temporary tables with use of microtime
