@@ -2007,15 +2007,15 @@ function display_graphs() {
 
 	if (cacti_sizeof($graphs)) {
 		foreach ($graphs as $g) {
-			if (get_request_var('filter') != '') {
+			if (get_nfilter_request_var('filter') != '') {
 				$title = $g['title'];
 
-				if (stripos($g['field_value'], get_request_var('filter')) !== false) {
+				if (stripos($g['field_value'], get_nfilter_request_var('filter')) !== false) {
 					$parts  = explode(',', $g['field_value']);
 					$nparts = explode(',', $g['field_name']);
 
 					foreach($parts as $index => $p) {
-						if (stripos($p, get_request_var('filter')) !== false) {
+						if (stripos($p, get_nfilter_request_var('filter')) !== false) {
 							$g['title'] .= " [ {$nparts[$index]}:$p ]";
 						}
 					}
