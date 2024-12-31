@@ -2966,7 +2966,10 @@ function object_cache_update_graph_totals() {
 					db_fetch_assoc('SELECT cdef_id AS id,
 						SUM(CASE WHEN local_graph_id > 0 THEN 1 ELSE 0 END) AS graphs,
 						SUM(CASE WHEN local_graph_id = 0 THEN 1 ELSE 0 END) AS templates
-						FROM (SELECT DISTINCT cdef_id, local_graph_id FROM graph_templates_item WHERE cdef_id > 0) AS rs
+						FROM (
+							SELECT DISTINCT cdef_id, graph_template_id, local_graph_id
+							FROM graph_templates_item WHERE cdef_id > 0
+						) AS rs
 						GROUP BY cdef_id'),
 					'id', array('graphs', 'templates')
 				);
@@ -3001,7 +3004,11 @@ function object_cache_update_graph_totals() {
 					db_fetch_assoc('SELECT color_id AS id,
 						SUM(CASE WHEN local_graph_id > 0 THEN 1 ELSE 0 END) AS graphs,
 						SUM(CASE WHEN local_graph_id = 0 THEN 1 ELSE 0 END) AS templates
-						FROM (SELECT DISTINCT color_id, local_graph_id FROM graph_templates_item WHERE color_id > 0) AS rs
+						FROM (
+							SELECT DISTINCT color_id, graph_template_id, local_graph_id
+							FROM graph_templates_item
+							WHERE color_id > 0
+						) AS rs
 						GROUP BY color_id'),
 					'id', array('graphs', 'templates')
 				);
@@ -3068,7 +3075,10 @@ function object_cache_update_graph_totals() {
 					db_fetch_assoc('SELECT gprint_id AS id,
 						SUM(CASE WHEN local_graph_id > 0 THEN 1 ELSE 0 END) AS graphs,
 						SUM(CASE WHEN local_graph_id = 0 THEN 1 ELSE 0 END) AS templates
-						FROM (SELECT DISTINCT gprint_id, local_graph_id FROM graph_templates_item WHERE gprint_id > 0) AS rs
+						FROM (
+							SELECT DISTINCT gprint_id, graph_template_id, local_graph_id
+							FROM graph_templates_item
+							WHERE gprint_id > 0) AS rs
 						GROUP BY gprint_id'),
 					'id', array('graphs', 'templates')
 				);
@@ -3144,7 +3154,11 @@ function object_cache_update_graph_totals() {
 					db_fetch_assoc('SELECT vdef_id AS id,
 						SUM(CASE WHEN local_graph_id > 0 THEN 1 ELSE 0 END) AS graphs,
 						SUM(CASE WHEN local_graph_id = 0 THEN 1 ELSE 0 END) AS templates
-						FROM (SELECT DISTINCT vdef_id, local_graph_id FROM graph_templates_item WHERE vdef_id > 0) AS rs
+						FROM (
+							SELECT DISTINCT vdef_id, graph_template_id, local_graph_id
+							FROM graph_templates_item
+							WHERE vdef_id > 0
+						) AS rs
 						GROUP BY vdef_id'),
 					'id', array('graphs', 'templates')
 				);
