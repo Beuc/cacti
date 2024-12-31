@@ -1533,7 +1533,7 @@ function get_allowed_graphs($sql_where = '', $sql_order = 'gtg.title_cache', $sq
 
 	$graphs = db_fetch_assoc("SELECT gtg.local_graph_id, h.description, gt.name AS template_name,
 		gtg.title_cache, gtg.width, gtg.height, gl.snmp_index, gl.snmp_query_id, gl.host_id, h.disabled,
-		IF(gl.graph_template_id=0, 0, IF(gl.snmp_query_id=0, 2, 1)) AS graph_source,
+		IF(gl.graph_template_id = 0, 0, IF(gl.snmp_query_id = 0, 2, 1)) AS graph_source,
 		s.id AS site_id, s.name AS site_name, h.location
 		FROM graph_templates_graph AS gtg
 		INNER JOIN graph_local AS gl
@@ -1552,11 +1552,11 @@ function get_allowed_graphs($sql_where = '', $sql_order = 'gtg.title_cache', $sq
 	$sql = "SELECT COUNT(*)
 		FROM graph_templates_graph AS gtg
 		INNER JOIN graph_local AS gl
-		ON gl.id=gtg.local_graph_id
+		ON gl.id = gtg.local_graph_id
 		LEFT JOIN graph_templates AS gt
-		ON gt.id=gl.graph_template_id
+		ON gt.id = gl.graph_template_id
 		LEFT JOIN host AS h
-		ON h.id=gl.host_id
+		ON h.id = gl.host_id
 		LEFT JOIN sites AS s
 		ON h.site_id = s.id
 		$sql_order_join
