@@ -510,7 +510,7 @@ function db_install_add_column($table, $column, $ignore = true) {
 	global $database_last_error;
 	$status = DB_STATUS_SKIPPED;
 
-	$sql = 'ALTER TABLE `' . $table . '` ADD `' . $column['name'] . '`';
+	$sql = 'ALTER TABLE `' . $table . '` ADD COLUMN `' . $column['name'] . '`';
 
 	if (!db_table_exists($table)) {
 		$database_last_error = 'Table \'' . $table . '\' missing, cannot add column \'' . $column['name'] . '\'';
