@@ -160,7 +160,7 @@ CREATE TABLE `aggregate_graphs` (
   `total_type` int(10) unsigned NOT NULL,
   `total_prefix` varchar(64) NOT NULL,
   `order_type` int(10) unsigned NOT NULL,
-  `created` timestamp NOT NULL default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `created` timestamp NOT NULL default CURRENT_TIMESTAMP,
   `user_id` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   KEY `aggregate_template_id` (`aggregate_template_id`),
@@ -1613,6 +1613,7 @@ CREATE TABLE data_template (
   `name` varchar(150) NOT NULL default '',
   `data_sources` int(10) unsigned NOT NULL default '0',
   `templates` int(10) unsigned NOT NULL default '0',
+  `last_updated` timestamp default CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY `name` (`name`)
 ) ENGINE=InnoDB ROW_FORMAT=Dynamic;
@@ -1764,6 +1765,7 @@ CREATE TABLE graph_templates (
   `multiple` char(2) NOT NULL default '',
   `test_source` char(2) NOT NULL default '',
   `graphs` int(10) unsigned NOT NULL default '0',
+  `last_updated` timestamp default CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `multiple_name` (`multiple`, `name`),
   KEY `name` (`name`)
@@ -2824,6 +2826,7 @@ CREATE TABLE snmp_query (
   `data_input_id` mediumint(8) unsigned NOT NULL default '0',
   `graphs` int(10) unsigned NOT NULL default '0',
   `templates` int(10) unsigned NOT NULL default '0',
+  `last_updated` timestamp default CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   KEY name (name)
 ) ENGINE=InnoDB ROW_FORMAT=Dynamic;

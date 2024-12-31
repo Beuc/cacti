@@ -170,6 +170,7 @@ Cacti CHANGELOG
 -feature#5993: Allow Automation Rules to Search through Site Information
 -feature#5997: Add filter for devices in maintenance plan, add icon to device list 
 -feature#6001: Extend SYSTEM STATS log entry
+-feature#6033: Allow Admins to see when a template was last modified
 -feature#6034: Allow Users to Drill Up from CDEF's and VDEF's to Graphs and Graph Templates
 -feature: Allow messages to be popup notifications
 -feature: Upgrade billboard.js to version 3.14.1

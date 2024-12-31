@@ -292,6 +292,8 @@ function form_save() {
 		$save2['left_axis_formatter']           = form_input_validate((isset_request_var('left_axis_formatter') ? get_nfilter_request_var('left_axis_formatter') : ''), 'left_axis_formatter', '', true, 3);
 
 		if (!is_error_message()) {
+			$save1['last_updated'] = date('Y-m-d H:i:s');
+
 			$graph_template_id = sql_save($save1, 'graph_templates');
 
 			if ($graph_template_id) {
@@ -500,16 +502,14 @@ function form_save() {
 						/* old item clean-up.  Don't delete anything if the item <-> task_item_id association remains the same. */
 						if (get_nfilter_request_var('_task_item_id') != get_nfilter_request_var('task_item_id')) {
 							/* It changed.  Delete any old associations */
-							db_execute_prepared(
-								'DELETE FROM graph_template_input_defs
+							db_execute_prepared('DELETE FROM graph_template_input_defs
 								WHERE graph_template_item_id = ?',
 								array($graph_template_item_id)
 							);
 
 							/* Input for current data source exists and has changed.  Update the association */
 							if (isset($orig_data_source_to_input[$save['task_item_id']])) {
-								db_execute_prepared(
-									'REPLACE INTO graph_template_input_defs
+								db_execute_prepared('REPLACE INTO graph_template_input_defs
 									(graph_template_input_id, graph_template_item_id)
 									VALUES (?, ?)',
 									array($orig_data_source_to_input[$save['task_item_id']], $graph_template_item_id)
@@ -525,8 +525,7 @@ function form_save() {
 								array(get_nfilter_request_var('task_item_id'))
 							);
 
-							db_execute_prepared(
-								"REPLACE INTO graph_template_input
+							db_execute_prepared("REPLACE INTO graph_template_input
 								(hash, graph_template_id, name, column_name)
 								VALUES (?, ?, ?, 'task_item_id')",
 								array(get_hash_graph_template(0, 'graph_template_input'), $save['graph_template_id'], "Data Source [$ds_name]")
@@ -543,8 +542,7 @@ function form_save() {
 
 							if (cacti_sizeof($graph_items)) {
 								foreach ($graph_items as $graph_item) {
-									db_execute_prepared(
-										'REPLACE INTO graph_template_input_defs
+									db_execute_prepared('REPLACE INTO graph_template_input_defs
 										(graph_template_input_id, graph_template_item_id)
 										VALUES (?, ?)',
 										array($graph_template_input_id, $graph_item['id'])
@@ -573,6 +571,11 @@ function form_save() {
 
 			exit;
 		} else {
+			db_execute_prepared('UPDATE graph_templates
+				SET last_updated = NOW()
+				WHERE id = ?',
+				get_nfilter_request_var('graph_template_id'));
+
 			header('Location: graph_templates.php?action=template_edit&id=' . get_nfilter_request_var('graph_template_id'));
 
 			exit;
@@ -650,6 +653,11 @@ function form_save() {
 
 			exit;
 		} else {
+			db_execute_prepared('UPDATE graph_templates
+				SET last_updated = NOW()
+				WHERE id = ?',
+				get_nfilter_request_var('graph_template_id'));
+
 			header('Location: graph_templates.php?action=template_edit&id=' . get_nfilter_request_var('graph_template_id'));
 
 			exit;
@@ -1561,7 +1569,7 @@ function graph_templates() {
 
 	$template_list = db_fetch_assoc_prepared("SELECT DISTINCT gt.id, gt.name, gt.graphs,
 		IF(gt.version = '', '$cacti_version', gt.version) AS version,
-		IF(gt.class = '', 'unassigned', gt.class) AS class, graph_items,
+		IF(gt.class = '', 'unassigned', gt.class) AS class, graph_items, last_updated,
 		CONCAT(gtg.height, 'x', gtg.width) AS size, gtg.vertical_label, gtg.image_format_id
 		FROM graph_templates AS gt
 		INNER JOIN graph_templates_graph AS gtg
@@ -1641,6 +1649,12 @@ function graph_templates() {
 			'align'   => 'right',
 			'sort'    => 'ASC',
 			'tip'     => __('The vertical label for the resulting Graphs.')
+		),
+		'last_updated' => array(
+			'display' => __('Last Updated'),
+			'align'   => 'right',
+			'sort'    => 'ASC',
+			'tip'     => __('The last time this Template was updated.')
 		)
 	);
 
@@ -1676,6 +1690,7 @@ function graph_templates() {
 			form_selectable_cell($image_types[$template['image_format_id']], $template['id'], '', 'right');
 			form_selectable_ecell($template['size'], $template['id'], '', 'right');
 			form_selectable_ecell($template['vertical_label'], $template['id'], '', 'right');
+			form_selectable_ecell($template['last_updated'], $template['id'], '', 'right');
 
 			form_checkbox_cell($template['name'], $template['id'], $disabled);
 

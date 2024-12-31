@@ -273,6 +273,11 @@ function form_save() {
 			)
 		);
 
+		db_execute_prepared('UPDATE snmp_query
+			SET last_updated = NOW()
+			WHERE id = ?',
+			get_request_var('id'));
+
 		clear_messages();
 
 		header('Location: data_queries.php?action=item_edit&id=' . get_request_var('id') . '&snmp_query_id=' . get_request_var('snmp_query_id'));
@@ -317,6 +322,11 @@ function form_save() {
 					get_nfilter_request_var('svds_text')
 				)
 			);
+
+			db_execute_prepared('UPDATE snmp_query
+				SET last_updated = NOW()
+				WHERE id = ?',
+				get_request_var('id'));
 
 			clear_messages();
 
@@ -1287,8 +1297,7 @@ function data_query() {
 		$sql_where = '';
 	}
 
-	$total_rows = db_fetch_cell("SELECT
-		COUNT(*)
+	$total_rows = db_fetch_cell("SELECT COUNT(*)
 		FROM snmp_query AS sq
 		INNER JOIN data_input AS di
 		ON sq.data_input_id=di.id
@@ -1297,7 +1306,7 @@ function data_query() {
 	$sql_order = get_order_string();
 	$sql_limit = ' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows;
 
-	$snmp_queries = db_fetch_assoc("SELECT sq.id, sq.name, sq.graphs, sq.templates,
+	$snmp_queries = db_fetch_assoc("SELECT sq.id, sq.name, sq.graphs, sq.templates, sq.last_updated,
 		di.name AS data_input_method
 		FROM snmp_query AS sq
 		LEFT JOIN data_input AS di
@@ -1341,6 +1350,12 @@ function data_query() {
 			'align'   => 'right',
 			'sort'    => 'ASC',
 			'tip'     => __('The Data Input Method used to collect data for Data Sources associated with this Data Query.')
+		),
+		'last_updated' => array(
+			'display' => __('Last Updated'),
+			'align'   => 'right',
+			'sort'    => 'ASC',
+			'tip'     => __('The last time this Template was updated.')
 		)
 	);
 
@@ -1369,7 +1384,10 @@ function data_query() {
 			form_selectable_cell(number_format_i18n($snmp_query['graphs'], '-1'), $snmp_query['id'], '', 'right');
 			form_selectable_cell(number_format_i18n($snmp_query['templates'], '-1'), $snmp_query['id'], '', 'right');
 			form_selectable_cell(filter_value($snmp_query['data_input_method'], get_request_var('filter')), $snmp_query['id'], '', 'right');
+			form_selectable_cell($snmp_query['last_updated'], $snmp_query['id'], '', 'right');
+
 			form_checkbox_cell($snmp_query['name'], $snmp_query['id'], $disabled);
+
 			form_end_row();
 		}
 	} else {

@@ -189,6 +189,8 @@ function form_save() {
 		}
 
 		if (!is_error_message()) {
+			$save1['last_updated'] = date('Y-m-d H:i:s');
+
 			$data_template_id = sql_save($save1, 'data_template');
 
 			if ($data_template_id) {
@@ -1063,7 +1065,7 @@ function data_templates() {
 	$sql_order = get_order_string();
 	$sql_limit = ' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows;
 
-	$template_list_sql = "SELECT dt.id, dt.name, dt.data_sources,
+	$template_list_sql = "SELECT dt.id, dt.name, dt.data_sources, dt.last_updated,
 		di.name AS data_input_method, dtd.active AS active, dsp.name AS profile_name
 		FROM data_template AS dt
 		INNER JOIN data_template_data AS dtd
@@ -1120,6 +1122,12 @@ function data_templates() {
 			'align'   => 'left',
 			'sort'    => 'ASC',
 			'tip'     => __('Data Sources based on Inactive Data Templates will not be updated when the poller runs.')
+		),
+		'last_updated' => array(
+			'display' => __('Last Updated'),
+			'align'   => 'right',
+			'sort'    => 'ASC',
+			'tip'     => __('The last time this Template was updated.')
 		)
 	);
 
@@ -1158,6 +1166,7 @@ function data_templates() {
 			form_selectable_cell((empty($template['data_input_method']) ? '<em>' . __('None') .'</em>': html_escape($template['data_input_method'])), $template['id']);
 			form_selectable_cell((empty($template['profile_name']) ? __('External'):html_escape($template['profile_name'])), $template['id']);
 			form_selectable_cell((($template['active'] == 'on') ? __('Active'):__('Disabled')), $template['id']);
+			form_selectable_cell($template['last_updated'], $template['id'], '', 'right');
 
 			form_checkbox_cell($template['name'], $template['id'], $disabled);
 

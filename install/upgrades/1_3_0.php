@@ -78,6 +78,10 @@ function upgrade_to_1_3_0() {
 	db_install_add_column('data_input_data', array('name' => 'local_data_id', 'type' => 'int', 'unsigned' => true, 'NULL' => false, 'default' => '0', 'after' => 'data_template_id'));
 	db_install_add_column('data_input_data', array('name' => 'host_id', 'type' => 'int', 'unsigned' => true, 'NULL' => false, 'default' => '0', 'after' => 'local_data_id'));
 
+	db_install_add_column('graph_templates', array('name' => 'last_updated', 'type' => 'timestamp', 'null' => false, 'default' => 'CURRENT_TIMESTAMP'));
+	db_install_add_column('data_template', array('name' => 'last_updated', 'type' => 'timestamp', 'null' => false, 'default' => 'CURRENT_TIMESTAMP'));
+	db_install_add_column('snmp_query', array('name' => 'last_updated', 'type' => 'timestamp', 'null' => false, 'default' => 'CURRENT_TIMESTAMP'));
+
 	db_add_index('data_input_data', 'INDEX', 'data_template_id', array('data_template_id'));
 	db_add_index('data_input_data', 'INDEX', 'local_data_id', array('local_data_id'));
 	db_add_index('data_input_data', 'INDEX', 'host_id', array('host_id'));
