@@ -298,7 +298,7 @@ function automation_get_matching_device_sql(&$rule, $rule_type) {
 		$sdisabled = "'' AS site_disabled,";
 	}
 
-	/* data query opjects sql */
+	/* data query objects sql */
 	$hsc_sql = make_host_snnp_cache_sql();
 
 	if ($hsc_sql !== false) {
@@ -383,7 +383,7 @@ function automation_get_matching_graphs_sql($rule, $rule_type) {
 	/* get the WHERE clause for matching graphs */
 	$sql_where .= ($sql_where != '' ? ' AND ':' WHERE ') . build_matching_objects_filter($rule['id'], $rule_type);
 
-	/* data query opjects sql */
+	/* data query objects sql */
 	$hsc_sql = make_host_snnp_cache_sql();
 
 	if ($hsc_sql !== false) {
@@ -967,7 +967,7 @@ function display_new_graphs($rule, $url) {
 
 		html_start_box(__('Index Errors [ %s ]', html_escape($details['xml_array']['name'])), '100%', '', '3', 'center', '');
 		html_header($display_text);
-		print "<tr class='tableRow odd'><td clas='deviceDown'>" . __('Error in data query') . '</td></tr>';
+		print "<tr class='tableRow odd'><td class='deviceDown'>" . __('Error in data query') . '</td></tr>';
 		html_end_box();
 	}
 
@@ -1012,7 +1012,7 @@ function display_matching_trees($rule_id, $rule_type, $item, $url) {
 	/* build magic query, for matching hosts JOIN tables host and host_template */
 	$leaf_type = db_fetch_cell('SELECT leaf_type FROM automation_tree_rules WHERE id = ' . $rule_id);
 
-	/* data query opjects sql */
+	/* data query objects sql */
 	$hsc_sql = make_host_snnp_cache_sql();
 
 	if ($hsc_sql !== false) {
@@ -1853,7 +1853,7 @@ function get_matching_hosts($rule, $rule_type, $sql_where='') {
 		$sdisabled = "'' AS site_disabled,";
 	}
 
-	/* data query opjects sql */
+	/* data query objects sql */
 	$hsc_sql = make_host_snnp_cache_sql();
 
 	if ($hsc_sql !== false) {
@@ -1907,7 +1907,7 @@ function get_matching_graphs($rule, $rule_type, $sql_where = '') {
 		$sdisabled = "'' AS site_disabled,";
 	}
 
-	/* data query opjects sql */
+	/* data query objects sql */
 	$hsc_sql = make_host_snnp_cache_sql();
 
 	if ($hsc_sql !== false) {
