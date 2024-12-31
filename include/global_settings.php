@@ -41,10 +41,11 @@ $tabs = array(
 	'logging'        => __('Logging'),
 	'snmp'           => __('Device Defaults'),
 	'poller'         => __('Poller'),
-	'data'           => __('Data'),
+	'scheduler'      => __('Scheduler'),
+	'data'           => __('Data Statistics'),
 	'visual'         => __('Visual'),
 	'authentication' => __('Authentication'),
-	'boost'          => __('Performance'),
+	'boost'          => __('Boost'),
 	'spikes'         => __('Spikes'),
 	'mail'           => __('Mail/Reporting/DNS/Proxy')
 );
@@ -982,6 +983,34 @@ $settings['snmp'] = array(
 		'max_length'    => '10',
 		'size'          => '5'
 	),
+	'snmp_bulk_walk_size' => array(
+		'friendly_name' => __('Bulkwalk Fetch Size'),
+		'description'   => __('How many OID\'s should be returned per snmpbulkwalk request?  For Devices with large SNMP trees, increasing this size will increase re-index performance over a WAN.'),
+		'method'        => 'drop_array',
+		'default'       => '10',
+		'array'         => array(
+			'10'  => '10',
+			'20'  => '20',
+			'30'  => '30',
+			'40'  => '40',
+			'50'  => '50',
+			'60'  => '60',
+			'70'  => '70',
+			'80'  => '80',
+			'90'  => '90',
+			'100' => '100',
+			'150' => '150',
+			'200' => '200'
+		)
+	),
+	'max_get_size' => array(
+		'friendly_name' => __('Max OID Limit'),
+		'description'   => __('The default maximum number of SNMP Get OIDs to issue per snmpget request.  For Devices, this setting is controlled at the Device level.  You should only use this setting when using Cacti\'s SNMP API natively in your scripts or plugins.'),
+		'method'        => 'textbox',
+		'default'       => '10',
+		'max_length'    => '10',
+		'size'          => '5'
+	),
 	'availability_header' => array(
 		'friendly_name' => __('Availability/Reachability'),
 		'method'        => 'spacer',
@@ -1508,34 +1537,6 @@ $settings['poller'] = array(
 			20 => __('%d Seconds', 20)
 			)
 	),
-	'snmp_bulk_walk_size' => array(
-		'friendly_name' => __('SNMP Bulkwalk Fetch Size'),
-		'description'   => __('How many OID\'s should be returned per snmpbulkwalk request?  For Devices with large SNMP trees, increasing this size will increase re-index performance over a WAN.'),
-		'method'        => 'drop_array',
-		'default'       => '10',
-		'array'         => array(
-			'10'  => '10',
-			'20'  => '20',
-			'30'  => '30',
-			'40'  => '40',
-			'50'  => '50',
-			'60'  => '60',
-			'70'  => '70',
-			'80'  => '80',
-			'90'  => '90',
-			'100' => '100',
-			'150' => '150',
-			'200' => '200'
-		)
-	),
-	'max_get_size' => array(
-		'friendly_name' => __('SNMP Get OID Limit'),
-		'description'   => __('The default maximum number of SNMP Get OIDs to issue per snmpget request.  For Devices, this setting is controlled at the Device level.  You should only use this setting when using Cacti\'s SNMP API natively in your scripts or plugins.'),
-		'method'        => 'textbox',
-		'default'       => '10',
-		'max_length'    => '10',
-		'size'          => '5'
-	),
 	'poller_refresh_output_table' => array(
 		'friendly_name' => __('Refresh Poller Table Per Cycle'),
 		'description' => __('This setting is for a single poller systems only to rebuild the poller output table on each polling cycle to prevent the memory table from swapping on very large systems with large databases that could use swap.'),
@@ -1622,23 +1623,134 @@ $settings['poller'] = array(
 			'3' => __('Monthly on Sunday')
 		)
 	),
-	'timeouts_header' => array(
-		'friendly_name' => __('Background Timeout and Concurrent Process Settings'),
+	'runtime_variation_header' => array(
+		'friendly_name' => __('Runtime Variation/Deviance Settings'),
 		'collapsible'   => 'true',
 		'method'        => 'spacer',
 	),
-	'reports_timeout' => array(
-		'friendly_name' => __('Report Generation Timeout'),
-		'description'   => __('The maximum amount of time Cacti\'s Reports Generation script can run without generating a timeout error and being killed.'),
+	'poller_warning_1h_count' => array(
+		'friendly_name' => __('One Hour Count Warning Threshold'),
+		'description'   => __('When the Poller Guarded Ratio (below) is reached breached more than this many times in an hour, a warning will be written to the Cacti log and an Email will be sent to the Primary Cact Administraror notifying them of the Poller runtime deviation.'),
+		'method'        => 'drop_array',
+		'default'       => '3',
+		'array'         => array(
+			'0'  => __('Disabled'),
+			'1'  => __('%d Poller Cycle', 1),
+			'2'  => __('%d Poller Cycles', 2),
+			'3'  => __('%d Poller Cycles', 3),
+			'4'  => __('%d Poller Cycles', 4),
+			'5'  => __('%d Poller Cycles', 5),
+			'6'  => __('%d Poller Cycles', 6),
+			'7'  => __('%d Poller Cycles', 7),
+			'8'  => __('%d Poller Cycles', 8),
+			'9'  => __('%d Poller Cycles', 9),
+			'10' => __('%d Poller Cycles', 10),
+		)
+	),
+	'poller_warning_1h_ratio' => array(
+		'friendly_name' => __('One Hour Guarded Poller Ratio average/max Runtime'),
+		'description'   => __('Define a Guarded Poller Ratio average/max runtime (in percent).  Cacti will track breaches in these statistics and issue warnings to the Primary Cacti Administrator via Email when they happen.'),
+		'method'        => 'drop_array',
+		'default'       => '70',
+		'array'         => array(
+			'0'  => __('Disabled'),
+			'50' => __('%d Percent', '50'),
+			'60' => __('%d Percent', '60'),
+			'70' => __('%d Percent', '70'),
+			'80' => __('%d Percent', '80'),
+			'90' => __('%d Percent', '90')
+		)
+	),
+	'poller_warning_24h_ratio' => array(
+		'friendly_name' => __('24 Hour Guarded Poller Ratio average/max Runtime'),
+		'description'   => __('Define a Guarded Poller Ratio average/max runtime (in percent).  Cacti will track breaches in these statistics and issue warnings to the Primary Cacti Administrator via Email when they happen.'),
+		'method'        => 'drop_array',
+		'default'       => '60',
+		'array'         => array(
+			'0'  => __('Disabled'),
+			'50' => __('%d Percent', '50'),
+			'60' => __('%d Percent', '60'),
+			'70' => __('%d Percent', '70'),
+			'80' => __('%d Percent', '80'),
+			'90' => __('%d Percent', '90')
+		),
+	),
+	'data_collector_header' => array(
+		'friendly_name' => __('Data Collector Defaults'),
+		'description'   => __('These settings are maintained at the Data Collector level.  The values here are only defaults used when first creating a Data Collector.'),
+		'collapsible'   => 'true',
+		'method'        => 'hidden',
+		//'method'        => 'spacer',
+	),
+	'concurrent_processes' => array(
+		'friendly_name' => __('Data Collector Processes'),
+		'description'   => __('The default number of concurrent processes to execute per Data Collector.  NOTE: Starting from Cacti 1.2, this setting is maintained in the Data Collector.  Moving forward, this value is only a preset for the Data Collector.  Using a higher number when using cmd.php will improve performance.  Performance improvements in Spine are best resolved with the threads parameter.  When using Spine, we recommend a lower number and leveraging threads instead.  When using cmd.php, use no more than 2x the number of CPU cores.'),
+		'method'        => 'hidden',
+		//'method'        => 'textbox',
+		'default'       => '1',
+		'max_length'    => '10',
+		'size'          => '5'
+	),
+	'spine_header' => array(
+		'friendly_name' => __('Spine Specific Execution Parameters'),
+		'collapsible'   => 'true',
+		'method'        => 'hidden',
+		//'method'        => 'spacer',
+	),
+	'max_threads' => array(
+		'friendly_name' => __('Threads per Process'),
+		'description'   => __('The Default Threads allowed per process.  NOTE: Starting in Cacti 1.2+, this setting is maintained in the Data Collector, and this is simply the Preset.  Using a higher number when using Spine will improve performance.  However, ensure that you have enough MySQL/MariaDB connections to support the following equation: connections = data collectors * processes * (threads + script servers).  You must also ensure that you have enough spare connections for user login connections as well.'),
+		'method'        => 'hidden',
+		//'method'        => 'textbox',
+		'default'       => '1',
+		'max_length'    => '10',
+		'size'          => '5'
+	),
+);
+
+$settings['scheduler'] = array(
+	'scheduler_header' => array(
+		'friendly_name' => __('General'),
+		'method'        => 'spacer',
+		'collapsible'   => 'true'
+	),
+	'scheduler_processes' => array(
+		'friendly_name' => __('Max Running Tasks'),
+		'description'   => __('The maximum number of concurrent scheduled tasks allowed to run concurrently.'),
+		'default'       => '2',
+		'method'        => 'drop_array',
+		'array'         => array(
+			1  => __('1 Scheduled Task'),
+			2  => __('%d Scheduled Tasks', 2),
+			3  => __('%d Scheduled Tasks', 3),
+			4  => __('%d Scheduled Tasks', 4),
+			5  => __('%d Scheduled Tasks', 5),
+			6  => __('%d Scheduled Tasks', 6),
+			7  => __('%d Scheduled Tasks', 7),
+			8  => __('%d Scheduled Tasks', 8),
+			9  => __('%d Scheduled Tasks', 9),
+			10 => __('%d Scheduled Tasks', 10)
+		)
+	),
+	'scheduler_timeout' => array(
+		'friendly_name' => __('Default Maximum Task Runtime'),
+		'description'   => __('The maximum amount of time a Scheduled Task can run without generating a timeout error and being killed.'),
 		'method'        => 'drop_array',
 		'default'       => '300',
 		'array'         => array(
-			'60'   => __('%s Minute', 1),
-			'120'  => __('%s Minutes', 2),
-			'300'  => __('%s Minutes', 5),
-			'600'  => __('%s Minutes', 10),
-			'1200' => __('%s Minutes', 20)
+			'60'    => __('%s Minute', 1),
+			'120'   => __('%s Minutes', 2),
+			'300'   => __('%s Minutes', 5),
+			'600'   => __('%s Minutes', 10),
+			'900'   => __('%s Minutes', 15),
+			'1200'  => __('%s Minutes', 20),
 		)
+	),
+	'timeouts_header' => array(
+		'friendly_name' => __('Miscelanious Task Parallelism and Timeouts'),
+		'collapsible'   => 'true',
+		'method'        => 'spacer',
+		'description'   => __('For Tasks not managed by the Cacti Scheduler, there are their parallelism and timeout settings')
 	),
 	'dsstats_timeout' => array(
 		'friendly_name' => __('Data Source Statistics Timeout'),
@@ -1739,95 +1851,6 @@ $settings['poller'] = array(
 			'14400' => __('%s Hours', 4),
 			'28800' => __('%s Hours', 8)
 		)
-	),
-	'runtime_variation_header' => array(
-		'friendly_name' => __('Runtime Variation/Deviance Settings'),
-		'collapsible'   => 'true',
-		'method'        => 'spacer',
-	),
-	'poller_warning_1h_count' => array(
-		'friendly_name' => __('One Hour Count Warning Threshold'),
-		'description'   => __('When the Poller Guarded Ratio (below) is reached breached more than this many times in an hour, a warning will be written to the Cacti log and an Email will be sent to the Primary Cact Administraror notifying them of the Poller runtime deviation.'),
-		'method'        => 'drop_array',
-		'default'       => '3',
-		'array'         => array(
-			'0'  => __('Disabled'),
-			'1'  => __('%d Poller Cycle', 1),
-			'2'  => __('%d Poller Cycles', 2),
-			'3'  => __('%d Poller Cycles', 3),
-			'4'  => __('%d Poller Cycles', 4),
-			'5'  => __('%d Poller Cycles', 5),
-			'6'  => __('%d Poller Cycles', 6),
-			'7'  => __('%d Poller Cycles', 7),
-			'8'  => __('%d Poller Cycles', 8),
-			'9'  => __('%d Poller Cycles', 9),
-			'10' => __('%d Poller Cycles', 10),
-		)
-	),
-	'poller_warning_1h_ratio' => array(
-		'friendly_name' => __('One Hour Guarded Poller Ratio average/max Runtime'),
-		'description'   => __('Define a Guarded Poller Ratio average/max runtime (in percent).  Cacti will track breaches in these statistics and issue warnings to the Primary Cacti Administrator via Email when they happen.'),
-		'method'        => 'drop_array',
-		'default'       => '70',
-		'array'         => array(
-			'0'  => __('Disabled'),
-			'50' => __('%d Percent', '50'),
-			'60' => __('%d Percent', '60'),
-			'70' => __('%d Percent', '70'),
-			'80' => __('%d Percent', '80'),
-			'90' => __('%d Percent', '90')
-		)
-	),
-	'poller_warning_24h_ratio' => array(
-		'friendly_name' => __('24 Hour Guarded Poller Ratio average/max Runtime'),
-		'description'   => __('Define a Guarded Poller Ratio average/max runtime (in percent).  Cacti will track breaches in these statistics and issue warnings to the Primary Cacti Administrator via Email when they happen.'),
-		'method'        => 'drop_array',
-		'default'       => '60',
-		'array'         => array(
-			'0'  => __('Disabled'),
-			'50' => __('%d Percent', '50'),
-			'60' => __('%d Percent', '60'),
-			'70' => __('%d Percent', '70'),
-			'80' => __('%d Percent', '80'),
-			'90' => __('%d Percent', '90')
-		),
-	),
-	'data_collector_header' => array(
-		'friendly_name' => __('Data Collector Defaults'),
-		'description'   => __('These settings are maintained at the Data Collector level.  The values here are only defaults used when first creating a Data Collector.'),
-		'collapsible'   => 'true',
-		'method'        => 'spacer',
-	),
-	'concurrent_processes' => array(
-		'friendly_name' => __('Data Collector Processes'),
-		'description'   => __('The default number of concurrent processes to execute per Data Collector.  NOTE: Starting from Cacti 1.2, this setting is maintained in the Data Collector.  Moving forward, this value is only a preset for the Data Collector.  Using a higher number when using cmd.php will improve performance.  Performance improvements in Spine are best resolved with the threads parameter.  When using Spine, we recommend a lower number and leveraging threads instead.  When using cmd.php, use no more than 2x the number of CPU cores.'),
-		'method'        => 'textbox',
-		'default'       => '1',
-		'max_length'    => '10',
-		'size'          => '5'
-	),
-	'spine_header' => array(
-		'friendly_name' => __('Spine Specific Execution Parameters'),
-		'collapsible'   => 'true',
-		'method'        => 'spacer',
-	),
-	'spine_log_level' => array(
-		'friendly_name' => __('Invalid Data Logging'),
-		'description'   => __('How would you like Spine output errors logged?  The options are: \'Detailed\' which is similar to cmd.php logging; \'Summary\' which provides the number of output errors per Device; and \'None\', which does not provide error counts.'),
-		'method'        => 'drop_array',
-		'default'       => '0',
-		'array'         => array(
-			'0'  => __('None'),
-			'1'  => __('Summary'),
-			'2'  => __('Detailed'))
-	),
-	'max_threads' => array(
-		'friendly_name' => __('Threads per Process'),
-		'description'   => __('The Default Threads allowed per process.  NOTE: Starting in Cacti 1.2+, this setting is maintained in the Data Collector, and this is simply the Preset.  Using a higher number when using Spine will improve performance.  However, ensure that you have enough MySQL/MariaDB connections to support the following equation: connections = data collectors * processes * (threads + script servers).  You must also ensure that you have enough spare connections for user login connections as well.'),
-		'method'        => 'textbox',
-		'default'       => '1',
-		'max_length'    => '10',
-		'size'          => '5'
 	),
 );
 
