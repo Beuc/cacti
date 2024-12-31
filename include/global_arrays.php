@@ -3100,6 +3100,14 @@ $graph_sources = array(
 	3 => __('Aggregate'),
 );
 
+$sched_types = array(
+	'1' => __('Manual'),
+	'2' => __('Daily'),
+	'3' => __('Weekly'),
+	'4' => __('Monthly'),
+	'5' => __('Monthly on Day')
+);
+
 if ($config['cacti_server_os'] == 'unix') {
 	$dejavu_paths = array(
 		'/usr/share/fonts/dejavu/', //RHEL/CentOS

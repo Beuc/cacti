@@ -39,14 +39,6 @@ $actions = array(
 	5 => __('Cancel Discovery')
 );
 
-$sched_types = array(
-	'1' => __('Manual'),
-	'2' => __('Daily'),
-	'3' => __('Weekly'),
-	'4' => __('Monthly'),
-	'5' => __('Monthly on Day')
-);
-
 /* set default action */
 set_default_action();
 
@@ -863,118 +855,11 @@ function network_get_field_array($network = array()) {
 			'description'   => __('If a device previously added to Cacti is found, rerun its data queries.'),
 			'value'         => '|arg1:rerun_data_queries|'
 		),
-		'spacer2' => array(
-			'method'        => 'spacer',
-			'friendly_name' => __('Discovery Timing'),
-			'collapsible'   => 'true'
-		),
-		'sched_type' => array(
-			'method'        => 'drop_array',
-			'friendly_name' => __('Schedule Type'),
-			'description'   => __('Define the collection frequency.'),
-			'value'         => '|arg1:sched_type|',
-			'array'         => $sched_types,
-			'default'       => 1
-		),
-		'start_at' => array(
-			'method'        => 'textbox',
-			'friendly_name' => __('Starting Date/Time'),
-			'description'   => __('What time will this Network discover item start?'),
-			'value'         => '|arg1:start_at|',
-			'max_length'    => '30',
-			'default'       => date('Y-m-d H:i:s'),
-			'size'          => 20
-		),
-		'recur_every' => array(
-			'method'        => 'drop_array',
-			'friendly_name' => __('Rerun Every'),
-			'description'   => __('Rerun discovery for this Network Range every X.'),
-			'value'         => '|arg1:recur_every|',
-			'default'       => '1',
-			'array'         => array(
-				1 => '1',
-				2 => '2',
-				3 => '3',
-				4 => '4',
-				5 => '5',
-				6 => '6',
-				7 => '7'
-			),
-		),
-		'day_of_week' => array(
-			'method'        => 'drop_multi',
-			'friendly_name' => __('Days of Week'),
-			'description'   => __('What Day(s) of the week will this Network Range be discovered.'),
-			'array'         => array(
-				1 => __('Sunday'),
-				2 => __('Monday'),
-				3 => __('Tuesday'),
-				4 => __('Wednesday'),
-				5 => __('Thursday'),
-				6 => __('Friday'),
-				7 => __('Saturday')
-			),
-			'value' => '|arg1:day_of_week|',
-			'class' => 'day_of_week'
-		),
-		'month' => array(
-			'method'        => 'drop_multi',
-			'friendly_name' => __('Months of Year'),
-			'description'   => __('What Months(s) of the Year will this Network Range be discovered.'),
-			'array'         => array(
-				1  => __('January'),
-				2  => __('February'),
-				3  => __('March'),
-				4  => __('April'),
-				5  => __('May'),
-				6  => __('June'),
-				7  => __('July'),
-				8  => __('August'),
-				9  => __('September'),
-				10 => __('October'),
-				11 => __('November'),
-				12 => __('December')
-			),
-			'value' => '|arg1:month|',
-			'class' => 'month'
-		),
-		'day_of_month' => array(
-			'method'        => 'drop_multi',
-			'friendly_name' => __('Days of Month'),
-			'description'   => __('What Day(s) of the Month will this Network Range be discovered.'),
-			'array'         => array(1 => '1', 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32 => __('Last')),
-			'value'         => '|arg1:day_of_month|',
-			'class'         => 'days_of_month'
-		),
-		'monthly_week' => array(
-			'method'        => 'drop_multi',
-			'friendly_name' => __('Week(s) of Month'),
-			'description'   => __('What Week(s) of the Month will this Network Range be discovered.'),
-			'array'         => array(
-				1    => __('First'),
-				2    => __('Second'),
-				3    => __('Third'),
-				'32' => __('Last')
-			),
-			'value' => '|arg1:monthly_week|',
-			'class' => 'monthly_week'
-		),
-		'monthly_day' => array(
-			'method'        => 'drop_multi',
-			'friendly_name' => __('Day(s) of Week'),
-			'description'   => __('What Day(s) of the week will this Network Range be discovered.'),
-			'array'         => array(
-				1 => __('Sunday'),
-				2 => __('Monday'),
-				3 => __('Tuesday'),
-				4 => __('Wednesday'),
-				5 => __('Thursday'),
-				6 => __('Friday'),
-				7 => __('Saturday')
-			),
-			'value' => '|arg1:monthly_day|',
-			'class' => 'monthly_day'
-		),
+	);
+
+	$fields += api_scheduler_form();
+
+	$fields += array(
 		'spacern' => array(
 			'method'        => 'spacer',
 			'friendly_name' => __('Notification Settings'),
@@ -1073,134 +958,43 @@ function network_get_field_array($network = array()) {
 }
 
 function network_edit_javascript() {
+	api_scheduler_javascript();
+
 	?>
 	<script type='text/javascript'>
-		$(function() {
-			$('#day_of_week').multiselect({
-				selectedList: 7,
-				noneSelectedText: '<?php print __('Select the days(s) of the week'); ?>',
-				header: false,
-				height: 54,
-				groupColumns: true,
-				groupColumnsWidth: 90,
-				menuWidth: 385
-			});
-
-			$('#month').multiselect({
-				selectedList: 7,
-				noneSelectedText: '<?php print __('Select the month(s) of the year'); ?>',
-				header: false,
-				height: 82,
-				groupColumns: true,
-				groupColumnsWidth: 90,
-				menuWidth: 380
-			});
-
-			$('#day_of_month').multiselect({
-				selectedList: 15,
-				noneSelectedText: '<?php print __('Select the day(s) of the month'); ?>',
-				header: false,
-				height: 162,
-				groupColumns: true,
-				groupColumnsWidth: 50,
-				menuWidth: 275
-			});
-
-			$('#monthly_week').multiselect({
-				selectedList: 4,
-				noneSelectedText: '<?php print __('Select the week(s) of the month'); ?>',
-				header: false,
-				height: 28,
-				groupColumns: true,
-				groupColumnsWidth: 70,
-				menuWidth: 300
-			});
-
-			$('#monthly_day').multiselect({
-				selectedList: 7,
-				noneSelectedText: '<?php print __('Select the day(s) of the week'); ?>',
-				header: false,
-				height: 54,
-				groupColumns: true,
-				groupColumnsWidth: 90,
-				menuWidth: 385
-			});
-
-			$('#start_at').datetimepicker({
-				minuteGrid: 10,
-				stepMinute: 5,
-				timeFormat: 'HH:mm',
-				dateFormat: 'yy-mm-dd',
-				minDateTime: new Date(<?php print date('Y') . ', ' . (date('m') - 1) . ', ' . date('d, H') . ', ' . date('i', ceil(time() / 300) * 300) . ', 0, 0'; ?>)
-			});
-
-			$('#sched_type').change(function() {
-				setSchedule();
-			});
-
-			setSchedule();
-
-			$('#notification_enabled').click(function() {
-				setNotification();
-			});
-
+	$(function() {
+		$('#notification_enabled').click(function() {
 			setNotification();
+		});
 
-			$('#ping_method').change(function() {
-				setPing();
-			});
+		setNotification();
 
+		$('#ping_method').change(function() {
 			setPing();
 		});
 
-		function setNotification() {
-			var showField = $('#notification_enabled').is(':checked');
-			toggleFields({
-				notification_email: showField,
-				notification_fromname: showField,
-				notification_fromemail: showField,
-			});
-		}
+		setPing();
+	});
 
-		function setPing() {
-			var pingMethod = $('#ping_method').val();
-			toggleFields({
-				snmp_id: true,
-				ping_method: true,
-				ping_port: ping_method > 0,
-				ping_timeout: ping_method > 1,
-				ping_retries: ping_method > 1,
-			});
-		}
+	function setNotification() {
+		var showField = $('#notification_enabled').is(':checked');
+		toggleFields({
+			notification_email: showField,
+			notification_fromname: showField,
+			notification_fromemail: showField,
+		});
+	}
 
-		function setSchedule() {
-			var schedType = $('#sched_type').val();
-			toggleFields({
-				start_at: schedType > 1,
-				recur_every: schedType > 1 && schedType < 4,
-				day_of_week: schedType == 3,
-				month: schedType > 3,
-				day_of_month: schedType == 4,
-				monthly_week: schedType == 3 || schedType == 5,
-				monthly_day: schedType == 3 || schedType == 5,
-			});
-
-			if (schedType == 2) {
-				$('#row_recur_every').find('td:first').each(function() {
-					var html = $(this).html();
-					html = html.replace('<?php print __('every X Weeks'); ?>', '<?php print __('every X Days'); ?>');
-					html = html.replace('<?php print __('every X.'); ?>', '<?php print __('every X Days.'); ?>');
-					$(this).html(html);
-				});
-			} else if (schedType == '3') { //Weekly
-				$('#row_recur_every').find('td:first').each(function() {
-					var html = $(this).html();
-					html = html.replace('<?php print __('every X Days'); ?>', '<?php print __('every X Weeks'); ?>');
-					html = html.replace('<?php print __('every X.'); ?>', '<?php print __('every X Weeks.'); ?>');
-					$(this).html(html);
-				});
-			}
-		}
+	function setPing() {
+		var pingMethod = $('#ping_method').val();
+		toggleFields({
+			snmp_id: true,
+			ping_method: true,
+			ping_port: ping_method > 0,
+			ping_timeout: ping_method > 1,
+			ping_retries: ping_method > 1,
+		});
+	}
 	</script>
 	<?php
 }
