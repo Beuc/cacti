@@ -36,6 +36,7 @@ require_once(CACTI_PATH_LIBRARY . '/api_automation.php');
 require_once(CACTI_PATH_LIBRARY . '/api_device.php');
 require_once(CACTI_PATH_LIBRARY . '/api_data_source.php');
 require_once(CACTI_PATH_LIBRARY . '/api_graph.php');
+require_once(CACTI_PATH_LIBRARY . '/api_scheduler.php');
 require_once(CACTI_PATH_LIBRARY . '/api_tree.php');
 require_once(CACTI_PATH_LIBRARY . '/data_query.php');
 require_once(CACTI_PATH_LIBRARY . '/html_form_template.php');
@@ -259,7 +260,7 @@ if ($master) {
 				exit(0);
 			}
 
-			if (api_automation_is_time_to_start($network['id']) || $force) {
+			if (api_scheduler_is_time_to_start($network) || $force) {
 				automation_debug("Launching Network Master for '" . $network['name'] . "'\n");
 				exec_background(read_config_option('path_php_binary'), '-q ' . read_config_option('path_webroot') . '/poller_automation.php --poller=' . $poller_id . ' --network=' . $network['id'] . ($force ? ' --force':'') . ($debug ? ' --debug':''));
 				$launched++;

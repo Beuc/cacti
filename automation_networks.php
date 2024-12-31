@@ -24,6 +24,7 @@
 
 /* include cacti base functions */
 include('./include/auth.php');
+include_once('./lib/api_scheduler.php');
 include_once('./lib/snmp.php');
 include_once('./lib/poller.php');
 
