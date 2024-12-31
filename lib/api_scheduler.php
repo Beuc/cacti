@@ -215,26 +215,63 @@ function api_scheduler_javascript() {
 
 		toggleFields({
 			start_at: schedType > 1,
-			recur_every: schedType > 1 && schedType < 4,
+			recur_every: (schedType > 1 && schedType < 4) || schedType == 6,
 			day_of_week: schedType == 3,
-			month: schedType > 3,
+			month: schedType > 3 && schedType != 6,
 			day_of_month: schedType == 4,
 			monthly_week: schedType == 3 || schedType == 5,
 			monthly_day: schedType == 3 || schedType == 5,
 		});
 
-		if (schedType == 2) {
-			$('#row_recur_every').find('td:first').each(function() {
+		if (schedType == 2) { // Daily
+			$('#row_recur_every').find('div:first').each(function() {
 				var html = $(this).html();
-				html = html.replace('<?php print __('every X Weeks'); ?>', '<?php print __('every X Days'); ?>');
-				html = html.replace('<?php print __('every X.'); ?>', '<?php print __('every X Days.'); ?>');
+
+				if (html.indexOf('X Weeks') >= 0) {
+					html = html.replace('<?php print __('every X Weeks'); ?>', '<?php print __('every X Days'); ?>');
+					html = html.replace('<?php print __('Rerun Every X Weeks'); ?>', '<?php print __('Rerun Every X Days'); ?>');
+				} else if (html.indexOf('X Hours') >= 0) {
+					html = html.replace('<?php print __('Rerun Every X Hours'); ?>', '<?php print __('Rerun Every X Days'); ?>');
+					html = html.replace('<?php print __('every X Hours'); ?>', '<?php print __('every X Days'); ?>');
+				} else if (html.indexOf('X Days') < 0) {
+					html = html.replace('<?php print __('Rerun Every'); ?>', '<?php print __('Rerun Every X Days'); ?>');
+					html = html.replace('<?php print __('every X'); ?>', '<?php print __('every X Days'); ?>');
+				}
+
 				$(this).html(html);
 			});
-		} else if (schedType == '3') { //Weekly
-			$('#row_recur_every').find('td:first').each(function() {
+		} else if (schedType == 6) { // Hourly
+			$('#row_recur_every').find('div:first').each(function() {
 				var html = $(this).html();
-				html = html.replace('<?php print __('every X Days'); ?>', '<?php print __('every X Weeks'); ?>');
-				html = html.replace('<?php print __('every X.'); ?>', '<?php print __('every X Weeks.'); ?>');
+
+				if (html.indexOf('X Weeks') >= 0) {
+					html = html.replace('<?php print __('every X Weeks'); ?>', '<?php print __('every X Hours'); ?>');
+					html = html.replace('<?php print __('Rerun Every X Weeks'); ?>', '<?php print __('Rerun Every X Hours'); ?>');
+				} else if (html.indexOf('X Days') >= 0) {
+					html = html.replace('<?php print __('Rerun Every X Days'); ?>', '<?php print __('Rerun Every X Hours'); ?>');
+					html = html.replace('<?php print __('every X Days'); ?>', '<?php print __('every X Hours'); ?>');
+				} else if (html.indexOf('X Hours') < 0) {
+					html = html.replace('<?php print __('Rerun Every'); ?>', '<?php print __('Rerun Every X Hours'); ?>');
+					html = html.replace('<?php print __('every X'); ?>', '<?php print __('every X Hours'); ?>');
+				}
+
+				$(this).html(html);
+			});
+		} else if (schedType == 3) { //Weekly
+			$('#row_recur_every').find('div:first').each(function() {
+				var html = $(this).html();
+
+				if (html.indexOf('X Days') >= 0) {
+					html = html.replace('<?php print __('every X Days'); ?>', '<?php print __('every X Weeks'); ?>');
+					html = html.replace('<?php print __('Rerun Every X Days'); ?>', '<?php print __('Rerun Every X Weeks'); ?>');
+				} else if (html.indexOf('X Hours') >= 0) {
+					html = html.replace('<?php print __('Rerun Every X Hours'); ?>', '<?php print __('Rerun Every X Weeks'); ?>');
+					html = html.replace('<?php print __('every X Hours'); ?>', '<?php print __('every X Weeks'); ?>');
+				} else if (html.indexOf('X Weeks') < 0) {
+					html = html.replace('<?php print __('Rerun Every'); ?>', '<?php print __('Rerun Every X Weeks'); ?>');
+					html = html.replace('<?php print __('every X'); ?>', '<?php print __('every X Weeks'); ?>');
+				}
+
 				$(this).html(html);
 			});
 		}
