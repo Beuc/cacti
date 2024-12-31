@@ -142,7 +142,7 @@ $number_sent = 0;
 
 if (!$force) {
 	/* silently end if the registered process is still running, or process table missing */
-	if (!register_process_start('reports', 'master', 0, read_config_option('reports_timeout'))) {
+	if (!register_process_start('reports', 'master', 0, read_config_option('scheduler_timeout'))) {
 		exit(0);
 	}
 }
