@@ -487,7 +487,7 @@ function discoverDevices($network_id, $thread) {
 
 					$device['hostname']      = $dnsname;
 					$device['dnsname']       = $dnsname;
-					$device['dnsname_short'] = preg_split('/[\.]+/', strtolower($dnsname), -1, PREG_SPLIT_NO_EMPTY);
+					$device['dnsname_short'] = explode('.', strtolower($dnsname))[0];
 				} elseif ($network['enable_netbios'] == 'on') {
 					automation_debug('Device: ' . $device['ip_address'] . ', Checking DNS: Not found, Checking NetBIOS:');
 
@@ -529,7 +529,7 @@ function discoverDevices($network_id, $thread) {
 						array($dnsname, $device['ip_address']));
 
 					$device['dnsname']       = $dnsname;
-					$device['dnsname_short'] = preg_split('/[\.]+/', strtolower($dnsname), -1, PREG_SPLIT_NO_EMPTY);
+					$device['dnsname_short'] = explode('.', strtolower($dnsname))[0];
 				} elseif ($network['enable_netbios'] == 'on') {
 					automation_debug('Device: ' . $device['ip_address'] . ', Checking DNS: Not found, Checking NetBIOS:');
 
@@ -778,7 +778,7 @@ function discoverDevices($network_id, $thread) {
 											$pattern = str_replace('|sysLocation|', $sysLocation, $pattern);
 										}
 
-										$description = db_fetch_cell("SELECT $pattern");
+										$description = db_fetch_cell("SELECT '$pattern'");
 
 										if ($description != '') {
 											$device['description'] = $description;
