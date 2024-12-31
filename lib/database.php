@@ -1037,8 +1037,8 @@ function db_add_column($table, $column, $log = true, $db_conn = false) {
 			}
 
 			if (isset($column['default'])) {
-				if (in_array(strtolower($column['type']), array('timestamp','datetime','date'), true) && $column['default'] === 'CURRENT_TIMESTAMP') {
-					$sql .= ' default CURRENT_TIMESTAMP';
+				if (in_array(strtolower($column['type']), array('timestamp', 'datetime', 'date'), true) && strpos($column['default'], 'CURRENT_TIMESTAMP') !== false) {
+					$sql .= ' default ' . $column['default'];
 				} else {
 					$sql .= ' default ' . (is_numeric($column['default']) ? $column['default'] : "'" . $column['default'] . "'");
 				}
