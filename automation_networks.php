@@ -426,19 +426,19 @@ function api_networks_save($post) {
 		$save['monthly_day']   = form_input_validate(isset($post['monthly_day']) ? implode(',', $post['monthly_day']) : '', 'monthly_day', '', true, 3);
 
 		/* check for bad rules */
-		if ($save['sched_type'] == '3') {
+		if ($save['sched_type'] == SCHEDULE_WEEKLY) {
 			if ($save['day_of_week'] == '') {
 				$save['enabled']                = '';
 				$_SESSION['automation_message'] = __esc('ERROR: You must specify the day of the week.  Disabling Network %s!.', $save['name']);
 				raise_message('automation_message');
 			}
-		} elseif ($save['sched_type'] == '4') {
+		} elseif ($save['sched_type'] == SCHEDULE_MONTHLY) {
 			if ($save['month'] == '' || $save['day_of_month'] == '') {
 				$save['enabled']                = '';
 				$_SESSION['automation_message'] = __esc('ERROR: You must specify both the Months and Days of Month.  Disabling Network %s!', $save['name']);
 				raise_message('automation_message');
 			}
-		} elseif ($save['sched_type'] == '5') {
+		} elseif ($save['sched_type'] == SCHEDULE_MONTHLY_ON_DAY) {
 			if ($save['month'] == '' || $save['monthly_day'] == '' || $save['monthly_week'] == '') {
 				$save['enabled']                = '';
 				$_SESSION['automation_message'] = __esc('ERROR: You must specify the Months, Weeks of Months, and Days of Week.  Disabling Network %s!', $save['name']);
@@ -1227,7 +1227,7 @@ function networks() {
 			form_selectable_cell(number_format_i18n($updown['up']) . '/' . number_format_i18n($updown['snmp']), $network['id'], '', 'right');
 			form_selectable_cell(number_format_i18n($network['threads']), $network['id'], '', 'right');
 			form_selectable_cell(round($network['last_runtime'], 2), $network['id'], '', 'right');
-			form_selectable_cell($network['enabled'] == '' || $network['sched_type'] == '1' ? __('N/A') : ($network['next_start'] == '0000-00-00 00:00:00' ? substr($network['start_at'], 0, 16) : substr($network['next_start'], 0, 16)), $network['id'], '', 'right');
+			form_selectable_cell($network['enabled'] == '' || $network['sched_type'] == SCHEDULE_MANUAL ? __('N/A') : ($network['next_start'] == '0000-00-00 00:00:00' ? substr($network['start_at'], 0, 16) : substr($network['next_start'], 0, 16)), $network['id'], '', 'right');
 			form_selectable_cell($network['last_started'] == '0000-00-00 00:00:00' ? __('Never') : substr($network['last_started'], 0, 16), $network['id'], '', 'right');
 			form_checkbox_cell($network['name'], $network['id']);
 

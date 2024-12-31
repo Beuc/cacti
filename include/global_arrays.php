@@ -3101,11 +3101,12 @@ $graph_sources = array(
 );
 
 $sched_types = array(
-	'1' => __('Manual'),
-	'2' => __('Daily'),
-	'3' => __('Weekly'),
-	'4' => __('Monthly'),
-	'5' => __('Monthly on Day')
+	SCHEDULE_MANUAL         => __('Manual'),
+	SCHEDULE_HOURLY         => __('Hourly'),
+	SCHEDULE_DAILY          => __('Daily'),
+	SCHEDULE_WEEKLY         => __('Weekly'),
+	SCHEDULE_MONTHLY        => __('Monthly'),
+	SCHEDULE_MONTHLY_ON_DAY => __('Monthly on Day')
 );
 
 if ($config['cacti_server_os'] == 'unix') {

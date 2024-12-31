@@ -37,7 +37,7 @@ function api_scheduler_form() {
 			'description'   => __('Define the collection frequency.'),
 			'value'         => '|arg1:sched_type|',
 			'array'         => $sched_types,
-			'default'       => 1
+			'default'       => SCHEDULE_MANUAL
 		),
 		'start_at' => array(
 			'method'        => 'textbox',
@@ -247,12 +247,18 @@ function api_scheduler_is_time_to_start($schedule) {
 	$now   = time();
 
 	switch($schedule['sched_type']) {
-		case '1':
+		case SCHEDULE_MANUAL:
 			return false;
 
 			break;
-		case '2':
-			$recur = $schedule['recur_every'] * 86400; // days
+		case SCHEDULE_HOURLY:
+		case SCHEDULE_DAILY:
+			if ($schedule['sched_type']] == SCHEDULE_HOURLY) {
+				$recur = $schedule['recur_every'] * 3600; // days
+			} else {
+				$recur = $schedule['recur_every'] * 86400; // days
+			}
+
 			$start = strtotime($schedule['start_at']);
 			$next  = strtotime($schedule['next_start']);
 
@@ -268,8 +274,8 @@ function api_scheduler_is_time_to_start($schedule) {
 				}
 
 				db_execute_prepared('UPDATE automation_networks
-				SET next_start = ?
-				WHERE id = ?',
+					SET next_start = ?
+					WHERE id = ?',
 					array(date('Y-m-d H:i', $target), $schedulework_id));
 
 				return true;
@@ -280,7 +286,7 @@ function api_scheduler_is_time_to_start($schedule) {
 			return false;
 
 			break;
-		case '3':
+		case SCHEDULE_WEEKLY:
 			$recur = $schedule['recur_every'] * 86400 * 7; // weeks
 			$start = strtotime($schedule['start_at']);
 			$next  = strtotime($schedule['next_start']);
@@ -311,8 +317,8 @@ function api_scheduler_is_time_to_start($schedule) {
 				}
 
 				db_execute_prepared('UPDATE automation_networks
-				SET next_start = ?
-				WHERE id = ?',
+					SET next_start = ?
+					WHERE id = ?',
 					array(date('Y-m-d H:i', $target), $schedulework_id));
 
 				return true;
@@ -321,13 +327,13 @@ function api_scheduler_is_time_to_start($schedule) {
 			return false;
 
 			break;
-		case '4':
-		case '5':
+		case SCHEDULE_MONTHLY:
+		case SCHEDULE_MONTHLY_ON_DAY:
 			$next = api_scheduler_calculate_next_start($schedule, $now);
 
 			db_execute_prepared('UPDATE automation_networks
-			SET next_start = ?
-			WHERE id = ?',
+				SET next_start = ?
+				WHERE id = ?',
 				array(date('Y-m-d H:i', $next), $schedulework_id));
 
 			if ($schedule['next_start'] == '0000-00-00 00:00:00') {
@@ -351,7 +357,7 @@ function api_scheduler_calculate_next_start($schedule) {
 	$dates  = array();
 
 	switch($schedule['sched_type']) {
-		case '4':
+		case SCHEDULE_MONTHLY:
 			$months = explode(',', $schedule['month']);
 			$days   = explode(',', $schedule['day_of_month']);
 
@@ -417,7 +423,7 @@ function api_scheduler_calculate_next_start($schedule) {
 			}
 
 			break;
-		case '5':
+		case SCHEDULE_MONTHLY_ON_DAY:
 			$months = explode(',', $schedule['month']);
 			$weeks  = explode(',', $schedule['monthly_week']);
 			$days   = explode(',', $schedule['monthly_day']);

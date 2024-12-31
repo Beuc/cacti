@@ -362,6 +362,13 @@ define('REPORTS_OUTPUT_EMAIL',  2);
 
 define('REPORTS_DEFAULT_MAX_SIZE', 10485760);
 
+define('SCHEDULE_MANUAL',         1);
+define('SCHEDULE_DAILY',          2);
+define('SCHEDULE_WEEKLY',         3);
+define('SCHEDULE_MONTHLY',        4);
+define('SCHEDULE_MONTHLY_ON_DAY', 5);
+define('SCHEDULE_HOURLY',         6);
+
 # unless a hook for 'global_constants' is available, all DEFINEs go here
 define('AGGREGATE_GRAPH_TYPE_KEEP',          0);
 define('AGGREGATE_GRAPH_TYPE_KEEP_STACKED', 50);
