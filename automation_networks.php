@@ -356,12 +356,10 @@ function api_networks_discover($network_id, $discover_debug, $discover_dryrun) {
 				$response = call_remote_data_collector($poller_id, $url, 'AUTOM8');
 			}
 		} else {
-			$_SESSION['automation_message'] = __esc('Can Not Restart Discovery for Discovery in Progress for Network \'%s\'', $name);
-			raise_message('automation_message');
+			raise_message('automation_message', __esc('Can Not Restart Discovery for Discovery in Progress for Network \'%s\'', $name), MESSAGE_LEVEL_ERROR);
 		}
 	} else {
-		$_SESSION['automation_message'] = __esc('Can Not Perform Discovery for Disabled Network \'%s\'', $name);
-		raise_message('automation_message');
+		raise_message('automation_message', __esc('Can Not Perform Discovery for Disabled Network \'%s\'', $name), MESSAGE_LEVEL_ERROR);
 	}
 
 	force_session_data();
@@ -428,21 +426,21 @@ function api_networks_save($post) {
 		/* check for bad rules */
 		if ($save['sched_type'] == SCHEDULE_WEEKLY) {
 			if ($save['day_of_week'] == '') {
-				$save['enabled']                = '';
-				$_SESSION['automation_message'] = __esc('ERROR: You must specify the day of the week.  Disabling Network %s!.', $save['name']);
-				raise_message('automation_message');
+				$save['enabled'] = '';
+
+				raise_message('automation_message', __esc('ERROR: You must specify the day of the week.  Disabling Network %s!.', $save['name']), MESSAGE_LEVEL_ERROR);
 			}
 		} elseif ($save['sched_type'] == SCHEDULE_MONTHLY) {
 			if ($save['month'] == '' || $save['day_of_month'] == '') {
-				$save['enabled']                = '';
-				$_SESSION['automation_message'] = __esc('ERROR: You must specify both the Months and Days of Month.  Disabling Network %s!', $save['name']);
-				raise_message('automation_message');
+				$save['enabled'] = '';
+
+				raise_message('automation_message', __esc('ERROR: You must specify both the Months and Days of Month.  Disabling Network %s!', $save['name']), MESSAGE_LEVEL_ERROR);
 			}
 		} elseif ($save['sched_type'] == SCHEDULE_MONTHLY_ON_DAY) {
 			if ($save['month'] == '' || $save['monthly_day'] == '' || $save['monthly_week'] == '') {
-				$save['enabled']                = '';
-				$_SESSION['automation_message'] = __esc('ERROR: You must specify the Months, Weeks of Months, and Days of Week.  Disabling Network %s!', $save['name']);
-				raise_message('automation_message');
+				$save['enabled'] = '';
+
+				raise_message('automation_message', __esc('ERROR: You must specify the Months, Weeks of Months, and Days of Week.  Disabling Network %s!', $save['name']), MESSAGE_LEVEL_ERROR);
 			}
 		}
 
@@ -458,9 +456,8 @@ function api_networks_save($post) {
 				if ($ips !== false) {
 					$total_ips += $ips;
 				} else {
-					$continue                       = false;
-					$_SESSION['automation_message'] = __esc('ERROR: Network \'%s\' is Invalid.', $net);
-					raise_message('automation_message');
+					$continue = false;
+					raise_message('automation_message', __esc('ERROR: Network \'%s\' is Invalid.', $net), MESSAGE_LEVEL_ERROR);
 
 					break;
 				}

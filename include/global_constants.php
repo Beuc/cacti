@@ -574,10 +574,6 @@ define('SESS_PHP_TZ', 'sess_php_tz');
 define('SESS_BROWSER_SYSTEM_TZ', 'sess_browser_system_tz');
 define('SESS_SYSTEM_TZ', 'sess_system_tz');
 
-/* CLog Session Constants */
-define('CLOG_MESSAGE', 'clog_message');
-define('CLOG_ERROR', 'clog_error');
-
 /* Cookie options */
 define('COOKIE_OPTIONS', 'cookie_options');
 define('COOKIE_OPTIONS_DOMAIN', 'cookie_domain');

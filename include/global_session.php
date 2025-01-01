@@ -24,30 +24,6 @@
 
 global $config, $refresh, $messages;
 
-if (isset($_SESSION['automation_message']) && $_SESSION['automation_message'] != '') {
-	$messages['automation_message'] = array(
-		'message' => $_SESSION['automation_message'],
-		'type'    => 'info'
-	);
-	kill_session_var('automation_message');
-}
-
-if (isset($_SESSION[CLOG_MESSAGE]) && $_SESSION[CLOG_MESSAGE] != '') {
-	$messages[CLOG_MESSAGE] = array(
-		'message' => $_SESSION[CLOG_MESSAGE],
-		'type'    => 'info'
-	);
-	kill_session_var(CLOG_MESSAGE);
-}
-
-if (isset($_SESSION[CLOG_ERROR]) && $_SESSION[CLOG_ERROR] != '') {
-	$messages[CLOG_ERROR] = array(
-		'message' => $_SESSION[CLOG_ERROR],
-		'type'    => 'error'
-	);
-	kill_session_var(CLOG_ERROR);
-}
-
 $script = basename($_SERVER['SCRIPT_NAME']);
 $graphs = false;
 
