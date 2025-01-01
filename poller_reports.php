@@ -167,6 +167,11 @@ if (cacti_sizeof($reports)) {
 			$current_user = db_fetch_row_prepared('SELECT * FROM user_auth WHERE id = ?', array($report['user_id']));
 
 			if (isset($report['email'])) {
+				db_execute_prepared('UPDATE reports
+					SET last_started = ?
+					WHERE id = ?',
+					array(date('Y-m-d H:i:s'), $report['id']));
+
 				generate_report($report, false, 'poller');
 
 				$number_sent++;

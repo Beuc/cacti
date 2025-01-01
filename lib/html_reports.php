@@ -1560,16 +1560,9 @@ function reports_edit() {
 	reports_tabs(get_request_var('id'));
 
 	if (isset($report['id'])) {
-		$report['mailtime'] = date('Y-m-d H:i', strtotime(date('Y-m-d H:i:00', $report['mailtime'])));
 		$header_label = __('[edit: %s]', $report['name']);
 	} else {
-		$report['mailtime'] = date('Y-m-d H:i', strtotime(date('Y-m-d H:i:00', floor(time() / read_config_option('poller_interval')) * read_config_option('poller_interval'))));
 		$header_label = __('[new]');
-	}
-
-	/* if there was an error on the form, display the date in the correct format */
-	if (isset($_SESSION[SESS_FIELD_VALUES]['mailtime'])) {
-		$_SESSION[SESS_FIELD_VALUES]['mailtime'] = date(reports_date_time_format(), $_SESSION[SESS_FIELD_VALUES]['mailtime']);
 	}
 
 	switch (get_request_var('tab')) {
@@ -1867,6 +1860,107 @@ function is_reports_admin() {
 	return (is_realm_allowed(21) ? true : false);
 }
 
+function create_filter() {
+	global $item_rows;
+
+	$any  = array('-1' => __('Any'));
+	$none = array('0'  => __('None'));
+
+	$report_types = array(
+		'-1'       => __('All'),
+		'reports'  => __('Classic Reports'),
+		'reportit' => __('ReportIt Reports')
+	);
+
+	$statuses = array(
+		'-1' => __('Any'),
+		'-2' => __('Enabled'),
+		'-3' => __('Disabled')
+	);
+
+	return array(
+		'rows' => array(
+			array(
+				'filter' => array(
+					'method'         => 'textbox',
+					'friendly_name'  => __('Search'),
+					'filter'         => FILTER_DEFAULT,
+					'placeholder'    => __('Enter a search term'),
+					'size'           => '30',
+					'default'        => '',
+					'pageset'        => true,
+					'max_length'     => '120',
+					'value'          => ''
+				),
+				'report_type' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Report Type'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'pageset'        => true,
+					'array'          => $report_types,
+					'value'          => '-1'
+				),
+				'status' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Status'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'pageset'        => true,
+					'array'          => $statuses,
+					'value'          => '-1'
+				),
+				'rows' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Reports'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'pageset'        => true,
+					'array'          => $item_rows,
+					'value'          => '-1'
+				)
+			)
+		),
+		'buttons' => array(
+			'go' => array(
+				'method'  => 'submit',
+				'display' => __('Go'),
+				'title'   => __('Apply Filter to Table'),
+			),
+			'clear' => array(
+				'method'  => 'button',
+				'display' => __('Clear'),
+				'title'   => __('Reset Filter to Default Values'),
+			)
+		),
+		'sort' => array(
+			'sort_column' => 'name',
+			'sort_direction' => 'ASC'
+		),
+		'javascript' => array(
+			'global' => '',
+			'ready'  => ''
+		)
+	);
+}
+
+function process_sanitize_draw_filter($render = false) {
+	$filters = create_filter();
+
+	$header = __('Reports [%s]', (is_reports_admin() ? __('Administrator Level') : __('User Level')));
+
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter($header, 'reports.php', 'forms', 'sess_repv');
+
+	$pageFilter->set_filter_array($filters);
+
+	if ($render) {
+		$pageFilter->render();
+	} else {
+		$pageFilter->sanitize();
+	}
+}
+
 /**
  * Generates and displays the reports page with filtering, sorting, and pagination options.
  *
@@ -1876,46 +1970,7 @@ function reports() {
 	global $config, $item_rows, $reports_interval;
 	global $reports_actions, $attach_types, $sched_types;
 
-	/* ================= input validation and session storage ================= */
-	$filters = array(
-		'rows' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'pageset' => true,
-			'default' => '-1'
-		),
-		'page' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '1'
-		),
-		'status' => array(
-			'filter'  => FILTER_VALIDATE_INT,
-			'default' => '-1'
-		),
-		'filter' => array(
-			'filter'  => FILTER_DEFAULT,
-			'pageset' => true,
-			'default' => ''
-		),
-		'sort_column' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'name',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'sort_direction' => array(
-			'filter'  => FILTER_CALLBACK,
-			'default' => 'ASC',
-			'options' => array('options' => 'sanitize_search_string')
-		),
-		'has_graphs' => array(
-			'filter'  => FILTER_VALIDATE_REGEXP,
-			'options' => array('options' => array('regexp' => '(true|false)')),
-			'pageset' => true,
-			'default' => 'true'
-		)
-	);
-
-	validate_store_request_vars($filters, 'sess_repv');
-	/* ================= input validation ================= */
+	process_sanitize_draw_filter(true);
 
 	if (get_request_var('rows') == -1) {
 		$rows = read_config_option('num_rows_table');
@@ -1923,69 +1978,9 @@ function reports() {
 		$rows = get_request_var('rows');
 	}
 
-	if ((!empty($_SESSION['sess_status'])) && (!isempty_request_var('status'))) {
-		if ($_SESSION['sess_status'] != get_request_var('status')) {
-			set_request_var('page', '1');
-		}
-	}
-
-	form_start(get_reports_page(), 'form_report');
-
-	html_start_box(__('Reports [%s]', (is_reports_admin() ? __('Administrator Level') : __('User Level'))), '100%', '', '3', 'center', get_reports_page() . '?action=edit&tab=details');
-
-	print "<tr class='even'>
-		<td>
-			<table class='filterTable'>
-				<tr>
-					<td>
-						" . __('Search') . "
-					</td>
-					<td>
-						<input type='text' class='ui-state-default ui-corner-all' id='filter' size='25' value='" . html_escape_request_var('filter') . "'>
-					</td>
-					<td>
-						" . __('Status') . "
-					</td>
-					<td>
-						<select id='status' onChange='applyFilter()' data-defaultLabel='" . __('Status') . "'>
-							<option value='-1'" . (get_request_var('status') == '-1' ? ' selected' : '') . '>' . __('Any') . "</option>
-							<option value='-2'" . (get_request_var('status') == '-2' ? ' selected' : '') . '>' . __('Enabled') . "</option>
-							<option value='-3'" . (get_request_var('status') == '-3' ? ' selected' : '') . '>' . __('Disabled') . '</option>
-						</select>
-					</td>
-					<td>
-						' . __('Reports') . "
-					</td>
-					<td>
-						<select id='rows' onChange='applyFilter()' data-defaultLabel='" . __('Reports') . "'>
-							<option value='-1'" . (get_request_var('rows') == '-1' ? ' selected' : '') . '>' . __('Default') . '</option>';
-
-	if (cacti_sizeof($item_rows)) {
-		foreach ($item_rows as $key => $value) {
-			print "<option value='" . $key . "'" .
-				(get_request_var('rows') == $key ? ' selected' : '') . ">$value</option>\n";
-		}
-	}
-	print "				</select>
-					</td>
-					<td>
-						<span>
-							<input id='refresh' type='button' class='ui-button ui-corner-all ui-widget' value='" . __esc('Go') . "' name='go'>
-							<input id='clear' type='button' class='ui-button ui-corner-all ui-widget' value='" . __esc('Clear') . "' name='clear'>
-						</span>
-					</td>
-				</tr>
-			</table>
-		</td>
-	</tr>\n";
-
-	html_end_box(true);
-
-	form_end();
-
 	/* form the 'where' clause for our main sql query */
 	if (get_request_var('filter') != '') {
-		$sql_where = 'WHERE (reports.name LIKE ' . db_qstr('%' . get_request_var('filter') . '%') . ')';
+		$sql_where = 'WHERE (report.name LIKE ' . db_qstr('%' . get_request_var('filter') . '%') . ')';
 	} else {
 		$sql_where = '';
 	}
@@ -1993,67 +1988,156 @@ function reports() {
 	if (get_request_var('status') == '-1') {
 		/* Show all items */
 	} elseif (get_request_var('status') == '-2') {
-		$sql_where .= ($sql_where != '' ? " AND reports.enabled='on'" : " WHERE reports.enabled='on'");
+		$sql_where .= ($sql_where != '' ? " AND report.enabled='on'" : " WHERE report.enabled='on'");
 	} elseif (get_request_var('status') == '-3') {
-		$sql_where .= ($sql_where != '' ? " AND reports.enabled=''" : " WHERE reports.enabled=''");
+		$sql_where .= ($sql_where != '' ? " AND report.enabled=''" : " WHERE report.enabled=''");
 	}
 
 	/* account for permissions */
 	if (is_reports_admin()) {
-		$sql_join = 'LEFT JOIN user_auth ON user_auth.id=reports.user_id';
+		$sql_join = 'LEFT JOIN user_auth AS ua ON ua.id = report.user_id';
 	} else {
 		$sql_where .= ($sql_where != '' ? ' AND ' : 'WHERE ') . ' user_auth.id=' . $_SESSION[SESS_USER_ID];
-		$sql_join = 'INNER JOIN user_auth ON user_auth.id=reports.user_id';
+		$sql_join = 'INNER JOIN user_auth AS ua ON ua.id = report.user_id';
 	}
 
-	$total_rows = db_fetch_cell("SELECT
-		COUNT(reports.id)
-		FROM reports
-		$sql_join
-		$sql_where");
+	$reports_list = array();
 
-	$reports_list = db_fetch_assoc("SELECT
-		user_auth.full_name, user_auth.username, reports.*
-		FROM reports
-		$sql_join
-		$sql_where
-		ORDER BY " .
-		get_request_var('sort_column') . ' ' .
-		get_request_var('sort_direction') .
-		' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows);
+	if (db_table_exists('plugin_reportit_reports_ToDo')) {
+		if (get_request_var('report_type') == '-1') {
+			$total_rows = db_fetch_cell("SELECT SUM(row_count)
+				SELECT COUNT(id) AS row_count
+				FROM reports AS report
+				$sql_join
+				$sql_where
+				UNION
+				SELECT COUNT(id) AS row_count
+				FROM plugin_reportit_reports AS report
+				$sql_join
+				$sql_where");
+
+			$reports_list = db_fetch_assoc("SELECT
+				ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
+				report.sched_type, report.last_runtime, report.last_started,
+				report.from_email, report.from_name, report.email, report.bcc, report.next_start
+				FROM reports AS report
+				$sql_join
+				$sql_where
+				UNION
+				SELECT ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
+				report.sched_type, report.last_runtime, report.last_started,
+				'' AS from_email, '' AS from_name, '' AS email, '' AS bcc, report.next_start
+				FROM plugin_reportit_reports AS report
+				$sql_join
+				$sql_where
+				ORDER BY " .  get_request_var('sort_column') . ' ' .  get_request_var('sort_direction') .
+				' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows);
+		} elseif (get_request_var('report_type') == 'reports') {
+			$total_rows = db_fetch_cell("SELECT
+				COUNT(report.id)
+				FROM reports AS report
+				$sql_join
+				$sql_where");
+
+			$reports_list = db_fetch_assoc("SELECT
+				ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
+				report.sched_type, report.last_runtime, report.last_started,
+				report.from_email, report.from_name, report.email, report.bcc, report.next_start
+				FROM reports AS report
+				$sql_join
+				$sql_where
+				ORDER BY " .  get_request_var('sort_column') . ' ' .  get_request_var('sort_direction') .
+				' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows);
+		} else {
+			$total_rows = db_fetch_cell("SELECT
+				COUNT(report.id)
+				FROM plugin_reportit_reports AS report
+				$sql_join
+				$sql_where");
+
+			$reports_list = db_fetch_assoc("SELECT
+				ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
+				report.sched_type, report.last_runtime, report.last_started,
+				report.from_email, report.from_name, report.email, report.bcc, report.next_start
+				FROM plugin_reportit_reports AS report
+				$sql_join
+				$sql_where
+				ORDER BY " .  get_request_var('sort_column') . ' ' .  get_request_var('sort_direction') .
+				' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows);
+		}
+	} else {
+		$total_rows = db_fetch_cell("SELECT
+			COUNT(report.id)
+			FROM reports AS report
+			$sql_join
+			$sql_where");
+
+		$reports_list = db_fetch_assoc("SELECT
+			ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
+			report.sched_type, report.last_runtime, report.last_started,
+			report.from_email, report.from_name, report.email, report.bcc, report.next_start
+			FROM reports AS report
+			$sql_join
+			$sql_where
+			ORDER BY " .  get_request_var('sort_column') . ' ' .  get_request_var('sort_direction') .
+			' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows);
+	}
 
 	form_start(get_reports_page(), 'chk');
 
-	$nav = html_nav_bar(get_reports_page() . 'filter=' . get_request_var('filter') . '&host_id=' . get_request_var('host_id'), MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, 10, __('Reports'), 'page', 'main');
+	$nav = html_nav_bar(get_reports_page() . 'filter=' . get_request_var('filter'), MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, (cacti_sizeof($display_text)+1), __('Reports'), 'page', 'main');
 
 	print $nav;
 
 	html_start_box('', '100%', '', '3', 'center', '');
 
-	if (is_reports_admin()) {
-		$display_text = array(
-			'name'            => array('display' => __('Report Name'), 'align' => 'left', 'sort' => 'ASC'),
-			'full_name'       => array('display' => __('Owner'),       'align' => 'left', 'sort' => 'ASC'),
-			'sched_type'      => array('display' => __('Schedule'),    'align' => 'left', 'sort' => 'ASC'),
-			'lastsent'        => array('display' => __('Last Run'),    'align' => 'left', 'sort' => 'ASC'),
-			'mailtime'        => array('display' => __('Next Run'),    'align' => 'left', 'sort' => 'ASC'),
-			'from_name'       => array('display' => __('From'),        'align' => 'left', 'sort' => 'ASC'),
-			'nosort'          => array('display' => __('To'),          'align' => 'left', 'sort' => 'ASC'),
-			'attachment_type' => array('display' => __('Type'),        'align' => 'left', 'sort' => 'ASC'),
-			'enabled'         => array('display' => __('Enabled'),     'align' => 'left', 'sort' => 'ASC'),
-		);
-	} else {
-		$display_text = array(
-			'name'            => array('display' => __('Report Title'), 'align' => 'left', 'sort' => 'ASC'),
-			'sched_type'      => array('display' => __('Schedule'),     'align' => 'left', 'sort' => 'ASC'),
-			'lastsent'        => array('display' => __('Last Run'),     'align' => 'left', 'sort' => 'ASC'),
-			'mailtime'        => array('display' => __('Next Run'),     'align' => 'left', 'sort' => 'ASC'),
-			'from_name'       => array('display' => __('From'),         'align' => 'left', 'sort' => 'ASC'),
-			'nosort'          => array('display' => __('To'),           'align' => 'left', 'sort' => 'ASC'),
-			'attachment_type' => array('display' => __('Type'),         'align' => 'left', 'sort' => 'ASC'),
-			'enabled'         => array('display' => __('Enabled'),      'align' => 'left', 'sort' => 'ASC'),
-		);
-	}
+	$display_text = array(
+		'report.name' => array(
+			'display' => __('Name'),
+			'align'   => 'left',
+			'sort'    => 'ASC'
+		),
+		'report.full_name' => array(
+			'display' => __('Owner'),
+			'align'   => 'left',
+			'sort'    => 'ASC'
+		),
+		'report.enabled' => array(
+			'display' => __('Enabled'),
+			'align'   => 'left',
+			'sort'    => 'ASC'
+		),
+		'sched_type' => array(
+			'display' => __('Schedule'),
+			'align'   => 'left',
+			'sort'    => 'ASC'
+		),
+		'last_started' => array(
+			'display' => __('Last Run'),
+			'align'   => 'left',
+			'sort'    => 'ASC'
+		),
+		'next_start' => array(
+			'display' => __('Next Run'),
+			'align'   => 'left',
+			'sort'    => 'ASC'
+		),
+		'report.from_name' => array(
+			'display' => __('From'),
+			'align'   => 'left',
+			'sort'    => 'ASC'
+		),
+		'nosort' => array(
+			'display' => __('Recipients'),
+			'align'   => 'left',
+			'sort'    => 'ASC'
+		),
+		'report.last_runtime' => array(
+			'display' => __('Last Runtime'),
+			'align'   => 'right',
+			'sort'    => 'DESC'
+		),
+	);
 
 	html_header_sort_checkbox($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), false);
 
@@ -2072,29 +2156,36 @@ function reports() {
 
 			form_selectable_cell(filter_value($report['name'], get_request_var('filter'), get_reports_page() . '?action=edit&tab=details&id=' . $report['id'] . '&page=1'), $report['id']);
 
-			if (is_reports_admin()) {
-				if (reports_html_account_exists($report['user_id'])) {
-					form_selectable_ecell($report['full_name'] ? $report['full_name'] : $report['username'], $report['id']);
-				} else {
-					form_selectable_cell(__('Report Disabled - No Owner'), $report['id']);
-				}
+			if (reports_html_account_exists($report['user_id'])) {
+				form_selectable_ecell($report['full_name'] ? $report['full_name'] : $report['username'], $report['id']);
+			} else {
+				form_selectable_cell(__('Report Disabled - No Owner'), $report['id']);
 			}
+
+			form_selectable_cell($report['enabled'] ? __('Enabled') : __('Disabled'), $report['id']);
 
 			$interval = $sched_types[$report['sched_type']];
 
 			form_selectable_cell($interval, $report['id']);
-			form_selectable_cell(($report['lastsent'] == 0) ? __('Never') : date($date_format, $report['lastsent']), $report['lastsent']);
-			form_selectable_cell(date($date_format, $report['mailtime']), $report['id']);
+
+			form_selectable_cell($report['last_started'] == '0000-00-00 00:00:00' ? __('Never') : date($date_format, strtotime($report['last_started'])), $report['id']);
+
+			if ($report['sched_type'] != 1) {
+				form_selectable_cell(date($date_format, $report['next_start']), $report['id']);
+			} else {
+				form_selectable_cell(__('N/A'), $report['id']);
+			}
+
 			form_selectable_ecell($report['from_name'], $report['id']);
 			form_selectable_ecell((substr_count($report['email'], ',') ? __('Multiple') : $report['email']), $report['id']);
-			form_selectable_cell((isset($attach_types[$report['attachment_type']])) ? $attach_types[$report['attachment_type']] : __('Invalid'), $report['id']);
-			form_selectable_cell($report['enabled'] ? __('Enabled') : __('Disabled'), $report['id']);
+			form_selectable_cell(__('%0.2f seconds', number_format_i18n($report['last_runtime'], 2)), $report['id'], '', 'right');
+
 			form_checkbox_cell($report['name'], $report['id']);
 
 			form_end_row();
 		}
 	} else {
-		print "<tr class='tableRow odd'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Reports Found') . "</em></td></tr>\n";
+		print "<tr class='tableRow odd'><td colspan='" . (cacti_sizeof($display_text) + 1) . "'><em>" . __('No Reports Found') . "</em></td></tr>";
 	}
 
 	html_end_box(false);
@@ -2141,7 +2232,7 @@ function reports() {
 			});
 		});
 	</script>
-<?php
+	<?php
 }
 
 /**

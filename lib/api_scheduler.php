@@ -313,7 +313,7 @@ function api_scheduler_is_time_to_start($schedule, $table = 'automation_networks
 				db_execute_prepared("UPDATE $table
 					SET next_start = ?
 					WHERE id = ?",
-					array(date('Y-m-d H:i', $target), $schedulework_id));
+					array(date('Y-m-d H:i', $target), $schedule['id']));
 
 				return true;
 
@@ -356,7 +356,7 @@ function api_scheduler_is_time_to_start($schedule, $table = 'automation_networks
 				db_execute_prepared("UPDATE $table
 					SET next_start = ?
 					WHERE id = ?",
-					array(date('Y-m-d H:i', $target), $schedulework_id));
+					array(date('Y-m-d H:i', $target), $schedule['id']));
 
 				return true;
 			}
@@ -371,7 +371,7 @@ function api_scheduler_is_time_to_start($schedule, $table = 'automation_networks
 			db_execute_prepared("UPDATE $table
 				SET next_start = ?
 				WHERE id = ?",
-				array(date('Y-m-d H:i', $next), $schedulework_id));
+				array(date('Y-m-d H:i', $next), $schedule['id']));
 
 			if ($schedule['next_start'] == '0000-00-00 00:00:00') {
 				if ($now > strtotime($schedule['start_at'])) {
@@ -394,6 +394,9 @@ function api_scheduler_calculate_next_start($schedule) {
 	$dates  = array();
 
 	switch($schedule['sched_type']) {
+		case SCHEDULE_MANUAL:
+
+			break;
 		case SCHEDULE_MONTHLY:
 			$months = explode(',', $schedule['month']);
 			$days   = explode(',', $schedule['day_of_month']);
@@ -583,18 +586,20 @@ function api_scheduler_calculate_next_start($schedule) {
 			break;
 	}
 
-	asort($dates);
+	if ($schedule['sched_type'] !== SCHEDULE_MANUAL) {
+		asort($dates);
 
-	$newdates = array();
+		$newdates = array();
 
-	foreach ($dates as $date) {
-		$ndate = date('Y-m-d', $date) . ' ' . date('H:i:s', strtotime($schedule['start_at']));
-		$ntime = strtotime($ndate);
+		foreach ($dates as $date) {
+			$ndate = date('Y-m-d', $date) . ' ' . date('H:i:s', strtotime($schedule['start_at']));
+			$ntime = strtotime($ndate);
 
-		cacti_log('Start At: ' . $schedule['start_at'] . ', Possible Next Start: ' . $ndate . ' with Timestamp: ' . $ntime, false, POLLER_VERBOSITY_DEBUG);
+			cacti_log('Start At: ' . $schedule['start_at'] . ', Possible Next Start: ' . $ndate . ' with Timestamp: ' . $ntime, false, 'SCHEDULER', POLLER_VERBOSITY_DEBUG);
 
-		if ($ntime > $now) {
-			return $ntime;
+			if ($ntime > $now) {
+				return $ntime;
+			}
 		}
 	}
 

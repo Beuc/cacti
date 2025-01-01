@@ -240,7 +240,7 @@ function reports_date_time_format() {
 	$date_fmt        = read_config_option('default_date_format');
 	$dateCharSetting = read_config_option('default_datechar');
 
-	if (empty($dateCharSetting)) {
+	if ($dateCharSetting == '') {
 		$dateCharSetting = GDC_SLASH;
 	}
 
@@ -622,9 +622,18 @@ function generate_report($report, $force = false) {
 		$headers
 	);
 
+
+	$end = microtime(true);
+
+	db_execute_prepared('UPDATE reports
+		SET last_started = ?, last_runtime = ?
+		WHERE id = ?',
+		array(date('Y-m-d H:i:s', $time), $end - $start, $report['id']));
+
 	if ($error != '') {
 		if (isset_request_var('id')) {
 			raise_message('report_message', __esc('Problems sending Report \'%s\' Problem with e-mail Subsystem Error is \'%s\'', $report['name'], $error), MESSAGE_LEVEL_ERROR);
+
 		} else {
 			reports_log(__FUNCTION__ . ", Problems sending Report '" . $report['name'] . "'.  Problem with e-mail Subsystem Error is '$error'", false, 'REPORTS', POLLER_VERBOSITY_LOW);
 		}
@@ -635,13 +644,6 @@ function generate_report($report, $force = false) {
 	if (isset($_REQUEST)) {
 		raise_message('report_message', __esc('Report \'%s\' Sent Successfully', $report['name']), MESSAGE_LEVEL_INFO);
 	}
-
-	$end = microtime(true);
-
-	db_execute_prepared('UPDATE reports
-		SET last_start = ?, last_runtime = ?
-		WHERE id = ?',
-		array(date('Y-m-d H:i:s', $time), $end - $start, $report['id']));
 
 	return true;
 }
