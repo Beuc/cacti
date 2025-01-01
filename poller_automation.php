@@ -262,7 +262,9 @@ if ($master) {
 
 			if (api_scheduler_is_time_to_start($network) || $force) {
 				automation_debug("Launching Network Master for '" . $network['name'] . "'\n");
+
 				exec_background(read_config_option('path_php_binary'), '-q ' . read_config_option('path_webroot') . '/poller_automation.php --poller=' . $poller_id . ' --network=' . $network['id'] . ($force ? ' --force':'') . ($debug ? ' --debug':''));
+
 				$launched++;
 
 				if ($serial_scans) {

@@ -435,7 +435,8 @@ function generate_report($report, $force = false) {
 
 	$body = reports_generate_html($report['id'], REPORTS_OUTPUT_EMAIL, $theme);
 
-	$time = time();
+	$time  = time();
+	$start = microtime(true);
 
 	# get config option for first-day-of-the-week
 	$first_weekdayid = read_user_setting('first_weekdayid', false, false, $report['user_id']);
@@ -604,7 +605,8 @@ function generate_report($report, $force = false) {
 		$report['bcc'] = '';
 	}
 
-	$v                     = CACTI_VERSION;
+	$v = CACTI_VERSION;
+
 	$headers['User-Agent'] = 'Cacti-Reports-v' . $v;
 
 	$error = mailer(
@@ -632,25 +634,16 @@ function generate_report($report, $force = false) {
 
 	if (isset($_REQUEST)) {
 		raise_message('report_message', __esc('Report \'%s\' Sent Successfully', $report['name']), MESSAGE_LEVEL_INFO);
-
-		$int = read_config_option('poller_interval');
-
-		if (!$force) {
-			$next = reports_interval_start($report['intrvl'], $report['count'], $report['offset'], $report['mailtime']);
-
-			db_execute_prepared('UPDATE reports
-				SET mailtime = ?, lastsent = ?
-				WHERE id = ?',
-				array($next, time(), $report['id']));
-		} else {
-			db_execute_prepared('UPDATE reports
-				SET lastsent = ?
-				WHERE id = ?',
-				array(time(), $report['id']));
-		}
-
-		return true;
 	}
+
+	$end = microtime(true);
+
+	db_execute_prepared('UPDATE reports
+		SET last_start = ?, last_runtime = ?
+		WHERE id = ?',
+		array(date('Y-m-d H:i:s', $time), $end - $start, $report['id']));
+
+	return true;
 }
 
 /** reports_load_format_file  read the format file from disk and determines it's formatting

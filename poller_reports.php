@@ -32,6 +32,7 @@ if (function_exists('pcntl_async_signals')) {
 ini_set('output_buffering', 'Off');
 
 require(__DIR__ . '/include/cli_check.php');
+require_once(CACTI_PATH_LIBRARY . '/api_scheduler.php');
 require_once(CACTI_PATH_LIBRARY . '/poller.php');
 require_once(CACTI_PATH_LIBRARY . '/rrd.php');
 require_once(CACTI_PATH_LIBRARY . '/reports.php');
@@ -153,22 +154,23 @@ if (!db_table_exists('reports')) {
 }
 
 /* fetch all enabled reports that have a start time in the past */
-if (!$force) {
-	$reports = db_fetch_assoc_prepared('SELECT * FROM reports WHERE mailtime < ? AND enabled="on"', array($t));
-} else {
-	$reports = db_fetch_assoc("SELECT * FROM reports WHERE enabled='on'");
-}
+$reports = db_fetch_assoc("SELECT * FROM reports WHERE enabled='on'");
+
 reports_log('Cacti Reports reports found: ' . cacti_sizeof($reports), true, 'REPORTS', POLLER_VERBOSITY_MEDIUM);
 
 /* execute each of those reports */
 if (cacti_sizeof($reports)) {
 	foreach ($reports as $report) {
-		reports_log('Reports processing report: ' . $report['name'], true, 'REPORTS', POLLER_VERBOSITY_MEDIUM);
-		$current_user = db_fetch_row_prepared('SELECT * FROM user_auth WHERE id = ?', array($report['user_id']));
+		if (api_scheduler_is_time_to_start($report, 'reports') || $force) {
+			reports_log('Reports processing report: ' . $report['name'], true, 'REPORTS', POLLER_VERBOSITY_MEDIUM);
 
-		if (isset($report['email'])) {
-			generate_report($report, false, 'poller');
-			$number_sent++;
+			$current_user = db_fetch_row_prepared('SELECT * FROM user_auth WHERE id = ?', array($report['user_id']));
+
+			if (isset($report['email'])) {
+				generate_report($report, false, 'poller');
+
+				$number_sent++;
+			}
 		}
 	}
 

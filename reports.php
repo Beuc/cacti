@@ -24,6 +24,7 @@
 
 $guest_account = true;
 include('./include/auth.php');
+include_once(CACTI_PATH_LIBRARY . '/api_scheduler.php');
 include_once(CACTI_PATH_LIBRARY . '/reports.php');
 include_once(CACTI_PATH_LIBRARY . '/html_reports.php');
 include_once(CACTI_PATH_LIBRARY . '/timespan_settings.php');

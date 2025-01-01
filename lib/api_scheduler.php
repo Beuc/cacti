@@ -280,7 +280,7 @@ function api_scheduler_javascript() {
 	<?php
 }
 
-function api_scheduler_is_time_to_start($schedule) {
+function api_scheduler_is_time_to_start($schedule, $table = 'automation_networks') {
 	$now   = time();
 
 	switch($schedule['sched_type']) {
@@ -310,9 +310,9 @@ function api_scheduler_is_time_to_start($schedule) {
 					$target += $recur;
 				}
 
-				db_execute_prepared('UPDATE automation_networks
+				db_execute_prepared("UPDATE $table
 					SET next_start = ?
-					WHERE id = ?',
+					WHERE id = ?",
 					array(date('Y-m-d H:i', $target), $schedulework_id));
 
 				return true;
@@ -353,9 +353,9 @@ function api_scheduler_is_time_to_start($schedule) {
 					}
 				}
 
-				db_execute_prepared('UPDATE automation_networks
+				db_execute_prepared("UPDATE $table
 					SET next_start = ?
-					WHERE id = ?',
+					WHERE id = ?",
 					array(date('Y-m-d H:i', $target), $schedulework_id));
 
 				return true;
@@ -368,9 +368,9 @@ function api_scheduler_is_time_to_start($schedule) {
 		case SCHEDULE_MONTHLY_ON_DAY:
 			$next = api_scheduler_calculate_next_start($schedule, $now);
 
-			db_execute_prepared('UPDATE automation_networks
+			db_execute_prepared("UPDATE $table
 				SET next_start = ?
-				WHERE id = ?',
+				WHERE id = ?",
 				array(date('Y-m-d H:i', $next), $schedulework_id));
 
 			if ($schedule['next_start'] == '0000-00-00 00:00:00') {

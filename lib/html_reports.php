@@ -126,40 +126,12 @@ $fields_reports_edit = array(
 		'default'       => '',
 		'description'   => __('Should the Graphs be rendered as Thumbnails?'),
 		'value'         => '|arg1:thumbnails|'
-	),
-	'freqhead' => array(
-		'friendly_name' => __('Email Frequency'),
-		'method'        => 'spacer',
-		'collapsible'   => 'true'
-	),
-	'mailtime' => array(
-		'friendly_name' => __('Next Timestamp for Sending Mail Report'),
-		'description'   => __('Start time for [first|next] mail to take place. All future mailing times will be based upon this start time. A good example would be 2:00am. The time must be in the future.  If a fractional time is used, say 2:00am, it is assumed to be in the future.'),
-		'default'       => 0,
-		'method'        => 'textbox',
-		'size'          => 20,
-		'max_length'    => 20,
-		'value'         => '|arg1:mailtime|'
-	),
-	'intrvl' => array(
-		'friendly_name' => __('Report Interval'),
-		'description'   => __('Defines a Report Frequency relative to the given Mailtime above.') . '<br>' .
-			__('e.g. \'Week(s)\' represents a weekly Reporting Interval.'),
-		'default' => REPORTS_SCHED_INTVL_DAY,
-		'method'  => 'drop_array',
-		'array'   => $reports_interval,
-		'value'   => '|arg1:intrvl|'
-	),
-	'count' => array(
-		'friendly_name' => __('Interval Frequency'),
-		'description'   => __('Based upon the Timespan of the Report Interval above, defines the Frequency within that Interval.') . '<br>' .
-			__('e.g. If the Report Interval is \'Month(s)\', then \'2\' indicates Every \'2 Month(s) from the next Mailtime.\' Lastly, if using the Month(s) Report Intervals, the \'Day of Week\' and the \'Day of Month\' are both calculated based upon the Mailtime you specify above.'),
-		'default'    => REPORTS_SCHED_COUNT,
-		'method'     => 'textbox',
-		'size'       => 10,
-		'max_length' => 10,
-		'value'      => '|arg1:count|'
-	),
+	)
+);
+
+$fields_reports_edit += api_scheduler_form();
+
+$fields_reports_edit += array(
 	'emailhead' => array(
 		'friendly_name' => __('Email Sender/Receiver Details'),
 		'method'        => 'spacer',
@@ -303,27 +275,63 @@ function reports_form_save() {
 		$save['graph_height']  = form_input_validate(get_nfilter_request_var('graph_height'), 'graph_height', '^[0-9]+$', false, 3);
 		$save['thumbnails']    = form_input_validate((isset_request_var('thumbnails') ? get_nfilter_request_var('thumbnails') : ''), 'thumbnails', '', true, 3);
 
-		$save['intrvl']        = form_input_validate(get_nfilter_request_var('intrvl'), 'intrvl', '^[-+]?[0-9]+$', false, 3);
-		$save['count']         = form_input_validate(get_nfilter_request_var('count'), 'count', '^[0-9]+$', false, 3);
-		$save['offset']        = '0';
+        /* scheduler settings */
+		$save['sched_type']    = form_input_validate(get_nfilter_request_var('sched_type'), 'sched_type', '^[0-9]+$', false, 3);
+		$save['start_at']      = form_input_validate(get_nfilter_request_var('start_at'), 'start_at', '', false, 3);
 
-		/* adjust mailtime according to rules */
-		$timestamp = strtotime(get_nfilter_request_var('mailtime'));
-
-		if ($timestamp === false) {
-			$timestamp  = $now;
-		} elseif (($timestamp + read_config_option('poller_interval')) < $now) {
-			$timestamp += 86400;
-
-			/* if the time is far into the past, make it the correct time, but tomorrow */
-			if (($timestamp + read_config_option('poller_interval')) < $now) {
-				$timestamp = strtotime('12:00am') + 86400 + date('H', $timestamp) * 3600 + date('i', $timestamp) * 60 + date('s', $timestamp);
-			}
-
-			raise_message('report_message', __('Date/Time moved to the same time Tomorrow'), MESSAGE_LEVEL_INFO);
+		// accommodate a schedule start change
+		if (get_nfilter_request_var('orig_start_at') != get_nfilter_request_var('start_at')) {
+			$save['next_start'] = '0000-00-00';
 		}
 
-		$save['mailtime']     = form_input_validate($timestamp, 'mailtime', '^[0-9]+$', false, 3);
+		if (get_nfilter_request_var('orig_sched_type') != get_nfilter_request_var('sched_type')) {
+			$save['next_start'] = '0000-00-00';
+		}
+
+		$save['recur_every']   = form_input_validate(get_nfilter_request_var('recur_every'), 'recur_every', '', true, 3);
+
+		$save['day_of_week']   = form_input_validate(isset_request_var('day_of_week') ? implode(',', get_nfilter_request_var('day_of_week')) : '', 'day_of_week', '', true, 3);
+		$save['month']         = form_input_validate(isset_request_var('month') ? implode(',', get_nfilter_request_var('month')) : '', 'month', '', true, 3);
+		$save['day_of_month']  = form_input_validate(isset_request_var('day_of_month') ? implode(',', get_nfilter_request_var('day_of_month')) : '', 'day_of_month', '', true, 3);
+		$save['monthly_week']  = form_input_validate(isset_request_var('monthly_week') ? implode(',', get_nfilter_request_var('monthly_week')) : '', 'monthly_week', '', true, 3);
+		$save['monthly_day']   = form_input_validate(isset_request_var('monthly_day') ? implode(',', get_nfilter_request_var('monthly_day')) : '', 'monthly_day', '', true, 3);
+
+		/* check for bad rules */
+		if ($save['sched_type'] == SCHEDULE_WEEKLY) {
+			if ($save['day_of_week'] == '') {
+				$save['enabled'] = '';
+
+				raise_message('sched_err',  __esc('ERROR: You must specify the day of the week.  Disabling Network %s!.', $save['name']), MESSAGE_LEVEL_ERROR);
+			}
+		} elseif ($save['sched_type'] == SCHEDULE_MONTHLY) {
+			if ($save['month'] == '' || $save['day_of_month'] == '') {
+				$save['enabled'] = '';
+
+				raise_message('sched_err',  __esc('ERROR: You must specify both the Months and Days of Month.  Disabling Network %s!', $save['name']), MESSAGE_LEVEL_ERROR);
+			}
+		} elseif ($save['sched_type'] == SCHEDULE_MONTHLY_ON_DAY) {
+			if ($save['month'] == '' || $save['monthly_day'] == '' || $save['monthly_week'] == '') {
+				$save['enabled'] = '';
+
+				raise_message('sched_err', __esc('ERROR: You must specify the Months, Weeks of Months, and Days of Week.  Disabling Network %s!', $save['name']), MESSAGE_LEVEL_ERROR);
+			}
+		}
+
+		if ($save['sched_type'] != 1) {
+			if ($save['next_start'] == '0000-00-00 00:00:00') {
+				$timestamp  = $now;
+			} elseif ((strtotime($save['next_start']) + read_config_option('poller_interval')) < $now) {
+				$timestamp = strtotime($save['next_start']) + 86400;
+
+				/* if the time is far into the past, make it the correct time, but tomorrow */
+				if (($timestamp + read_config_option('poller_interval')) < $now) {
+					$timestamp = strtotime('12:00am') + 86400 + date('H', $timestamp) * 3600 + date('i', $timestamp) * 60 + date('s', $timestamp);
+					$save['next_start'] = date('Y-m-d H:i:s', $timestamp);
+				}
+
+				raise_message('report_message', __('Date/Time moved to the same time Tomorrow'), MESSAGE_LEVEL_INFO);
+			}
+		}
 
 		if (get_nfilter_request_var('subject') != '') {
 			$save['subject'] = get_nfilter_request_var('subject');
@@ -351,7 +359,6 @@ function reports_form_save() {
 		}
 
 		$save['attachment_type']  = form_input_validate($atype, 'attachment_type', '^[0-9]+$', false, 3);
-		$save['lastsent']         = 0;
 
 		if (!is_error_message()) {
 			$id = sql_save($save, 'reports');
@@ -1460,7 +1467,7 @@ function reports_tabs($report_id) {
 	global $config;
 
 	if ($report_id > 0) {
-		$tabs = array('details' => __('Details'), 'items' => __('Items'), 'preview' => __('Preview'), 'events' => __('Events'));
+		$tabs = array('details' => __('Details'), 'items' => __('Items'), 'preview' => __('Preview'), 'logs' => __('Logs'));
 	} else {
 		$tabs = array('details' => __('Details'));
 	}
@@ -1583,35 +1590,27 @@ function reports_edit() {
 
 			?>
 			<script type='text/javascript'>
-				function changeFormat() {
-					toggleFields({
-						font_size: !(cformat && cformat.checked),
-						alignment: !(cformat && cformat.checked),
-						format_file: (cformat && cformat.checked),
-					})
-				}
+			function changeFormat() {
+				toggleFields({
+					font_size: !(cformat && cformat.checked),
+					alignment: !(cformat && cformat.checked),
+					format_file: (cformat && cformat.checked),
+				})
+			}
 
-				$(function() {
-					$('#mailtime').datetimepicker({
-						minuteGrid: 10,
-						stepMinute: 1,
-						showSecond: false,
-						showAnim: 'slideDown',
-						numberOfMonths: 1,
-						timeFormat: 'HH:mm',
-						dateFormat: 'yy-mm-dd'
-					});
-
-					$('#cformat').click(function() {
-						changeFormat();
-					});
-
+			$(function() {
+				$('#cformat').click(function() {
 					changeFormat();
 				});
+
+				changeFormat();
+			});
 			</script>
 			<?php
 
-					form_save_button(get_reports_page(), 'return');
+			api_scheduler_javascript();
+
+			form_save_button(get_reports_page(), 'return');
 
 			break;
 		case 'items':
@@ -1647,29 +1646,7 @@ function reports_edit() {
 			}
 
 			break;
-		case 'events':
-			if (($timestamp = strtotime($report['mailtime'])) === false) {
-				$timestamp = time();
-			}
-			$poller_interval = read_config_option('poller_interval');
-
-			if ($poller_interval == '') {
-				$poller_interval = 300;
-			}
-
-			$timestamp   = floor($timestamp / $poller_interval) * $poller_interval;
-			$next        = reports_interval_start($report['intrvl'], $report['count'], $report['offset'], $timestamp);
-			$date_format = reports_date_time_format() . ' - l';
-
-			html_start_box(__esc('Scheduled Events %s', $header_label), '100%', '', '3', 'center', '');
-
-			for ($i = 0; $i < 14; $i++) {
-				form_alternate_row('line' . $i, true);
-				form_selectable_cell(date($date_format, $next), $i);
-				form_end_row();
-				$next = reports_interval_start($report['intrvl'], $report['count'], $report['offset'], $next);
-			}
-			html_end_box(false);
+		case 'logs':
 
 			break;
 		case 'preview':
@@ -1897,7 +1874,7 @@ function is_reports_admin() {
  */
 function reports() {
 	global $config, $item_rows, $reports_interval;
-	global $reports_actions, $attach_types;
+	global $reports_actions, $attach_types, $sched_types;
 
 	/* ================= input validation and session storage ================= */
 	$filters = array(
@@ -2036,9 +2013,7 @@ function reports() {
 		$sql_where");
 
 	$reports_list = db_fetch_assoc("SELECT
-		user_auth.full_name, user_auth.username,
-		reports.*,
-		CONCAT_WS('', intrvl, ' ', count, ' ', `offset`, '') AS cint
+		user_auth.full_name, user_auth.username, reports.*
 		FROM reports
 		$sql_join
 		$sql_where
@@ -2059,7 +2034,7 @@ function reports() {
 		$display_text = array(
 			'name'            => array('display' => __('Report Name'), 'align' => 'left', 'sort' => 'ASC'),
 			'full_name'       => array('display' => __('Owner'),       'align' => 'left', 'sort' => 'ASC'),
-			'cint'            => array('display' => __('Frequency'),   'align' => 'left', 'sort' => 'ASC'),
+			'sched_type'      => array('display' => __('Schedule'),    'align' => 'left', 'sort' => 'ASC'),
 			'lastsent'        => array('display' => __('Last Run'),    'align' => 'left', 'sort' => 'ASC'),
 			'mailtime'        => array('display' => __('Next Run'),    'align' => 'left', 'sort' => 'ASC'),
 			'from_name'       => array('display' => __('From'),        'align' => 'left', 'sort' => 'ASC'),
@@ -2070,7 +2045,7 @@ function reports() {
 	} else {
 		$display_text = array(
 			'name'            => array('display' => __('Report Title'), 'align' => 'left', 'sort' => 'ASC'),
-			'cint'            => array('display' => __('Frequency'),    'align' => 'left', 'sort' => 'ASC'),
+			'sched_type'      => array('display' => __('Schedule'),     'align' => 'left', 'sort' => 'ASC'),
 			'lastsent'        => array('display' => __('Last Run'),     'align' => 'left', 'sort' => 'ASC'),
 			'mailtime'        => array('display' => __('Next Run'),     'align' => 'left', 'sort' => 'ASC'),
 			'from_name'       => array('display' => __('From'),         'align' => 'left', 'sort' => 'ASC'),
@@ -2105,7 +2080,7 @@ function reports() {
 				}
 			}
 
-			$interval = __('Every') . ' ' . $report['count'] . ' ' . $reports_interval[$report['intrvl']];
+			$interval = $sched_types[$report['sched_type']];
 
 			form_selectable_cell($interval, $report['id']);
 			form_selectable_cell(($report['lastsent'] == 0) ? __('Never') : date($date_format, $report['lastsent']), $report['lastsent']);

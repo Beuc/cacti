@@ -567,6 +567,187 @@ function upgrade_to_1_3_0() {
 			db_execute('UPDATE settings SET name = "business_hours_hide_weekends" WHERE name = "business_hours_hideWeekends"');
 		}
 	}
+
+	upgrade_reports();
+}
+
+function upgrade_reports() {
+	require_once(CACTI_PATH_BASE . '/lib/api_scheduler.php');
+
+	if (!db_column_exists('reports', 'next_start')) {
+		db_execute("ALTER TABLE reports
+			ADD COLUMN `sched_type` int(10) unsigned NOT NULL default '0' AFTER name,
+			ADD COLUMN `run_limit` int(10) unsigned default '0' AFTER sched_type,
+			ADD COLUMN `start_at` varchar(20) default NULL AFTER run_limit,
+			ADD COLUMN `next_start` timestamp NOT NULL default '0000-00-00 00:00:00' AFTER start_at,
+			ADD COLUMN `recur_every` int(10) unsigned default '1' AFTER next_start,
+			ADD COLUMN `day_of_week` varchar(45) default NULL AFTER recur_every,
+			ADD COLUMN `month` varchar(45) default NULL AFTER day_of_week,
+			ADD COLUMN `day_of_month` varchar(45) default NULL AFTER month,
+			ADD COLUMN `monthly_week` varchar(45) default NULL AFTER day_of_month,
+			ADD COLUMN `monthly_day` varchar(45) default NULL AFTER monthly_week,
+			ADD COLUMN `last_runtime` double NOT NULL default '0' AFTER monthly_day,
+			ADD COLUMN `last_started` timestamp NOT NULL default '0000-00-00 00:00:00' AFTER last_runtime,
+			ADD COLUMN `last_status` varchar(128) NOT NULL default '' AFTER last_started");
+
+		/* migrate the schedules as close as possible */
+		$reports = db_fetch_assoc('SELECT * FROM reports');
+
+
+		/* drop legacy columns */
+		// `intrvl` smallint(2) unsigned NOT NULL default '0', - Sched type
+		//		10 - Minute, -- Attempt to convert to Hours
+		//		11 - Hours,  -- Keep
+		//		1 - Days,    -- Keep
+		//		2 - Weeks,   -- Keep
+		//		3 - Months Day of Month, -- Have to Figure it out - Same as Scheduler
+		//		4 - Months Day of Week,  -- Have to Figure it out - Every X day of Week in a Month
+		//		5 - Yearly -- Drop
+		//
+		// `count` smallint(2) unsigned NOT NULL default '0',   - Interval Frequency - Have to figure out for 3 and 4
+		// `offset` int(10) unsigned NOT NULL default '0',      - Internal for Calculating next runtime
+		// `mailtime` bigint(20) unsigned NOT NULL default '0', - Next time for send - next_start
+		// `lastsent` bigint(20) unsigned NOT NULL default '0', - Last Send Time - last_started
+
+		if (cacti_sizeof($reports)) {
+			// Get the enabled status and store
+			foreach($reports as $r) {
+				$enabled[$r['id']] = $r['enabled'];
+			}
+
+			db_execute('ALTER TABLE reports DROP COLUMN enabled');
+			db_execute('ALTER TABLE reports ADD COLUMN enabled char(2) NOT NULL default "" AFTER name');
+
+			foreach($reports as $r) {
+				switch($r['intrvl']) {
+					case 10: // Minutes
+						cacti_log(sprintf('WARNING: Minute level Reports are no longer supported.  Disabling Report \'%s\'', $r['name']), false, 'INSTALL');
+
+						db_execute_prepared('UPDATE reports
+							SET sched_type = 1,
+							enabled = "",
+							next_start = ?,
+							last_start = ?
+							WHERE id = ?',
+							array(
+								$r['mailtime'],
+								$r['lastsent'],
+								$r['id']
+							)
+						);
+
+						break;
+					case 10: // Hours
+						db_execute_prepared('UPDATE reports
+							SET sched_type = ?,
+							enabled = ?
+							recur_every = ?,
+							next_start = ?,
+							last_start = ?
+							WHERE id = ?',
+							array(
+								6,
+								$enabled[$r['id']],
+								$r['count'],
+								$r['mailtime'],
+								$r['lastsent'],
+								$r['id']
+							)
+						);
+
+						break;
+					case 1:  // Days
+					case 2:  // Weeks
+						db_execute_prepared('UPDATE reports
+							SET sched_type = ?,
+							enabled = ?,
+							recur_every = ?,
+							next_start = ?,
+							last_start = ?
+							WHERE id = ?',
+							array(
+								$r['intrvl']+1,
+								$enabled[$r['id']],
+								$r['count'],
+								$r['mailtime'],
+								$r['lastsent'],
+								$r['id']
+							)
+						);
+
+						break;
+					case 3:  // Month, Day of Month
+						db_execute_prepared('UPDATE reports
+							SET sched_type = ?,
+							enabled = ?,
+							day_of_month = ?,
+							month = ?,
+							next_start = ?,
+							last_start = ?
+							WHERE id = ?',
+							array(
+								$r['intrvl']+1,
+								$enabled[$r['id']],
+								$r['count'],
+								'1,2,3,4,5,6,7,8,9,10,11,12',
+								$r['mailtime'],
+								$r['lastsent'],
+								$r['id']
+							)
+						);
+
+						break;
+					case 4:  // Month, Day of Week
+						db_execute_prepared('UPDATE reports
+							SET sched_type = ?,
+							enabled = ?,
+							day_of_week = ?,
+							monthly_week = ?,
+							month = ?,
+							next_start = ?,
+							last_start = ?
+							WHERE id = ?',
+							array(
+								$r['intrvl']+1,
+								$enabled[$r['id']],
+								$r['count'],
+								'1,2,3,4',
+								'1,2,3,4,5,6,7,8,9,10,11,12',
+								$r['mailtime'],
+								$r['lastsent'],
+								$r['id']
+							)
+						);
+
+						break;
+					case 5:  // Yearly
+						cacti_log(sprintf('WARNING: Yearly Reports are no longer supported.  Disabling Report \'%s\'', $r['name']), false, 'INSTALL');
+
+						db_execute_prepared('UPDATE reports
+							SET sched_type = 1,
+							enabled = "",
+							next_start = ?,
+							last_start = ?
+							WHERE id = ?',
+							array(
+								$r['mailtime'],
+								$r['lastsent'],
+								$r['id']
+							)
+						);
+
+						break;
+				}
+			}
+		}
+
+		db_execute('ALTER TABLE reports
+			DROP COLUMN `intrvl`,
+			DROP COLUMN `offset`,
+			DROP COLUMN `count`,
+			DROP COLUMN `mailtime`,
+			DROP COLUMN `lastsent`');
+	}
 }
 
 function ldap_convert_1_3_0() {
