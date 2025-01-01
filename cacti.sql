@@ -2679,7 +2679,7 @@ CREATE TABLE `reports` (
   `thumbnails` char(2) NOT NULL default '',
   PRIMARY KEY (`id`),
   KEY `next_start` (`next_start`),
-  KEY `last_start` (`last_start`))
+  KEY `last_started` (`last_started`))
   ENGINE=InnoDB
   ROW_FORMAT=Dynamic
   COMMENT='Cacti Reporting Reports';

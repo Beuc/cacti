@@ -588,7 +588,9 @@ function upgrade_reports() {
 			ADD COLUMN `monthly_day` varchar(45) default NULL AFTER monthly_week,
 			ADD COLUMN `last_runtime` double NOT NULL default '0' AFTER monthly_day,
 			ADD COLUMN `last_started` timestamp NOT NULL default '0000-00-00 00:00:00' AFTER last_runtime,
-			ADD COLUMN `last_status` varchar(128) NOT NULL default '' AFTER last_started");
+			ADD COLUMN `last_status` varchar(128) NOT NULL default '' AFTER last_started,
+			ADD INDEX `last_started` (`last_started`),
+			ADD INDEX `next_start` (`next_start`)");
 
 		/* migrate the schedules as close as possible */
 		$reports = db_fetch_assoc('SELECT * FROM reports');
@@ -627,7 +629,7 @@ function upgrade_reports() {
 							SET sched_type = 1,
 							enabled = "",
 							next_start = ?,
-							last_start = ?
+							last_started = ?
 							WHERE id = ?',
 							array(
 								$r['mailtime'],
@@ -643,7 +645,7 @@ function upgrade_reports() {
 							enabled = ?
 							recur_every = ?,
 							next_start = ?,
-							last_start = ?
+							last_started = ?
 							WHERE id = ?',
 							array(
 								6,
@@ -663,7 +665,7 @@ function upgrade_reports() {
 							enabled = ?,
 							recur_every = ?,
 							next_start = ?,
-							last_start = ?
+							last_started = ?
 							WHERE id = ?',
 							array(
 								$r['intrvl']+1,
@@ -683,7 +685,7 @@ function upgrade_reports() {
 							day_of_month = ?,
 							month = ?,
 							next_start = ?,
-							last_start = ?
+							last_started = ?
 							WHERE id = ?',
 							array(
 								$r['intrvl']+1,
@@ -705,7 +707,7 @@ function upgrade_reports() {
 							monthly_week = ?,
 							month = ?,
 							next_start = ?,
-							last_start = ?
+							last_started = ?
 							WHERE id = ?',
 							array(
 								$r['intrvl']+1,
@@ -727,7 +729,7 @@ function upgrade_reports() {
 							SET sched_type = 1,
 							enabled = "",
 							next_start = ?,
-							last_start = ?
+							last_started = ?
 							WHERE id = ?',
 							array(
 								$r['mailtime'],
@@ -739,6 +741,9 @@ function upgrade_reports() {
 						break;
 				}
 			}
+		} else {
+			db_execute('ALTER TABLE reports DROP COLUMN enabled');
+			db_execute('ALTER TABLE reports ADD COLUMN enabled char(2) NOT NULL default "" AFTER name');
 		}
 
 		db_execute('ALTER TABLE reports
