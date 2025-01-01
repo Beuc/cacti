@@ -2678,7 +2678,8 @@ CREATE TABLE `reports` (
   `graph_columns` smallint(2) unsigned NOT NULL default '0',
   `thumbnails` char(2) NOT NULL default '',
   PRIMARY KEY (`id`),
-  KEY `mailtime` (`mailtime`))
+  KEY `next_start` (`next_start`),
+  KEY `last_start` (`last_start`))
   ENGINE=InnoDB
   ROW_FORMAT=Dynamic
   COMMENT='Cacti Reporting Reports';
