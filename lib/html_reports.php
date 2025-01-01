@@ -251,7 +251,6 @@ function reports_form_save() {
 		get_filter_request_var('graph_height');
 		get_filter_request_var('graph_columns');
 		/* ==================================================== */
-		$now = time();
 
 		if (isempty_request_var('id')) {
 			$save['user_id'] = $_SESSION[SESS_USER_ID];
@@ -317,19 +316,38 @@ function reports_form_save() {
 			}
 		}
 
-		if ($save['sched_type'] != 1) {
-			if ($save['next_start'] == '0000-00-00 00:00:00') {
-				$timestamp  = $now;
-			} elseif ((strtotime($save['next_start']) + read_config_option('poller_interval')) < $now) {
-				$timestamp = strtotime($save['next_start']) + 86400;
+		$now_time   = time();
+		$next_start = strtotime($save['next_start']);
+		$start_at   = strtotime($save['start_at']);
+		$poller_int = read_config_option('poller_interval');
 
-				/* if the time is far into the past, make it the correct time, but tomorrow */
-				if (($timestamp + read_config_option('poller_interval')) < $now) {
-					$timestamp = strtotime('12:00am') + 86400 + date('H', $timestamp) * 3600 + date('i', $timestamp) * 60 + date('s', $timestamp);
-					$save['next_start'] = date('Y-m-d H:i:s', $timestamp);
+		/**
+		 * The next_start is really when the report will be checked if it's time to
+		 * start not the time the report will actually be run.  So, the numbers can
+		 * be a little loose up front.
+		 *
+		 * The schedulers check will actually adjust the actual next start
+		 * when it performs the first check.
+		 */
+
+		if ($save['sched_type'] != 1) {
+			if ($next_start == '0000-00-00 00:00:00') {
+				$save['next_start'] = date('Y-m-d H:i:s', $start_at);
+			}
+
+			if ($start_at + $poller_int < $now_time) {
+				/* adjust to todays date and check if it's in the past */
+				$timestamp = strtotime('12:00am') + date('H', $start_at) * 3600 + date('i', $start_at) * 60 + date('s', $start_at);
+
+				if ($timestamp < $now_time + $poller_int) {
+					/* if the time is in the past, adjust forward by one day */
+					$timestamp += 86400;
 				}
 
-				raise_message('report_message', __('Date/Time moved to the same time Tomorrow'), MESSAGE_LEVEL_INFO);
+				$save['next_start'] = date('Y-m-d H:i:s', $timestamp);
+			} else {
+				/* the time is in the future, we are safe to store it */
+				$save['next_start'] = date('Y-m-d H:i:s', $start_at);
 			}
 		}
 
@@ -2112,16 +2130,6 @@ function reports() {
 			'align'   => 'left',
 			'sort'    => 'ASC'
 		),
-		'last_started' => array(
-			'display' => __('Last Run'),
-			'align'   => 'left',
-			'sort'    => 'ASC'
-		),
-		'next_start' => array(
-			'display' => __('Next Run'),
-			'align'   => 'left',
-			'sort'    => 'ASC'
-		),
 		'report.from_name' => array(
 			'display' => __('From'),
 			'align'   => 'left',
@@ -2130,6 +2138,16 @@ function reports() {
 		'nosort' => array(
 			'display' => __('Recipients'),
 			'align'   => 'left',
+			'sort'    => 'ASC'
+		),
+		'next_start' => array(
+			'display' => __('Next Run'),
+			'align'   => 'right',
+			'sort'    => 'ASC'
+		),
+		'report.last_started' => array(
+			'display' => __('Last Run'),
+			'align'   => 'right',
 			'sort'    => 'ASC'
 		),
 		'report.last_runtime' => array(
@@ -2168,16 +2186,17 @@ function reports() {
 
 			form_selectable_cell($interval, $report['id']);
 
-			form_selectable_cell($report['last_started'] == '0000-00-00 00:00:00' ? __('Never') : date($date_format, strtotime($report['last_started'])), $report['id']);
-
-			if ($report['sched_type'] != 1) {
-				form_selectable_cell(date($date_format, $report['next_start']), $report['id']);
-			} else {
-				form_selectable_cell(__('N/A'), $report['id']);
-			}
-
 			form_selectable_ecell($report['from_name'], $report['id']);
 			form_selectable_ecell((substr_count($report['email'], ',') ? __('Multiple') : $report['email']), $report['id']);
+
+			if ($report['sched_type'] != 1) {
+				form_selectable_cell(date($date_format, strtotime($report['next_start'])), $report['id'], '', 'right');
+			} else {
+				form_selectable_cell(__('N/A'), $report['id'], '', 'right');
+			}
+
+			form_selectable_cell($report['last_started'] == '0000-00-00 00:00:00' ? __('Never') : date($date_format, strtotime($report['last_started'])), $report['id'], '', 'right');
+
 			form_selectable_cell(__('%0.2f seconds', number_format_i18n($report['last_runtime'], 2)), $report['id'], '', 'right');
 
 			form_checkbox_cell($report['name'], $report['id']);
