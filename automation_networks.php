@@ -402,47 +402,7 @@ function api_networks_save($post) {
 		$save['ping_timeout']  = form_input_validate($post['ping_timeout'], 'ping_timeout', '^[0-9]+$', false, 3);
 		$save['ping_retries']  = form_input_validate($post['ping_retries'], 'ping_retries', '^[0-9]+$', false, 3);
 
-		/* discovery schedule settings */
-		$save['sched_type']    = form_input_validate($post['sched_type'], 'sched_type', '^[0-9]+$', false, 3);
-		$save['start_at']      = form_input_validate($post['start_at'], 'start_at', '', false, 3);
-
-		// accommodate a schedule start change
-		if ($post['orig_start_at'] != $post['start_at']) {
-			$save['next_start'] = '0000-00-00';
-		}
-
-		if ($post['orig_sched_type'] != $post['sched_type']) {
-			$save['next_start'] = '0000-00-00';
-		}
-
-		$save['recur_every']   = form_input_validate($post['recur_every'], 'recur_every', '', true, 3);
-
-		$save['day_of_week']   = form_input_validate(isset($post['day_of_week']) ? implode(',', $post['day_of_week']) : '', 'day_of_week', '', true, 3);
-		$save['month']         = form_input_validate(isset($post['month']) ? implode(',', $post['month']) : '', 'month', '', true, 3);
-		$save['day_of_month']  = form_input_validate(isset($post['day_of_month']) ? implode(',', $post['day_of_month']) : '', 'day_of_month', '', true, 3);
-		$save['monthly_week']  = form_input_validate(isset($post['monthly_week']) ? implode(',', $post['monthly_week']) : '', 'monthly_week', '', true, 3);
-		$save['monthly_day']   = form_input_validate(isset($post['monthly_day']) ? implode(',', $post['monthly_day']) : '', 'monthly_day', '', true, 3);
-
-		/* check for bad rules */
-		if ($save['sched_type'] == SCHEDULE_WEEKLY) {
-			if ($save['day_of_week'] == '') {
-				$save['enabled'] = '';
-
-				raise_message('automation_message', __esc('ERROR: You must specify the day of the week.  Disabling Network %s!.', $save['name']), MESSAGE_LEVEL_ERROR);
-			}
-		} elseif ($save['sched_type'] == SCHEDULE_MONTHLY) {
-			if ($save['month'] == '' || $save['day_of_month'] == '') {
-				$save['enabled'] = '';
-
-				raise_message('automation_message', __esc('ERROR: You must specify both the Months and Days of Month.  Disabling Network %s!', $save['name']), MESSAGE_LEVEL_ERROR);
-			}
-		} elseif ($save['sched_type'] == SCHEDULE_MONTHLY_ON_DAY) {
-			if ($save['month'] == '' || $save['monthly_day'] == '' || $save['monthly_week'] == '') {
-				$save['enabled'] = '';
-
-				raise_message('automation_message', __esc('ERROR: You must specify the Months, Weeks of Months, and Days of Week.  Disabling Network %s!', $save['name']), MESSAGE_LEVEL_ERROR);
-			}
-		}
+		$save = api_schedule_augment_save($save, $post);
 
 		/* validate the network definitions and rais error if failed */
 		$continue  = true;

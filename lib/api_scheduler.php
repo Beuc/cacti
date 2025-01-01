@@ -280,6 +280,93 @@ function api_scheduler_javascript() {
 	<?php
 }
 
+function api_schedule_augment_save($save, $post) {
+	/* scheduler settings */
+	$save['sched_type']    = form_input_validate($post['sched_type'], 'sched_type', '^[0-9]+$', false, 3);
+	$save['start_at']      = form_input_validate($post['start_at'], 'start_at', '', false, 3);
+
+	// accommodate a schedule start change
+	if ($post['orig_start_at'] != $post['start_at']) {
+		$save['next_start'] = '0000-00-00';
+	}
+
+	if ($post['orig_sched_type'] != $post['sched_type']) {
+		$save['next_start'] = '0000-00-00';
+	}
+
+	$save['recur_every'] = form_input_validate($post['recur_every'], 'recur_every', '', true, 3);
+
+	/* convert arrays to strings */
+	$variables = array('day_of_week', 'month', 'day_of_month', 'monthly_week', 'monthly_day');
+	$aposts    = array();
+
+	foreach($variables as $v) {
+		if (isset($post[$v])) {
+			$save[$v] = form_input_validate(implode(',', $post[$v]), $v, '', true, 3);
+		} else {
+			$save[$v] = '';
+		}
+	}
+
+	/* check for bad rules */
+	if ($save['sched_type'] == SCHEDULE_WEEKLY) {
+		if ($save['day_of_week'] == '') {
+			$save['enabled'] = '';
+
+			raise_message('sched_err',  __esc('ERROR: You must specify the day of the week.  Disabling Network %s!.', $save['name']), MESSAGE_LEVEL_ERROR);
+		}
+	} elseif ($save['sched_type'] == SCHEDULE_MONTHLY) {
+		if ($save['month'] == '' || $save['day_of_month'] == '') {
+			$save['enabled'] = '';
+
+			raise_message('sched_err',  __esc('ERROR: You must specify both the Months and Days of Month.  Disabling Network %s!', $save['name']), MESSAGE_LEVEL_ERROR);
+		}
+	} elseif ($save['sched_type'] == SCHEDULE_MONTHLY_ON_DAY) {
+		if ($save['month'] == '' || $save['monthly_day'] == '' || $save['monthly_week'] == '') {
+			$save['enabled'] = '';
+
+			raise_message('sched_err', __esc('ERROR: You must specify the Months, Weeks of Months, and Days of Week.  Disabling Network %s!', $save['name']), MESSAGE_LEVEL_ERROR);
+		}
+	}
+
+	$now_time   = time();
+	$next_start = strtotime($save['next_start']);
+	$start_at   = strtotime($save['start_at']);
+	$poller_int = read_config_option('poller_interval');
+
+	/**
+	 * The next_start is really when the report will be checked if it's time to
+	 * start not the time the report will actually be run.  So, the numbers can
+	 * be a little loose up front.
+	 *
+	 * The schedulers check will actually adjust the actual next start
+	 * when it performs the first check.
+	 */
+
+	if ($save['sched_type'] != 1) {
+		if ($next_start == '0000-00-00 00:00:00') {
+			$save['next_start'] = date('Y-m-d H:i:s', $start_at);
+		}
+
+		if ($start_at + $poller_int < $now_time) {
+			/* adjust to todays date and check if it's in the past */
+			$timestamp = strtotime('12:00am') + date('H', $start_at) * 3600 + date('i', $start_at) * 60 + date('s', $start_at);
+
+			if ($timestamp < $now_time + $poller_int) {
+				/* if the time is in the past, adjust forward by one day */
+				$timestamp += 86400;
+			}
+
+			$save['next_start'] = date('Y-m-d H:i:s', $timestamp);
+		} else {
+			/* the time is in the future, we are safe to store it */
+			$save['next_start'] = date('Y-m-d H:i:s', $start_at);
+		}
+	}
+
+	return $save;
+}
+
 function api_scheduler_is_time_to_start($schedule, $table = 'automation_networks') {
 	$now   = time();
 

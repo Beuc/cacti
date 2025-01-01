@@ -252,116 +252,43 @@ function reports_form_save() {
 		get_filter_request_var('graph_columns');
 		/* ==================================================== */
 
+		$post = $_POST;
+
 		if (isempty_request_var('id')) {
 			$save['user_id'] = $_SESSION[SESS_USER_ID];
 		} else {
-			$save['user_id'] = db_fetch_cell_prepared('SELECT user_id FROM reports WHERE id = ?', array(get_nfilter_request_var('id')));
+			$save['user_id'] = db_fetch_cell_prepared('SELECT user_id FROM reports WHERE id = ?', array($post['id']));
 		}
 
-		$save['id']            = get_nfilter_request_var('id');
-		$save['name']          = form_input_validate(get_nfilter_request_var('name'), 'name', '', false, 3);
-		$save['email']         = form_input_validate(get_nfilter_request_var('email'), 'email', '', false, 3);
-		$save['enabled']       = (isset_request_var('enabled') ? 'on' : '');
+		$save['id']            = $post['id'];
+		$save['name']          = form_input_validate($post['name'], 'name', '', false, 3);
+		$save['email']         = form_input_validate($post['email'], 'email', '', false, 3);
+		$save['enabled']       = (isset($post['enabled']) ? 'on' : '');
 
-		$save['cformat']       = (isset_request_var('cformat') ? 'on' : '');
-		$save['format_file']   = get_nfilter_request_var('format_file');
-		$save['font_size']     = form_input_validate(get_nfilter_request_var('font_size'), 'font_size', '^[0-9]+$', false, 3);
-		$save['alignment']     = form_input_validate(get_nfilter_request_var('alignment'), 'alignment', '^[0-9]+$', false, 3);
-		$save['graph_linked']  = (isset_request_var('graph_linked') ? 'on' : '');
+		$save['cformat']       = (isset($post['cformat']) ? 'on' : '');
+		$save['format_file']   = $post['format_file'];
+		$save['font_size']     = form_input_validate($post['font_size'], 'font_size', '^[0-9]+$', false, 3);
+		$save['alignment']     = form_input_validate($post['alignment'], 'alignment', '^[0-9]+$', false, 3);
+		$save['graph_linked']  = (isset($post['graph_linked']) ? 'on' : '');
 
-		$save['graph_columns'] = form_input_validate(get_nfilter_request_var('graph_columns'), 'graph_columns', '^[0-9]+$', false, 3);
-		$save['graph_width']   = form_input_validate(get_nfilter_request_var('graph_width'), 'graph_width', '^[0-9]+$', false, 3);
-		$save['graph_height']  = form_input_validate(get_nfilter_request_var('graph_height'), 'graph_height', '^[0-9]+$', false, 3);
-		$save['thumbnails']    = form_input_validate((isset_request_var('thumbnails') ? get_nfilter_request_var('thumbnails') : ''), 'thumbnails', '', true, 3);
+		$save['graph_columns'] = form_input_validate($post['graph_columns'], 'graph_columns', '^[0-9]+$', false, 3);
+		$save['graph_width']   = form_input_validate($post['graph_width'], 'graph_width', '^[0-9]+$', false, 3);
+		$save['graph_height']  = form_input_validate($post['graph_height'], 'graph_height', '^[0-9]+$', false, 3);
+		$save['thumbnails']    = (isset($post['thumbnails']) ? 'on' : '');
 
-        /* scheduler settings */
-		$save['sched_type']    = form_input_validate(get_nfilter_request_var('sched_type'), 'sched_type', '^[0-9]+$', false, 3);
-		$save['start_at']      = form_input_validate(get_nfilter_request_var('start_at'), 'start_at', '', false, 3);
+		$save = api_scheduler_augment_save($save, $post);
 
-		// accommodate a schedule start change
-		if (get_nfilter_request_var('orig_start_at') != get_nfilter_request_var('start_at')) {
-			$save['next_start'] = '0000-00-00';
-		}
-
-		if (get_nfilter_request_var('orig_sched_type') != get_nfilter_request_var('sched_type')) {
-			$save['next_start'] = '0000-00-00';
-		}
-
-		$save['recur_every']   = form_input_validate(get_nfilter_request_var('recur_every'), 'recur_every', '', true, 3);
-
-		$save['day_of_week']   = form_input_validate(isset_request_var('day_of_week') ? implode(',', get_nfilter_request_var('day_of_week')) : '', 'day_of_week', '', true, 3);
-		$save['month']         = form_input_validate(isset_request_var('month') ? implode(',', get_nfilter_request_var('month')) : '', 'month', '', true, 3);
-		$save['day_of_month']  = form_input_validate(isset_request_var('day_of_month') ? implode(',', get_nfilter_request_var('day_of_month')) : '', 'day_of_month', '', true, 3);
-		$save['monthly_week']  = form_input_validate(isset_request_var('monthly_week') ? implode(',', get_nfilter_request_var('monthly_week')) : '', 'monthly_week', '', true, 3);
-		$save['monthly_day']   = form_input_validate(isset_request_var('monthly_day') ? implode(',', get_nfilter_request_var('monthly_day')) : '', 'monthly_day', '', true, 3);
-
-		/* check for bad rules */
-		if ($save['sched_type'] == SCHEDULE_WEEKLY) {
-			if ($save['day_of_week'] == '') {
-				$save['enabled'] = '';
-
-				raise_message('sched_err',  __esc('ERROR: You must specify the day of the week.  Disabling Network %s!.', $save['name']), MESSAGE_LEVEL_ERROR);
-			}
-		} elseif ($save['sched_type'] == SCHEDULE_MONTHLY) {
-			if ($save['month'] == '' || $save['day_of_month'] == '') {
-				$save['enabled'] = '';
-
-				raise_message('sched_err',  __esc('ERROR: You must specify both the Months and Days of Month.  Disabling Network %s!', $save['name']), MESSAGE_LEVEL_ERROR);
-			}
-		} elseif ($save['sched_type'] == SCHEDULE_MONTHLY_ON_DAY) {
-			if ($save['month'] == '' || $save['monthly_day'] == '' || $save['monthly_week'] == '') {
-				$save['enabled'] = '';
-
-				raise_message('sched_err', __esc('ERROR: You must specify the Months, Weeks of Months, and Days of Week.  Disabling Network %s!', $save['name']), MESSAGE_LEVEL_ERROR);
-			}
-		}
-
-		$now_time   = time();
-		$next_start = strtotime($save['next_start']);
-		$start_at   = strtotime($save['start_at']);
-		$poller_int = read_config_option('poller_interval');
-
-		/**
-		 * The next_start is really when the report will be checked if it's time to
-		 * start not the time the report will actually be run.  So, the numbers can
-		 * be a little loose up front.
-		 *
-		 * The schedulers check will actually adjust the actual next start
-		 * when it performs the first check.
-		 */
-
-		if ($save['sched_type'] != 1) {
-			if ($next_start == '0000-00-00 00:00:00') {
-				$save['next_start'] = date('Y-m-d H:i:s', $start_at);
-			}
-
-			if ($start_at + $poller_int < $now_time) {
-				/* adjust to todays date and check if it's in the past */
-				$timestamp = strtotime('12:00am') + date('H', $start_at) * 3600 + date('i', $start_at) * 60 + date('s', $start_at);
-
-				if ($timestamp < $now_time + $poller_int) {
-					/* if the time is in the past, adjust forward by one day */
-					$timestamp += 86400;
-				}
-
-				$save['next_start'] = date('Y-m-d H:i:s', $timestamp);
-			} else {
-				/* the time is in the future, we are safe to store it */
-				$save['next_start'] = date('Y-m-d H:i:s', $start_at);
-			}
-		}
-
-		if (get_nfilter_request_var('subject') != '') {
-			$save['subject'] = get_nfilter_request_var('subject');
+		if ($post['subject'] != '') {
+			$save['subject'] = $post['subject'];
 		} else {
 			$save['subject'] = $save['name'];
 		}
 
-		$save['from_name']        = get_nfilter_request_var('from_name');
-		$save['from_email']       = get_nfilter_request_var('from_email');
-		$save['bcc']              = get_nfilter_request_var('bcc');
+		$save['from_name']        = $post['from_name'];
+		$save['from_email']       = $post['from_email'];
+		$save['bcc']              = $post['bcc'];
 
-		$atype = get_nfilter_request_var('attachment_type');
+		$atype = $post['attachment_type'];
 
 		if (($atype != REPORTS_TYPE_INLINE_PNG) &&
 			($atype != REPORTS_TYPE_INLINE_JPG) &&
@@ -388,7 +315,7 @@ function reports_form_save() {
 			}
 		}
 
-		header('Location: ' . get_reports_page() . '?action=edit&id=' . (empty($id) ? get_nfilter_request_var('id') : $id));
+		header('Location: ' . get_reports_page() . '?action=edit&id=' . (empty($id) ? $post['id'] : $id));
 
 		exit;
 	}
