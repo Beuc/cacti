@@ -402,7 +402,7 @@ function api_networks_save($post) {
 		$save['ping_timeout']  = form_input_validate($post['ping_timeout'], 'ping_timeout', '^[0-9]+$', false, 3);
 		$save['ping_retries']  = form_input_validate($post['ping_retries'], 'ping_retries', '^[0-9]+$', false, 3);
 
-		$save = api_schedule_augment_save($save, $post);
+		$save = api_scheduler_augment_save($save, $post);
 
 		/* validate the network definitions and rais error if failed */
 		$continue  = true;

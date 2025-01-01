@@ -137,7 +137,19 @@ function api_scheduler_form() {
 			),
 			'value' => '|arg1:monthly_day|',
 			'class' => 'monthly_day'
-		)
+		),
+		'next_start' => array(
+			'method' => 'hidden',
+			'value'  => '|arg1:next_start|'
+		),
+		'orig_sched_type' => array(
+			'method' => 'hidden',
+			'value'  => '|arg1:sched_type|'
+		),
+		'orig_start_at' => array(
+			'method' => 'hidden',
+			'value'  => '|arg1:start_at|'
+		),
 	);
 }
 
@@ -280,17 +292,17 @@ function api_scheduler_javascript() {
 	<?php
 }
 
-function api_schedule_augment_save($save, $post) {
+function api_scheduler_augment_save($save, $post) {
 	/* scheduler settings */
 	$save['sched_type']    = form_input_validate($post['sched_type'], 'sched_type', '^[0-9]+$', false, 3);
 	$save['start_at']      = form_input_validate($post['start_at'], 'start_at', '', false, 3);
 
 	// accommodate a schedule start change
-	if ($post['orig_start_at'] != $post['start_at']) {
+	if (isset($post['orig_start_at']) && $post['orig_start_at'] != $post['start_at']) {
 		$save['next_start'] = '0000-00-00';
 	}
 
-	if ($post['orig_sched_type'] != $post['sched_type']) {
+	if (isset($post['orig_sched_type']) && $post['orig_sched_type'] != $post['sched_type']) {
 		$save['next_start'] = '0000-00-00';
 	}
 
@@ -330,7 +342,13 @@ function api_schedule_augment_save($save, $post) {
 	}
 
 	$now_time   = time();
-	$next_start = strtotime($save['next_start']);
+
+	if (isset($save['next_start'])) {
+		$next_start = strtotime($save['next_start']);
+	} else {
+		$next_start = 0;
+	}
+
 	$start_at   = strtotime($save['start_at']);
 	$poller_int = read_config_option('poller_interval');
 
