@@ -1927,7 +1927,7 @@ function draw_actions_dropdown($actions_array, $delete_action = 1) {
 	function setDisabled() {
 		$('tr[id^="line"]').addClass('selectable').prop('disabled', false).removeClass('disabled_row').unbind('click').prop('disabled', false);
 
-		if ($('#drp_action').val() == <?php print $delete_action;?>) {
+		if ($('#drp_action').val() == '<?php print $delete_action;?>') {
 			$(':checkbox.disabled').each(function(data) {
 				$(this).closest('tr').addClass('disabled_row');
 				if ($(this).is(':checked')) {
@@ -1956,7 +1956,7 @@ function draw_actions_dropdown($actions_array, $delete_action = 1) {
 					$(this).prop('disabled', true);
 				}
 			});
-		} else if (<?php print $delete_action;?> != 0) {
+		} else if ('<?php print $delete_action;?>' != 0) {
 			$('#submit').each(function() {
 				if ($(this).button === 'function') {
 					$(this).button('enable');
