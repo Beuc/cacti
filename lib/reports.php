@@ -2228,6 +2228,7 @@ function reports_run($id) {
 	$output      = array();
 	$command     = $report['run_command'] . " --report-id=$id";
 	$timeout     = $report['run_timeout'];
+	$source      = strtoupper($report['source']);
 
 	cacti_log("The report:$id has command was:$command");
 
@@ -2235,7 +2236,7 @@ function reports_run($id) {
 
 	$end  = microtime(true);
 
-	$stats = sprintf("FLOWVIEW REPORT STATS: Time:0.2f Report:'%s' Source:%s SourceID:%s", $end-$start, $report['name'], $report['source'], $report['source_id']);
+	$stats = sprintf("$source STATS: Time:%0.2f Report:'%s' Source:'%s' SourceID:'%s'", $end-$start, $report['name'], $report['source'], $report['source_id']);
 
 	cacti_log($stats, false, 'SYSTEM');
 

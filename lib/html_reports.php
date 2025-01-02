@@ -1813,8 +1813,8 @@ function create_filter() {
 
 	$report_types = array(
 		'-1'       => __('All'),
-		'reports'  => __('Classic Reports'),
-		'reportit' => __('ReportIt Reports')
+		'reports'  => __('ClassicReports'),
+		'reportit' => __('ReportIt')
 	);
 
 	$statuses = array(
@@ -2104,10 +2104,10 @@ function reports() {
 			}
 
 			if ($report['type'] == 'reports') {
-				$type = __('Classic Report');
+				$type = __('Classic');
 				$url  = get_reports_page() . '?action=edit&tab=details&id=' . $report['id'] . '&page=1';
 			} else {
-				$type = __('ReportIt Report');
+				$type = __('ReportIt');
 				$url  = CACTI_PATH_URL . '/plugins/reportit/reportit.php?action=report_edit&tab=general&id=' . $report['id'];
 			}
 
