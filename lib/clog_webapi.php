@@ -623,7 +623,7 @@ function process_sanitize_draw_filter($render = false, $logfile = false, $clogAd
 	}
 
 	/* create the page filter */
-	$pageFilter = new CactiTableFilter(__('Log Filters'), $page, 'logfile', 'sess_clog');
+	$pageFilter = new CactiTableFilter(__('Log Filters'), $page, 'logfile', 'sess_clog', '', false, false);
 	$pageFilter->set_filter_array($filters);
 
 	if ($render) {
