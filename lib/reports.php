@@ -2226,7 +2226,7 @@ function reports_run($id) {
 
 	$return_code = 0;
 	$output      = array();
-	$command     = $report['run_command'] . " --report-id=$id";
+	$command     = $report['run_command'] . ' --report-id=' . $report['source_id'];
 	$timeout     = $report['run_timeout'];
 	$source      = strtoupper($report['source']);
 
