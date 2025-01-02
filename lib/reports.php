@@ -605,6 +605,19 @@ function generate_report($report, $force = false) {
 		$report['bcc'] = '';
 	}
 
+	if (api_plugin_installed('thold') && $report['notify_list'] > 0) {
+		$nl_to_emails  = get_notification_emails($report['notify_list'], 'to');
+		$nl_bcc_emails = get_notification_emails($report['notify_list'], 'bcc');
+
+		if ($nl_to_emails != '') {
+			$report['email'] .= ($report['email'] != '' ? ', ':'') . $nl_to_emails;
+		}
+
+		if ($nl_bcc_emails != '') {
+			$report['bcc'] .= ($report['bcc'] != '' ? ', ':'') . $nl_bcc_emails;
+		}
+	}
+
 	$v = CACTI_VERSION;
 
 	$headers['User-Agent'] = 'Cacti-Reports-v' . $v;
@@ -2241,5 +2254,31 @@ function reports_run($id) {
 	cacti_log($stats, false, 'SYSTEM');
 
 	db_execute_prepared('DELETE FROM reports_queued WHERE id = ?', array($id));
+}
+
+function get_notification_emails($id = '', $recipient = 'to') {
+	if ($id == '' || $id === null) {
+		return '';
+	}
+
+	if (!thold_notification_list_enabled($id)) {
+		return '';
+	}
+
+	if (!empty($id)) {
+		if ($recipient == 'to') {
+			return trim(db_fetch_cell_prepared('SELECT emails
+				FROM plugin_notification_lists
+				WHERE id = ?',
+				array($id)));
+		} else {
+			return trim(db_fetch_cell_prepared('SELECT bcc_emails
+				FROM plugin_notification_lists
+				WHERE id = ?',
+				array($id)));
+		}
+	} else {
+		return '';
+	}
 }
 

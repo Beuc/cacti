@@ -161,6 +161,14 @@ $fields_reports_edit += array(
 		'max_length'    => 255,
 		'value'         => '|arg1:from_email|'
 	),
+	'notify_alert' => array(
+		'friendly_name' => __('Notification List', 'thold'),
+		'method'        => 'drop_sql',
+		'description'   => __('You may select a Notification List to receive this Report.'),
+		'value'         => '|arg1:notify_list|',
+		'none_value'    => __('None', 'thold'),
+		'sql'           => 'SELECT id, name FROM plugin_notification_lists ORDER BY name'
+	),
 	'email' => array(
 		'friendly_name' => __('To Email Address(es)'),
 		'method'        => 'textarea',
@@ -192,6 +200,10 @@ $fields_reports_edit += array(
 		'array'         => $attach_types
 	),
 );
+
+if (!api_plugin_installed('thold')) {
+	unset($fields_reports_edit['notify_alert']);
+}
 
 /**
  * Updates the sequence of report items based on the provided order.
@@ -284,9 +296,10 @@ function reports_form_save() {
 			$save['subject'] = $save['name'];
 		}
 
-		$save['from_name']        = $post['from_name'];
-		$save['from_email']       = $post['from_email'];
-		$save['bcc']              = $post['bcc'];
+		$save['from_name']   = $post['from_name'];
+		$save['from_email']  = $post['from_email'];
+		$save['bcc']         = $post['bcc'];
+		$save['notify_list'] = (isset($post['notify_list']) ? $post['notify_list']:'');
 
 		$atype = $post['attachment_type'];
 

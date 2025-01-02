@@ -263,6 +263,10 @@ function upgrade_to_1_3_0() {
 		db_install_execute("ALTER TABLE automation_networks ADD COLUMN ignore_ips varchar(1024) NOT NULL DEFAULT '' AFTER subnet_range");
 	}
 
+	if (!db_column_exists('reports', 'nofity_list')) {
+		db_install_execute("ALTER TABLE reports ADD COLUMN notify_list int(10) unsigned NOT NULL DEFAULT '0' AFTER bcc");
+	}
+
 	if (!db_column_exists('poller_output_boost', 'last_updated')) {
 		db_install_execute('ALTER TABLE poller_output_boost
 			ADD COLUMN last_updated timestamp NOT NULL default CURRENT_TIMESTAMP,

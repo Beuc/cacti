@@ -2672,6 +2672,7 @@ CREATE TABLE `reports` (
   `from_email` text NOT NULL,
   `email` text NOT NULL,
   `bcc` text NOT NULL,
+  `notify_list` int(10) unsigned NOT NULL default '0',
   `attachment_type` smallint(2) unsigned NOT NULL default '1',
   `graph_height` smallint(2) unsigned NOT NULL default '0',
   `graph_width` smallint(2) unsigned NOT NULL default '0',
