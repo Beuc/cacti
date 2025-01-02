@@ -1948,44 +1948,45 @@ function reports() {
 
 	$reports_list = array();
 
-	if (db_table_exists('plugin_reportit_reports_ToDo')) {
+	if (db_table_exists('plugin_reportit_reports')) {
 		if (get_request_var('report_type') == '-1') {
 			$total_rows = db_fetch_cell("SELECT SUM(row_count)
-				SELECT COUNT(id) AS row_count
-				FROM reports AS report
-				$sql_join
-				$sql_where
-				UNION
-				SELECT COUNT(id) AS row_count
-				FROM plugin_reportit_reports AS report
-				$sql_join
-				$sql_where");
+				FROM (
+					SELECT COUNT(report.id) AS row_count
+					FROM reports AS report
+					$sql_join
+					$sql_where
+					UNION ALL
+					SELECT COUNT(report.id) AS row_count
+					FROM plugin_reportit_reports AS report
+					$sql_join
+					$sql_where
+				) AS rs");
 
-			$reports_list = db_fetch_assoc("SELECT
-				ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
+			$reports_list = db_fetch_assoc("
+				SELECT 'reports' AS type, ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
 				report.sched_type, report.last_runtime, report.last_started,
 				report.from_email, report.from_name, report.email, report.bcc, report.next_start
 				FROM reports AS report
 				$sql_join
 				$sql_where
 				UNION
-				SELECT ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
+				SELECT 'reportit' AS type, ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
 				report.sched_type, report.last_runtime, report.last_started,
-				'' AS from_email, '' AS from_name, '' AS email, '' AS bcc, report.next_start
+				'-' AS from_email, '-' AS from_name, '-' AS email, '-' AS bcc, report.next_start
 				FROM plugin_reportit_reports AS report
 				$sql_join
 				$sql_where
 				ORDER BY " .  get_request_var('sort_column') . ' ' .  get_request_var('sort_direction') .
 				' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows);
 		} elseif (get_request_var('report_type') == 'reports') {
-			$total_rows = db_fetch_cell("SELECT
-				COUNT(report.id)
+			$total_rows = db_fetch_cell("SELECT COUNT(report.id)
 				FROM reports AS report
 				$sql_join
 				$sql_where");
 
 			$reports_list = db_fetch_assoc("SELECT
-				ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
+				'reports' AS type, ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
 				report.sched_type, report.last_runtime, report.last_started,
 				report.from_email, report.from_name, report.email, report.bcc, report.next_start
 				FROM reports AS report
@@ -1994,16 +1995,15 @@ function reports() {
 				ORDER BY " .  get_request_var('sort_column') . ' ' .  get_request_var('sort_direction') .
 				' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows);
 		} else {
-			$total_rows = db_fetch_cell("SELECT
-				COUNT(report.id)
+			$total_rows = db_fetch_cell("SELECT COUNT(report.id)
 				FROM plugin_reportit_reports AS report
 				$sql_join
 				$sql_where");
 
 			$reports_list = db_fetch_assoc("SELECT
-				ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
+				'reportit' AS type, ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
 				report.sched_type, report.last_runtime, report.last_started,
-				report.from_email, report.from_name, report.email, report.bcc, report.next_start
+				'-' AS from_email, '-' AS from_name, '-' AS email, '-' AS bcc, report.next_start
 				FROM plugin_reportit_reports AS report
 				$sql_join
 				$sql_where
@@ -2011,14 +2011,13 @@ function reports() {
 				' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows);
 		}
 	} else {
-		$total_rows = db_fetch_cell("SELECT
-			COUNT(report.id)
+		$total_rows = db_fetch_cell("SELECT COUNT(report.id)
 			FROM reports AS report
 			$sql_join
 			$sql_where");
 
 		$reports_list = db_fetch_assoc("SELECT
-			ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
+			'reports' AS type, ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
 			report.sched_type, report.last_runtime, report.last_started,
 			report.from_email, report.from_name, report.email, report.bcc, report.next_start
 			FROM reports AS report
@@ -2028,17 +2027,14 @@ function reports() {
 			' LIMIT ' . ($rows * (get_request_var('page') - 1)) . ',' . $rows);
 	}
 
-	form_start(get_reports_page(), 'chk');
-
-	$nav = html_nav_bar(get_reports_page() . 'filter=' . get_request_var('filter'), MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, (cacti_sizeof($display_text)+1), __('Reports'), 'page', 'main');
-
-	print $nav;
-
-	html_start_box('', '100%', '', '3', 'center', '');
-
 	$display_text = array(
 		'report.name' => array(
 			'display' => __('Name'),
+			'align'   => 'left',
+			'sort'    => 'ASC'
+		),
+		'type' => array(
+			'display' => __('Report Type'),
 			'align'   => 'left',
 			'sort'    => 'ASC'
 		),
@@ -2084,6 +2080,14 @@ function reports() {
 		),
 	);
 
+	$nav = html_nav_bar(get_reports_page() . 'filter=' . get_request_var('filter'), MAX_DISPLAY_PAGES, get_request_var('page'), $rows, $total_rows, (cacti_sizeof($display_text)+1), __('Reports'), 'page', 'main');
+
+	form_start(get_reports_page(), 'chk');
+
+	print $nav;
+
+	html_start_box('', '100%', '', '3', 'center', '');
+
 	html_header_sort_checkbox($display_text, get_request_var('sort_column'), get_request_var('sort_direction'), false);
 
 	$i = 0;
@@ -2093,40 +2097,54 @@ function reports() {
 
 		foreach ($reports_list as $report) {
 			if (!reports_html_account_exists($report['user_id'])) {
-				reports_html_report_disable($report['id']);
-				$report['enabled'] = '';
+				if ($report['type'] == 'reports') {
+					reports_html_report_disable($report['id']);
+					$report['enabled'] = '';
+				}
 			}
 
-			form_alternate_row('line' . $report['id'], true);
+			if ($report['type'] == 'reports') {
+				$type = __('Classic Report');
+				$url  = get_reports_page() . '?action=edit&tab=details&id=' . $report['id'] . '&page=1';
+			} else {
+				$type = __('ReportIt Report');
+				$url  = CACTI_PATH_URL . '/plugins/reportit/reportit.php?action=report_edit&tab=general&id=' . $report['id'];
+			}
 
-			form_selectable_cell(filter_value($report['name'], get_request_var('filter'), get_reports_page() . '?action=edit&tab=details&id=' . $report['id'] . '&page=1'), $report['id']);
+			$id = $report['type'] . $report['id'];
+
+			form_alternate_row('line' . $id, true);
+
+			form_selectable_cell(filter_value($report['name'], get_request_var('filter'), $url), $id);
+
+			form_selectable_cell($type, $id);
 
 			if (reports_html_account_exists($report['user_id'])) {
-				form_selectable_ecell($report['full_name'] ? $report['full_name'] : $report['username'], $report['id']);
+				form_selectable_ecell($report['full_name'] ? $report['full_name'] : $report['username'], $id);
 			} else {
-				form_selectable_cell(__('Report Disabled - No Owner'), $report['id']);
+				form_selectable_cell(__('Report Disabled - No Owner'), $id);
 			}
 
-			form_selectable_cell($report['enabled'] ? __('Enabled') : __('Disabled'), $report['id']);
+			form_selectable_cell($report['enabled'] ? __('Enabled') : __('Disabled'), $id);
 
 			$interval = $sched_types[$report['sched_type']];
 
-			form_selectable_cell($interval, $report['id']);
+			form_selectable_cell($interval, $id);
 
-			form_selectable_ecell($report['from_name'], $report['id']);
-			form_selectable_ecell((substr_count($report['email'], ',') ? __('Multiple') : $report['email']), $report['id']);
+			form_selectable_ecell($report['from_name'], $id);
+			form_selectable_ecell((substr_count($report['email'], ',') ? __('Multiple') : $report['email']), $id);
 
 			if ($report['sched_type'] != 1) {
-				form_selectable_cell(date($date_format, strtotime($report['next_start'])), $report['id'], '', 'right');
+				form_selectable_cell(date($date_format, strtotime($report['next_start'])), $id, '', 'right');
 			} else {
-				form_selectable_cell(__('N/A'), $report['id'], '', 'right');
+				form_selectable_cell(__('N/A'), $id, '', 'right');
 			}
 
-			form_selectable_cell($report['last_started'] == '0000-00-00 00:00:00' ? __('Never') : date($date_format, strtotime($report['last_started'])), $report['id'], '', 'right');
+			form_selectable_cell($report['last_started'] == '0000-00-00 00:00:00' ? __('Never') : date($date_format, strtotime($report['last_started'])), $id, '', 'right');
 
-			form_selectable_cell(__('%0.2f seconds', number_format_i18n($report['last_runtime'], 2)), $report['id'], '', 'right');
+			form_selectable_cell(__('%0.2f seconds', number_format_i18n($report['last_runtime'], 2)), $id, '', 'right');
 
-			form_checkbox_cell($report['name'], $report['id']);
+			form_checkbox_cell($report['name'], $id);
 
 			form_end_row();
 		}
