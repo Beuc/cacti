@@ -646,10 +646,12 @@ class CactiTableFilter {
 		if (isset($buttonArray['url'])) {
 			if (!isset($buttonArray['status'])) {
 				$buttonFunction .= PHP_EOL . "\t\tfunction {$buttonId}Function () {" . $func_nl .
+					"clearTimeout(myRefresh);" . $func_nl .
 					"loadUrl({ url: '{$buttonArray['url']}' });" . $func_el .
 				"};" . PHP_EOL;
 			} else {
 				$buttonFunction .= PHP_EOL . "\t\tfunction {$buttonId}Function () {" . $func_nl .
+					"clearTimeout(myRefresh);" . $func_nl .
 					"$('#text').text('{$buttonArray['status']}');" . $func_nl .
 					"pulsate('#text');" . $func_nl .
 					"loadUrl({ url: '{$buttonArray['url']}', funcEnd: 'finishFinalize' });" . $func_el .
@@ -664,6 +666,7 @@ class CactiTableFilter {
 				}
 
 				$buttonFunction .= PHP_EOL . "\t\tfunction {$buttonId}Function () {" . $func_nl .
+					"clearTimeout(myRefresh);" . $func_nl .
 					$callbackFunction . ";" . $func_el .
 					"Pace.stop();" . $func_el .
 				"};" . PHP_EOL;
@@ -675,6 +678,7 @@ class CactiTableFilter {
 				}
 
 				$buttonFunction .= PHP_EOL . "\t\tfunction {$buttonId}Function () {" . $func_nl .
+					"clearTimeout(myRefresh);" . $func_nl .
 					"$('#text').text('{$field_array['status']}');" . $func_nl .
 					"pulsate('#text');" . $func_nl .
 					$callbackFunction . ";" . $func_el .
