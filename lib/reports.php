@@ -2192,7 +2192,7 @@ function reports_queue($name, $request_type, $source, $source_id, $command, $not
 		if ($requested_id > 0) {
 			raise_message('report_scheduled', __esc("The Report '%s' from source %s with id %s is scheduled to run!", $name, $source, $source_id, 'flowview'), MESSAGE_LEVEL_INFO);
 		} else {
-			cacti_log(sprintf("The Report '%s' from source %s with id %s is scheduled to run!", $name, $source, $source_id), false, 'REPORTS');
+			cacti_log(sprintf("The Report '%s' from source %s with id %s is scheduled to run!", $name, $source, $source_id), false, 'REPORTS', POLLER_VERBOSITY_MEDIUM);
 		}
 	} else {
 		if ($requested_id > 0) {
