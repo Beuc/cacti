@@ -1813,7 +1813,7 @@ function create_filter() {
 
 	$report_types = array(
 		'-1'       => __('All'),
-		'reports'  => __('ClassicReports'),
+		'reports'  => __('Classic'),
 		'reportit' => __('ReportIt')
 	);
 
