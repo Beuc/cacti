@@ -756,7 +756,7 @@ class CactiTableFilter {
 								$clickChain .= ($clickChain != '' ? ', ':'') . '#' . $field_name;
 							}
 
-							$applyFilter .= ($filterLength == 0 ? '&':"+'&") . $field_name . "='+$('#" . $field_name . "').is(':checked')";
+							$applyFilter .= ($filterLength == 0 ? '':"+'&") . $field_name . "='+$('#" . $field_name . "').is(':checked')";
 							$filterLength++;
 
 							break;
@@ -809,9 +809,9 @@ class CactiTableFilter {
 							}
 
 							if ($field_name != 'rfilter') {
-								$applyFilter .= ($filterLength == 0 ? '&':"+'&") . $field_name . "='+$('#" . $field_name . "').val()";
+								$applyFilter .= ($filterLength == 0 ? '':"+'&") . $field_name . "='+$('#" . $field_name . "').val()";
 							} else {
-								$applyFilter .= ($filterLength == 0 ? '&':"+'&") . $field_name . "='+base64_encode($('#" . $field_name . "').val())";
+								$applyFilter .= ($filterLength == 0 ? '':"+'&") . $field_name . "='+base64_encode($('#" . $field_name . "').val())";
 							}
 							$filterLength++;
 

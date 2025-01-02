@@ -1877,10 +1877,21 @@ function create_filter() {
 		$status[-5] = __('Maintenance');
 	}
 
+	if (get_request_var('site_id') > 0) {
+		$sql_where    = 'AND site_id = ?';
+		$sql_params[] = get_request_var('site_id');
+	} else {
+		$sql_where  = '';
+		$sql_params = array();
+	}
+
 	$locations = array_rekey(
-		db_fetch_assoc('SELECT DISTINCT location
+		db_fetch_assoc_prepared("SELECT DISTINCT location
 			FROM host
-			ORDER BY location'),
+			WHERE location != ''
+			$sql_where
+			ORDER BY location",
+			$sql_params),
 		'location', 'location'
 	);
 	$locations = $any + $none + $locations;
