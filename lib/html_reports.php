@@ -2064,12 +2064,12 @@ function reports() {
 			'sort'    => 'ASC'
 		),
 		'next_start' => array(
-			'display' => __('Next Run'),
+			'display' => __('Next Start'),
 			'align'   => 'right',
 			'sort'    => 'ASC'
 		),
 		'report.last_started' => array(
-			'display' => __('Last Run'),
+			'display' => __('Last Started'),
 			'align'   => 'right',
 			'sort'    => 'ASC'
 		),
@@ -2142,7 +2142,7 @@ function reports() {
 
 			form_selectable_cell($report['last_started'] == '0000-00-00 00:00:00' ? __('Never') : date($date_format, strtotime($report['last_started'])), $id, '', 'right');
 
-			form_selectable_cell(__('%0.2f seconds', number_format_i18n($report['last_runtime'], 2)), $id, '', 'right');
+			form_selectable_cell(__('%0.2f sec', number_format_i18n($report['last_runtime'], 2)), $id, '', 'right');
 
 			form_checkbox_cell($report['name'], $id);
 
