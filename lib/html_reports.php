@@ -2072,15 +2072,11 @@ function reports() {
 			'align'   => 'left',
 			'sort'    => 'ASC'
 		),
-		'report.from_name' => array(
-			'display' => __('From'),
-			'align'   => 'left',
-			'sort'    => 'ASC'
-		),
 		'nosort' => array(
-			'display' => __('Recipients'),
+			'display' => __('Notification Detail'),
 			'align'   => 'left',
-			'sort'    => 'ASC'
+			'sort'    => 'ASC',
+			'tip'     => __('Email options in use: To, BCC, and Notification List')
 		),
 		'report.enabled' => array(
 			'display' => __('Enabled'),
@@ -2153,8 +2149,29 @@ function reports() {
 
 			form_selectable_cell($interval, $id);
 
-			form_selectable_ecell($report['from_name'], $id);
-			form_selectable_ecell((substr_count($report['email'], ',') ? __('Multiple') : $report['email']), $id);
+			/* iconography */
+			$notify = '<span>';
+			$found  = false;
+			if ($report['email'] != '') {
+				$notify .= '<i class="fa fa-solid fa-envelope" title="' . __esc('To Emails in Use') . '"></i>';
+				$found  = true;
+			}
+
+			if ($report['bcc'] != '') {
+				$notify .= '<i class="fa fa-solid fa-eye-slash" title="' . __('Blind Copy in Use') . '"></i>';
+				$found  = true;
+			}
+
+			if ($report['bcc'] != '') {
+				$notify .= '<i class="fa fa-solid fa-flag" title="' . __('Notification List in Use') . '"></i>';
+				$found  = true;
+			}
+
+			if ($found) {
+				$notify .= '</span>';
+			}
+
+			form_selectable_cell($notify, $id);
 
 			form_selectable_cell($report['enabled'] ? '<i class="fa fa-check deviceUp"></i>' : '<i class="fa fa-times deviceDown"></i>', $id, '', 'right');
 
