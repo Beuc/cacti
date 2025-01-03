@@ -29,6 +29,12 @@ include_once(CACTI_PATH_LIBRARY . '/reports.php');
 include_once(CACTI_PATH_LIBRARY . '/html_reports.php');
 include_once(CACTI_PATH_LIBRARY . '/timespan_settings.php');
 
+$reportit_api = CACTI_PATH_BASE . '/plugins/reportit/lib/funct_reports.php';
+
+if (file_exists($reportit_api)) {
+	include_once($reportit_api);
+}
+
 get_filter_request_var('id');
 get_filter_request_var('tree_id');
 get_filter_request_var('site_id');
