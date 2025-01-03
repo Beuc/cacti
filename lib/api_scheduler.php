@@ -231,8 +231,8 @@ function api_scheduler_javascript() {
 			day_of_week: schedType == 3,
 			month: schedType > 3 && schedType != 6,
 			day_of_month: schedType == 4,
-			monthly_week: schedType == 3 || schedType == 5,
-			monthly_day: schedType == 3 || schedType == 5,
+			monthly_week: schedType == 5,
+			monthly_day: schedType == 5,
 		});
 
 		if (schedType == 2) { // Daily
