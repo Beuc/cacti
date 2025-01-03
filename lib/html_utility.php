@@ -405,7 +405,8 @@ function form_process_visible_display_text($table_id, $display_text) {
 
 	static $tableColumns = null;
 
-	/* we have to support more than one table per page
+	/**
+	 * We have to support more than one table per page
 	 * so maintain a column count per page and store settings
 	 * accordingly.
 	 */
@@ -413,16 +414,37 @@ function form_process_visible_display_text($table_id, $display_text) {
 
 	if (!isset($tableColumns[$table_id])) {
 		$tableCount[$table_id]   = 0;
-		$tableColumns[$table_id] = json_decode(read_user_setting("visible_columns_{$table_id}{$tableCount[$table_id]}"), true);
+
+		/* this reset/clear functionality can be removed before production */
+		if (isset_request_var('clear') || isset_request_var('reset')) {
+			db_execute_prepared('DELETE FROM settings_user
+				WHERE user_id = ? AND name = ?',
+				array($_SESSION[SESS_USER_ID], "visible_columns_{$table_id}{$tableCount[$table_id]}"));
+
+			$tableColumns[$table_id] = array();
+		} else {
+			$tableColumns[$table_id] = json_decode(read_user_setting("visible_columns_{$table_id}{$tableCount[$table_id]}"), true);
+		}
 	} else {
 		$tableCount[$table_id]++;
-		$tableColumns[$table_id] = json_decode(read_user_setting("visible_columns_{$table_id}{$tableCount[$table_id]}"), true);
+
+		/* this reset/clear functionality can be removed before production */
+		if (isset_request_var('clear') || isset_request_var('reset')) {
+			db_execute_prepared('DELETE FROM settings_user
+				WHERE user_id = ? AND name = ?',
+				array($_SESSION[SESS_USER_ID], "visible_columns_{$table_id}{$tableCount[$table_id]}"));
+
+			$tableColumns[$table_id] = array();
+		} else {
+			$tableColumns[$table_id] = json_decode(read_user_setting("visible_columns_{$table_id}{$tableCount[$table_id]}"), true);
+		}
 	}
 
-	if (isset_request_var('clear') || isset_request_var('reset')) {
-		db_execute_prepared('DELETE FROM settings_user
-			WHERE user_id = ? AND name = ?',
-			array($_SESSION[SESS_USER_ID], "visible_columns_{$table_id}{$tableCount[$table_id]}"));
+	/* reset if the developer is making changes to the page layout */
+	if (cacti_sizeof($tableColumns[$table_id]) && cacti_sizeof($display_text) != cacti_sizeof($tableColumns[$table_id])) {
+		cacti_log("WARNING: Detected a change in base table topology", false, 'DEVELOP');
+
+		$tableColumns[$table_id] = array();
 	}
 
 	if (isset_request_var('columns_add')) {
