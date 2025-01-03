@@ -161,7 +161,7 @@ $fields_reports_edit += array(
 		'max_length'    => 255,
 		'value'         => '|arg1:from_email|'
 	),
-	'notify_alert' => array(
+	'notify_list' => array(
 		'friendly_name' => __('Notification List', 'thold'),
 		'method'        => 'drop_sql',
 		'description'   => __('You may select a Notification List to receive this Report.'),
