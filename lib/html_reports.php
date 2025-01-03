@@ -599,7 +599,7 @@ function reports_send($id) {
 		} elseif ($report['from_email'] == '') {
 			raise_message('report_message', __esc('Unable to send Report \'%s\'.  Please set an e-mail from address',  $report['name']), MESSAGE_LEVEL_ERROR);
 		} else {
-			generate_report($report, true);
+			generate_report(0, $report, true);
 		}
 	}
 }
