@@ -2034,9 +2034,30 @@ function reports_graphs_action_execute($action) {
 		return $action;
 	}
 }
-
+/**
+ * reports_log_and_notify - This function will perform the notification functions for Cacti reports.
+ * It is being written to have a common platform to send notifications which can broaden to use
+ * mechanisms outside of Email.  We are designing it first to work with existing plugins and core
+ * cacti functionality and will extend it from there are required.
+ *
+ * The parameters include:
+ *
+ * @param  int       $id           - The report queue unique id number.
+ * @param  timestamp $start_time   - The time that the report process started for logging
+ * @param  string    $report_type  - The output type of the report.  To be used by the plugin for re-rendering
+ * @param  string    $source       - The plugin defined report source name.  For example: 'reports', 'reportit', 'flowview'
+ * @param  int       $source_id    - The id as it is known to the source
+ * @param  string    $subject      - The notification subject
+ * #param  mixed     $raw_data     - Data required to reproduce the report output at a future date
+ * @param  string    $oput_raw     - The Raw HTML output without CSS
+ * @param  string    $oput_html    - The Report Output with CSS
+ * @param  string    $oput_text    - The text output if any
+ * @param  array     $attachements - The attachments required to reproduce the report
+ * @param  array     $headers      - Any report specific Email headers
+ */
 function reports_log_and_notify($id, $start_time, $report_type, $source, $source_id, $subject,
 	&$raw_data, &$oput_raw, &$oput_html, &$oput_text, $attachments = array(), $headers = false) {
+
 	$report = db_fetch_row_prepared('SELECT *
 		FROM reports_queued
 		WHERE id = ?',
@@ -2053,7 +2074,7 @@ function reports_log_and_notify($id, $start_time, $report_type, $source, $source
 
 	$fromname = read_config_option('settings_from_name');
 	if ($fromname == '') {
-		$fromname = __('Cacti %s', ucfirst($source), 'flowview');
+		$fromname = __('Cacti %s', ucfirst($source));
 	}
 
 	$from[0] = $fromemail;
@@ -2091,6 +2112,10 @@ function reports_log_and_notify($id, $start_time, $report_type, $source, $source
 							$reply_to = '';
 						}
 
+						if (isset($data['from']) && ((is_array($data['from']) && cacti_sizeof($data['from'])) || $data['from'] != '')) {
+							$from = $data['from'];
+						}
+
 						mailer($from, $to_email, $cc_email, $bcc_email, $reply_to, $subject, $oput_html, $oput_text, $attachments, $headers);
 
 						break;
@@ -2099,6 +2124,10 @@ function reports_log_and_notify($id, $start_time, $report_type, $source, $source
 							cacti_log(sprintf("WARNING: Email Report '%s' not sent!  Missing notification list 'id' attribute in request", $report['name']), false, 'REPORTS');
 							break;
 						} else {
+							if (isset($data['from']) && ((is_array($data['from']) && cacti_sizeof($data['from'])) || $data['from'] != '')) {
+								$from = $data['from'];
+							}
+
 							$list = db_fetch_row_prepared('SELECT *
 								FROM plugin_notify_list
 								WHERE id = ?',
@@ -2112,8 +2141,6 @@ function reports_log_and_notify($id, $start_time, $report_type, $source, $source
 								$format      = $list['format_file'] != '' ? $list['format_file']:'default';
 
 								$format_ok = reports_load_format_file($format, $output, $report_tag, $theme);
-
-								flowview_debug('Format File Loaded, Format is ' . ($format_ok ? 'Ok':'Not Ok') . ', Report Tag is ' . $report_tag);
 
 								if ($format_ok) {
 									if ($report_tag) {
@@ -2139,7 +2166,20 @@ function reports_log_and_notify($id, $start_time, $report_type, $source, $source
 						break;
 					default:
 						cacti_log(sprintf("WARNING: Email Report '%s' not sent!  Unknown notification type '%s' attribute in request", $report['name'], $type), false, 'REPORTS');
+
 						break;
+				}
+			}
+		}
+
+		/* prepare attachments for storage */
+		if (cacti_sizeof($attachments)) {
+			foreach($attachments as $index => $a) {
+				if ($a['inline'] == 'attachment') {
+					if (file_exists($a['attachment'])) {
+						$attachments[$index]['attachment'] = file_get_contents($a['attachment']);
+						$attachments[$index]['inline']     = 'inline';
+					}
 				}
 			}
 		}
@@ -2157,7 +2197,7 @@ function reports_log_and_notify($id, $start_time, $report_type, $source, $source
 		$save['report_raw_output']  = $oput_raw;
 		$save['report_html_output'] = $oput_html;
 		$save['report_txt_output']  = $oput_text;
-		$save['report_attachments'] = base64_encode(json_encode($oput_text));
+		$save['report_attachments'] = base64_encode(json_encode($attachments));
 		$save['send_type']          = $report['request_type'];
 		$save['send_time']          = date('Y-m-d H:i:s');
 		$save['run_time']           = $end_time - $start_time;
@@ -2239,7 +2279,7 @@ function reports_run($id) {
 
 	$return_code = 0;
 	$output      = array();
-	$command     = $report['run_command'] . ' --report-id=' . $report['source_id'];
+	$command     = $report['run_command'] . ' --report-id=' . $report['source_id'] . ' --queue-id=' . $id;
 	$timeout     = $report['run_timeout'];
 	$source      = strtoupper($report['source']);
 
