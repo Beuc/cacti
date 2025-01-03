@@ -413,10 +413,11 @@ function reports_log($string, $output = false, $environ = 'REPORTS', $level = PO
 /**
  * generate_report - create the complete mail for a single report and send it
  *
- * @param array $report - complete row of reports table for the report to work upon
- * @param bool $force   - when forced, lastsent time will not be entered (e.g. Send Now)
+ * @param array $schedule_id - the id of the queued up report that is being processed
+ * @param array $report      - complete row of reports table for the report to work upon
+ * @param bool $force        - when forced, lastsent time will not be entered (e.g. Send Now)
  */
-function generate_report($report, $force = false) {
+function generate_report($schedule_id, $report, $force = false) {
 	global $config, $alignment, $reports_interval, $attach_types;
 
 	include_once(CACTI_PATH_LIBRARY . '/time.php');
@@ -432,11 +433,10 @@ function generate_report($report, $force = false) {
 	}
 
 	$theme = 'modern';
+	$body  = reports_generate_html($report['id'], REPORTS_OUTPUT_EMAIL, $theme);
 
-	$body = reports_generate_html($report['id'], REPORTS_OUTPUT_EMAIL, $theme);
-
-	$time  = time();
-	$start = microtime(true);
+	$start_time  = time();
+	$start       = microtime(true);
 
 	# get config option for first-day-of-the-week
 	$first_weekdayid = read_user_setting('first_weekdayid', false, false, $report['user_id']);
@@ -473,7 +473,7 @@ function generate_report($report, $force = false) {
 
 			$timespan = array();
 			# get start/end time-since-epoch for actual time (now()) and given current-session-timespan
-			get_timespan($timespan, $time, $timesp, $first_weekdayid);
+			get_timespan($timespan, $start_time, $timesp, $first_weekdayid);
 
 			# provide parameters for rrdtool graph
 			$graph_data_array = array(
@@ -494,7 +494,7 @@ function generate_report($report, $force = false) {
 			switch($report['attachment_type']) {
 				case REPORTS_TYPE_INLINE_PNG:
 					$attachments[] = array(
-						'attachment'     => @rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user),
+						'attachment'     => base64_encode(rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user)),
 						'filename'       => 'graph_' . $local_graph_id . '.png',
 						'mime_type'      => 'image/png',
 						'local_graph_id' => $local_graph_id,
@@ -505,7 +505,7 @@ function generate_report($report, $force = false) {
 					break;
 				case REPORTS_TYPE_INLINE_JPG:
 					$attachments[] = array(
-						'attachment'     => png2jpeg(@rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user)),
+						'attachment'     => base64_encode(png2jpeg(rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user))),
 						'filename'       => 'graph_' . $local_graph_id . '.jpg',
 						'mime_type'      => 'image/jpg',
 						'local_graph_id' => $local_graph_id,
@@ -516,7 +516,7 @@ function generate_report($report, $force = false) {
 					break;
 				case REPORTS_TYPE_INLINE_GIF:
 					$attachments[] = array(
-						'attachment'     => png2gif(@rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user)),
+						'attachment'     => base64_encode(png2gif(rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user))),
 						'filename'       => 'graph_' . $local_graph_id . '.gif',
 						'mime_type'      => 'image/gif',
 						'local_graph_id' => $local_graph_id,
@@ -527,7 +527,7 @@ function generate_report($report, $force = false) {
 					break;
 				case REPORTS_TYPE_ATTACH_PNG:
 					$attachments[] = array(
-						'attachment'     => @rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user),
+						'attachment'     => base64_encode(rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user)),
 						'filename'       => 'graph_' . $local_graph_id . '.png',
 						'mime_type'      => 'image/png',
 						'local_graph_id' => $local_graph_id,
@@ -538,7 +538,7 @@ function generate_report($report, $force = false) {
 					break;
 				case REPORTS_TYPE_ATTACH_JPG:
 					$attachments[] = array(
-						'attachment'     => png2jpeg(@rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user)),
+						'attachment'     => base64_encode(png2jpeg(rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user))),
 						'filename'       => 'graph_' . $local_graph_id . '.jpg',
 						'mime_type'      => 'image/jpg',
 						'local_graph_id' => $local_graph_id,
@@ -549,7 +549,7 @@ function generate_report($report, $force = false) {
 					break;
 				case REPORTS_TYPE_ATTACH_GIF:
 					$attachments[] = array(
-						'attachment'     => png2gif(@rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user)),
+						'attachment'     => base64_encode(png2gif(rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user))),
 						'filename'       => 'graph_' . $local_graph_id . '.gif',
 						'mime_type'      => 'image/gif',
 						'local_graph_id' => $local_graph_id,
@@ -560,7 +560,7 @@ function generate_report($report, $force = false) {
 					break;
 				case REPORTS_TYPE_INLINE_PNG_LN:
 					$attachments[] = array(
-						'attachment'     => @rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user),
+						'attachment'     => base64_encode(rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user)),
 						'filename'       => '',	# LN does not accept filenames for inline attachments
 						'mime_type'      => 'image/png',
 						'local_graph_id' => $local_graph_id,
@@ -571,7 +571,7 @@ function generate_report($report, $force = false) {
 					break;
 				case REPORTS_TYPE_INLINE_JPG_LN:
 					$attachments[] = array(
-						'attachment'     => png2jpeg(@rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user)),
+						'attachment'     => base64_encode(png2jpeg(rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user))),
 						'filename'       => '',	# LN does not accept filenames for inline attachments
 						'mime_type'      => 'image/jpg',
 						'local_graph_id' => $local_graph_id,
@@ -582,7 +582,7 @@ function generate_report($report, $force = false) {
 					break;
 				case REPORTS_TYPE_INLINE_GIF_LN:
 					$attachments[] = array(
-						'attachment'     => png2gif(@rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user)),
+						'attachment'     => base64_encode(png2gif(rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user))),
 						'filename'       => '',	# LN does not accept filenames for inline attachments
 						'mime_type'      => 'image/gif',
 						'local_graph_id' => $local_graph_id,
@@ -622,26 +622,31 @@ function generate_report($report, $force = false) {
 
 	$headers['User-Agent'] = 'Cacti-Reports-v' . $v;
 
-	$error = mailer(
-		array($report['from_email'], $report['from_name']),
-		$report['email'],
-		'',
-		$report['bcc'],
-		'',
-		$subject,
-		$body,
-		'Cacti Reporting Requires and HTML Email Client',
-		$attachments,
-		$headers
-	);
+	if ($schedule_id > 0) {
+		$raw_data = $output_raw = $output_text = '';
 
+		$error = reports_log_and_notify($schedule_id, $start_time, 'html', 'reports', $report['id'], $subject, $raw_data, $output_raw, $body, $output_text, $attachments, $headers);
+	} else {
+		$error = mailer(
+			array($report['from_email'], $report['from_name']),
+			$report['email'],
+			'',
+			$report['bcc'],
+			'',
+			$subject,
+			$body,
+			'Cacti Reporting Requires and HTML Email Client',
+			$attachments,
+			$headers
+		);
+	}
 
 	$end = microtime(true);
 
 	db_execute_prepared('UPDATE reports
 		SET last_started = ?, last_runtime = ?
 		WHERE id = ?',
-		array(date('Y-m-d H:i:s', $time), $end - $start, $report['id']));
+		array(date('Y-m-d H:i:s', $start_time), $end - $start, $report['id']));
 
 	if ($error != '') {
 		if (isset_request_var('id')) {
@@ -2077,8 +2082,8 @@ function reports_log_and_notify($id, $start_time, $report_type, $source, $source
 		$fromname = __('Cacti %s', ucfirst($source));
 	}
 
-	$from[0] = $fromemail;
-	$from[1] = $fromname;
+	$from['email'] = $fromemail;
+	$from['name']  = $fromname;
 
 	if (cacti_sizeof($report)) {
 		if ($report['notification'] != '') {
@@ -2091,19 +2096,19 @@ function reports_log_and_notify($id, $start_time, $report_type, $source, $source
 							cacti_log(sprintf("WARNING: Email Report '%s' not sent!  Missing 'to_email' attribute in request", $report['name']), false, 'REPORTS');
 							break;
 						} else {
-							$to_email = $data['to_email'];
+							$to_emails = $data['to_email'];
 						}
 
 						if (isset($data['cc_email'])) {
-							$cc_email = $data['cc_email'];
+							$cc_emails = $data['cc_email'];
 						} else {
-							$cc_email = '';
+							$cc_emails = '';
 						}
 
 						if (isset($data['bcc_email'])) {
-							$bcc_email = $data['bcc_email'];
+							$bcc_emails = $data['bcc_email'];
 						} else {
-							$bcc_email = '';
+							$bcc_emails = '';
 						}
 
 						if (isset($data['reply_to'])) {
@@ -2116,7 +2121,7 @@ function reports_log_and_notify($id, $start_time, $report_type, $source, $source
 							$from = $data['from'];
 						}
 
-						mailer($from, $to_email, $cc_email, $bcc_email, $reply_to, $subject, $oput_html, $oput_text, $attachments, $headers);
+						mailer($from, $to_emails, $cc_emails, $bcc_emails, $reply_to, $subject, $oput_html, $oput_text, $attachments, $headers);
 
 						break;
 					case 'notification_list':
@@ -2129,7 +2134,7 @@ function reports_log_and_notify($id, $start_time, $report_type, $source, $source
 							}
 
 							$list = db_fetch_row_prepared('SELECT *
-								FROM plugin_notify_list
+								FROM plugin_notification_lists
 								WHERE id = ?',
 								array($data['id']));
 
@@ -2144,20 +2149,24 @@ function reports_log_and_notify($id, $start_time, $report_type, $source, $source
 
 								if ($format_ok) {
 									if ($report_tag) {
-										$oput_html = str_replace('<REPORT>', $oput_raw, $output);
+										$oput_html = str_replace('<REPORT>', $oput_html, $output);
 									} else {
-										$oput_html = $output . PHP_EOL . $oput_raw;
+										$oput_html = $output . PHP_EOL . $oput_html;
 									}
-								} else {
-									$oput_html = $oput_raw;
 								}
 
-								$to_email   = $list['emails'];
+								$to_emails  = $list['emails'];
 								$cc_emails  = isset($list['cc_emails']) ? $list['cc_emails']:'';
 								$bcc_emails = $list['bcc_emails'];
 								$reply_to   = isset($list['reply_to'])  ? $list['reply_to']:'';
 
-								mailer($from, $to_email, $cc_emails, $bcc_emails, $reply_to, $subject, $oput_html, $oput_text, $attachments, $headers);
+								if (isset($data['reply_to']) && $reply_to == '') {
+									$reply_to = $data['reply_to'];
+								} else {
+									$reply_to = '';
+								}
+
+								mailer($from, $to_emails, $cc_emails, $bcc_emails, $reply_to, $subject, $oput_html, $oput_text, $attachments, $headers);
 							} else {
 								cacti_log(sprintf("WARNING: Email Report '%s' not sent!  Unable to locate notification list '%s'", $report['name'], $id), false, 'REPORTS');
 							}
@@ -2254,6 +2263,8 @@ function reports_queue($name, $request_type, $source, $source_id, $command, $not
 			cacti_log(sprintf("FATAL: The Report '%s' from source %s with id %s was not scheduled to run due to an error!", $name, $source, $source_id), false, 'REPORTS');
 		}
 	}
+
+	return $id;
 }
 
 function reports_run($id) {
@@ -2282,6 +2293,10 @@ function reports_run($id) {
 	$command     = $report['run_command'] . ' --report-id=' . $report['source_id'] . ' --queue-id=' . $id;
 	$timeout     = $report['run_timeout'];
 	$source      = strtoupper($report['source']);
+
+	if ($timeout == 0) {
+		$timeout = read_config_option('scheduler_timeout');
+	}
 
 	cacti_log("NOTE: Report:{$report['name']} Command:$command", false, 'REPORTS', POLLER_VERBOSITY_MEDIUM);
 
