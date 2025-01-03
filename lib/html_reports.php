@@ -2067,11 +2067,6 @@ function reports() {
 			'align'   => 'left',
 			'sort'    => 'ASC'
 		),
-		'report.enabled' => array(
-			'display' => __('Enabled'),
-			'align'   => 'left',
-			'sort'    => 'ASC'
-		),
 		'sched_type' => array(
 			'display' => __('Schedule'),
 			'align'   => 'left',
@@ -2085,6 +2080,11 @@ function reports() {
 		'nosort' => array(
 			'display' => __('Recipients'),
 			'align'   => 'left',
+			'sort'    => 'ASC'
+		),
+		'report.enabled' => array(
+			'display' => __('Enabled'),
+			'align'   => 'right',
 			'sort'    => 'ASC'
 		),
 		'next_start' => array(
@@ -2149,14 +2149,14 @@ function reports() {
 				form_selectable_cell(__('Report Disabled - No Owner'), $id);
 			}
 
-			form_selectable_cell($report['enabled'] ? __('Enabled') : __('Disabled'), $id);
-
 			$interval = $sched_types[$report['sched_type']];
 
 			form_selectable_cell($interval, $id);
 
 			form_selectable_ecell($report['from_name'], $id);
 			form_selectable_ecell((substr_count($report['email'], ',') ? __('Multiple') : $report['email']), $id);
+
+			form_selectable_cell($report['enabled'] ? '<i class="fa fa-check deviceUp"></i>' : '<i class="fa fa-times deviceDown"></i>', $id, '', 'right');
 
 			if ($report['sched_type'] != 1) {
 				form_selectable_cell(date($date_format, strtotime($report['next_start'])), $id, '', 'right');
