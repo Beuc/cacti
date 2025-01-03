@@ -23,7 +23,7 @@
 */
 
 function api_scheduler_form() {
-	global $sched_types;
+	global $sched_types, $heartbeats;
 
 	return array(
 		'spacer2' => array(
@@ -46,7 +46,7 @@ function api_scheduler_form() {
 			'value'         => '|arg1:start_at|',
 			'max_length'    => '30',
 			'default'       => date('Y-m-d H:i:s'),
-			'size'          => 20
+			'size'          => 60
 		),
 		'recur_every' => array(
 			'method'        => 'drop_array',
@@ -137,6 +137,14 @@ function api_scheduler_form() {
 			),
 			'value' => '|arg1:monthly_day|',
 			'class' => 'monthly_day'
+		),
+		'run_limit' => array(
+			'method'        => 'drop_array',
+			'friendly_name' => __('Run Limit'),
+			'description'   => __('Define the maximum allowed runtime of this scheduled task.'),
+			'value'         => '|arg1:run_limit|',
+			'array'         => $heartbeats,
+			'default'       => '20'
 		),
 		'next_start' => array(
 			'method' => 'hidden',
@@ -307,6 +315,7 @@ function api_scheduler_augment_save($save, $post) {
 	}
 
 	$save['recur_every'] = form_input_validate($post['recur_every'], 'recur_every', '', true, 3);
+	$save['run_limit']   = form_input_validate($post['run_limit'], 'run_limit', '', true, 3);
 
 	/* convert arrays to strings */
 	$variables = array('day_of_week', 'month', 'day_of_month', 'monthly_week', 'monthly_day');
