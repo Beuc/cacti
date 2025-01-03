@@ -856,7 +856,9 @@ function color_template() {
 			form_selectable_cell($disabled ? __('No'):__('Yes'), $template['color_template_id'], '', 'right');
 			form_selectable_cell(number_format_i18n($template['graphs']), $template['color_template_id'], '', 'right');
 			form_selectable_cell(number_format_i18n($template['templates']), $template['color_template_id'], '', 'right');
+
 			form_checkbox_cell($template['name'], $template['color_template_id'], $disabled);
+
 			form_end_row();
 		}
 	} else {
