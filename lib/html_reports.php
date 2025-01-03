@@ -343,12 +343,11 @@ function reports_form_save() {
 
 		$save = array();
 
-		$save['id']                = get_nfilter_request_var('id');
-		$save['report_id']         = form_input_validate(get_nfilter_request_var('report_id'), 'report_id', '^[0-9]+$', false, 3);
+		$save['id']        = get_nfilter_request_var('id');
+		$save['report_id'] = form_input_validate(get_nfilter_request_var('report_id'), 'report_id', '^[0-9]+$', false, 3);
 
 		if (isempty_request_var('id')) {
-			$save['sequence'] = db_fetch_cell_prepared(
-				'SELECT MAX(sequence)+1
+			$save['sequence'] = db_fetch_cell_prepared('SELECT MAX(sequence)+1
 				FROM reports_items
 				WHERE report_id = ?',
 				array(get_request_var('report_id'))
@@ -409,56 +408,63 @@ function reports_form_actions() {
 
 	/* if we are to save this form, instead of display it */
 	if (isset_request_var('selected_items')) {
-		$selected_items = sanitize_unserialize_selected_items(get_nfilter_request_var('selected_items'));
+		$reference_items = get_nfilter_request_var('selected_items');
+		$selected_items  = unserialize(stripslashes($reference_items), array('allowed_classes' => false));
 
 		if ($selected_items != false) {
-			if (get_nfilter_request_var('drp_action') == REPORTS_DELETE) { // delete
-				db_execute('DELETE FROM reports WHERE ' . array_to_sql_or($selected_items, 'id'));
-				db_execute('DELETE FROM reports_items WHERE ' . str_replace('id', 'report_id', array_to_sql_or($selected_items, 'id')));
-			} elseif (get_nfilter_request_var('drp_action') == REPORTS_OWN) { // take ownership
-				for ($i = 0; ($i < cacti_count($selected_items)); $i++) {
-					reports_log(__FUNCTION__ . ', takeown: ' . $selected_items[$i] . ' user: ' . $_SESSION[SESS_USER_ID], false, 'REPORTS TRACE', POLLER_VERBOSITY_MEDIUM);
+			foreach($selected_items as $report) {
+				list($type, $report_id) = explode('_', $report);
 
-					db_execute_prepared(
-						'UPDATE reports
-						SET user_id = ?
-						WHERE id = ?',
-						array($_SESSION[SESS_USER_ID], $selected_items[$i])
-					);
-				}
-			} elseif (get_nfilter_request_var('drp_action') == REPORTS_DUPLICATE) { // duplicate
-				for ($i = 0; ($i < cacti_count($selected_items)); $i++) {
-					reports_log(__FUNCTION__ . ', duplicate: ' . $selected_items[$i] . ' name: ' . get_nfilter_request_var('name_format'), false, 'REPORTS TRACE', POLLER_VERBOSITY_MEDIUM);
-
-					duplicate_reports($selected_items[$i], get_nfilter_request_var('name_format'));
-				}
-			} elseif (get_nfilter_request_var('drp_action') == REPORTS_ENABLE) { // enable
-				for ($i = 0; ($i < cacti_count($selected_items)); $i++) {
-					reports_log(__FUNCTION__ . ', enable: ' . $selected_items[$i], false, 'REPORTS TRACE', POLLER_VERBOSITY_MEDIUM);
-
-					db_execute_prepared(
-						'UPDATE reports
-						SET enabled="on"
-						WHERE id = ?',
-						array($selected_items[$i])
-					);
-				}
-			} elseif (get_nfilter_request_var('drp_action') == REPORTS_DISABLE) { // disable
-				for ($i = 0; ($i < cacti_count($selected_items)); $i++) {
-					reports_log(__FUNCTION__ . ', disable: ' . $selected_items[$i], false, 'REPORTS TRACE', POLLER_VERBOSITY_MEDIUM);
-
-					db_execute_prepared(
-						'UPDATE reports
-						SET enabled=""
-						WHERE id = ?',
-						array($selected_items[$i])
-					);
-				}
-			} elseif (get_nfilter_request_var('drp_action') == REPORTS_SEND_NOW) { // send now
-				$message = '';
-
-				for ($i = 0; ($i < cacti_count($selected_items)); $i++) {
-					reports_send($selected_items[$i]);
+				if (get_nfilter_request_var('drp_action') == REPORTS_DELETE) { // delete
+					if ($type == 'reports') {
+						db_execute_prepared('DELETE FROM reports WHERE id = ?', array($report_id));
+						db_execute_prepared('DELETE FROM reports_items WHERE report_id = ?', array($report_id));
+					} elseif ($type == 'reportit') {
+						api_reportit_delete_report($report_id);
+					}
+				} elseif (get_nfilter_request_var('drp_action') == REPORTS_OWN) { // take ownership
+					if ($type == 'reports') {
+						db_execute_prepared('UPDATE reports
+							SET user_id = ?
+							WHERE id = ?',
+							array($_SESSION[SESS_USER_ID], $report_id)
+						);
+					} elseif ($type == 'reportit') {
+						api_reportit_take_ownership($report_id, $_SESSION[SESS_USER_ID]);
+					}
+				} elseif (get_nfilter_request_var('drp_action') == REPORTS_DUPLICATE) { // duplicate
+					if ($type == 'reports') {
+						duplicate_reports($report_id, get_nfilter_request_var('name_format'));
+					} elseif ($type == 'reportit') {
+						api_reportit_duplicate_report($report_id);
+					}
+				} elseif (get_nfilter_request_var('drp_action') == REPORTS_ENABLE) { // enable
+					if ($type == 'reports') {
+						db_execute_prepared('UPDATE reports
+							SET enabled = "on"
+							WHERE id = ?',
+							array($report_id)
+						);
+					} elseif ($type == 'reportit') {
+						api_reportit_enable_report($report_id);
+					}
+				} elseif (get_nfilter_request_var('drp_action') == REPORTS_DISABLE) { // disable
+					if ($type == 'reports') {
+						db_execute_prepared(
+							'UPDATE reports
+							SET enabled=""
+							WHERE id = ?',
+							array($report_id)
+						);
+					} elseif ($type == 'reportit') {
+						api_reportit_disable_report($report_id);
+					}
+				} elseif (get_nfilter_request_var('drp_action') == REPORTS_SEND_NOW) { // send now
+					if ($type == 'reports') {
+						reports_send($report_id);
+					} elseif ($type == 'reportit') {
+						api_reportit_run_report($report_id);
+					}
 				}
 			}
 		}
@@ -474,14 +480,19 @@ function reports_form_actions() {
 
 		/* loop through each of the graphs selected on the previous page and get more info about them */
 		foreach ($_POST as $var => $val) {
-			if (preg_match('/^chk_([0-9]+)$/', $var, $matches)) {
+			if (preg_match('/^chk_([a-z_0-9]+)$/', $var, $matches)) {
+				list($type, $id) = explode('_', $matches[1]);
 				/* ================= input validation ================= */
-				input_validate_input_number($matches[1], 'chk]');
+				input_validate_input_number($id);
 				/* ==================================================== */
 
-				$ilist .= '<li>' . html_escape(db_fetch_cell_prepared('SELECT name FROM reports WHERE id = ?', array($matches[1]))) . '</li>';
+				if ($type == 'reports') {
+					$ilist .= '<li>' . html_escape(db_fetch_cell_prepared('SELECT name FROM reports WHERE id = ?', array($id))) . '</li>';
+				} elseif ($type == 'reportit') {
+					$ilist .= '<li>' . html_escape(db_fetch_cell_prepared('SELECT name FROM plugin_reportit_reports WHERE id = ?', array($id))) . '</li>';
+				}
 
-				$iarray[] = $matches[1];
+				$iarray[] = "{$type}_{$id}";
 			}
 		}
 
@@ -2124,7 +2135,7 @@ function reports() {
 				$url  = CACTI_PATH_URL . '/plugins/reportit/reportit.php?action=report_edit&tab=general&id=' . $report['id'];
 			}
 
-			$id = $report['type'] . $report['id'];
+			$id = $report['type'] . '_' . $report['id'];
 
 			form_alternate_row('line' . $id, true);
 
