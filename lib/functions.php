@@ -5549,6 +5549,10 @@ function mailer(array|string $from, array|string $to, null|array|string $cc = nu
 			}
 
 			if (!empty($attachment['attachment'])) {
+				if (is_base64_encoded($attachment['attachment'])) {
+					$attachment['attachment'] = base64_decode($attachment['attachment']);
+				}
+
 				/* get content id and create attachment */
 				$cid = getmypid() . '_' . $i . '@' . 'localhost';
 
