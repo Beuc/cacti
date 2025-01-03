@@ -328,7 +328,7 @@ function process_sanitize_draw_database_process_filter($render = false) {
 	$header = __('Technical Support [ Database Queries ]');
 
 	/* create the page filter */
-	$pageFilter = new CactiTableFilter($header, 'support.php?tab=processes', 'form_db_stats', 'sess_ts_proc', '', false, false);
+	$pageFilter = new CactiTableFilter($header, 'support.php?tab=processes', 'form_db_stats', 'sess_ts_proc');
 
 	$pageFilter->set_filter_array($filters);
 
@@ -547,7 +547,7 @@ function process_sanitize_draw_cacti_process_filter($render = false, $tables = a
 	$header = __('Technical Support [ Background Processes ]');
 
 	/* create the page filter */
-	$pageFilter = new CactiTableFilter($header, 'support.php?tab=background', 'form_cacti_procs', 'sess_ts_bg', '', false, false);
+	$pageFilter = new CactiTableFilter($header, 'support.php?tab=background', 'form_cacti_procs', 'sess_ts_bg');
 
 	$pageFilter->set_filter_array($filters);
 
