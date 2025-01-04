@@ -96,7 +96,7 @@ function clog_purge_logfile() {
 		if (is_writable($purgefile)) {
 			if ($logfile != $purgefile) {
 				unlink($purgefile);
-				raise_message('clog_remove');
+				raise_message('clog_removed', __('The Cacti Log File \'%s\' was removed by \'%s\'', basename($purgefile), get_username()), MESSAGE_LEVEL_INFO);
 			} else {
 				/* fill in the current date for printing in the log */
 				if (defined('CACTI_DATE_TIME_FORMAT')) {
@@ -108,7 +108,7 @@ function clog_purge_logfile() {
 				$log_fh = fopen($logfile, 'w');
 				fwrite($log_fh, __('%s - WEBUI NOTE: Cacti Log Cleared from Web Management Interface.', $date) . PHP_EOL);
 				fclose($log_fh);
-				raise_message('clog_purged');
+				raise_message('clog_removed', __('The Cacti Log File \'%s\' was removed by \'%s\'', basename($logfile), get_username()), MESSAGE_LEVEL_INFO);
 			}
 
 			cacti_log('NOTE: Cacti Log file ' . $purgefile . ', Removed by user ' . get_username($_SESSION[SESS_USER_ID]), false, 'WEBUI');
@@ -141,9 +141,10 @@ function clog_view_logfile() {
 
 	if ($clogAdmin && isset_request_var('purge_continue')) {
 		clog_purge_logfile();
+
 		$logfile = read_config_option('path_cactilog');
 
-		header('Location: clog.php?filename=' . $logfile);
+		header('Location: clog.php?filename=' . basename($logfile));
 		exit;
 	}
 
