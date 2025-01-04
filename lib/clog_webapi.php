@@ -142,6 +142,9 @@ function clog_view_logfile() {
 	if ($clogAdmin && isset_request_var('purge_continue')) {
 		clog_purge_logfile();
 		$logfile = read_config_option('path_cactilog');
+
+		header('Location: clog.php?filename=' . $logfile);
+		exit;
 	}
 
 	$page_nr = get_nfilter_request_var('page');
@@ -163,7 +166,7 @@ function clog_view_logfile() {
 
 		print "<tr>
 			<td class='textArea'>
-				<p>" . __('Click \'Continue\' to purge the Log File.<br><br><br>Note: If logging is set to both Cacti and Syslog, the log information will remain in Syslog.') . "</p>
+				<p>" . __('Click \'Continue\' to purge the Log File \'' . html_escape(basename($logfile)) . '\'.<br><br><br>Note: If logging is set to both Cacti and Syslog, the log information will remain in Syslog.') . "</p>
 			</td>
 		</tr>
 		<tr class='saveRow'>
@@ -598,6 +601,7 @@ function create_filter($logfile, $clogAdmin) {
 				'display' => __('Purge'),
 				'action'  => 'default',
 				'title'   => __('Purge User log of all but the last login attempt'),
+				'url'     => 'clog.php?action=purge&filename=' . $logfile
 			),
 		)
 	);
