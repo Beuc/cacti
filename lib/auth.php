@@ -728,86 +728,80 @@ function is_tree_allowed($tree_id, $user_id = 0) {
 		return $_SESSION[SESS_TREE_PERMS][$tree_id];
 	}
 
-	if (read_config_option('auth_method') != AUTH_METHOD_NONE) {
-		if ($user_id == 0) {
-			if (isset($_SESSION[SESS_USER_ID])) {
-				$user_id = $_SESSION[SESS_USER_ID];
-			} else {
-				$_SESSION[SESS_TREE_PERMS][$tree_id] = false;
-
-				return false;
-			}
-		}
-
-		$policy = db_fetch_cell_prepared('SELECT policy_trees
-			FROM user_auth
-			WHERE id = ?',
-			array($user_id));
-
-		$trees  = db_fetch_assoc_prepared('SELECT user_id
-			FROM user_auth_perms
-			WHERE user_id = ?
-			AND type = 2
-			AND item_id = ?',
-			array($user_id, $tree_id));
-
-		if (auth_check_perms($trees, $policy)) {
-			$_SESSION[SESS_TREE_PERMS][$tree_id] = true;
-
-			return true;
-		}
-
-		/* check for group perms */
-		$groups = db_fetch_assoc_prepared("SELECT uag.policy_trees
-			FROM user_auth_group AS uag
-			INNER JOIN user_auth_group_members AS uagm
-			ON uag.id = uagm.group_id
-			WHERE uag.enabled = 'on'
-			AND uagm.user_id = ?",
-			array($user_id));
-
-		if (!cacti_sizeof($groups)) {
+	if ($user_id == 0) {
+		if (isset($_SESSION[SESS_USER_ID])) {
+			$user_id = $_SESSION[SESS_USER_ID];
+		} else {
 			$_SESSION[SESS_TREE_PERMS][$tree_id] = false;
 
 			return false;
 		}
+	}
 
-		foreach ($groups as $g) {
-			if (auth_check_perms($trees, $g['policy_trees'])) {
-				$_SESSION[SESS_TREE_PERMS][$tree_id] = true;
+	$policy = db_fetch_cell_prepared('SELECT policy_trees
+		FROM user_auth
+		WHERE id = ?',
+		array($user_id));
 
-				return true;
-			}
-		}
+	$trees  = db_fetch_assoc_prepared('SELECT user_id
+		FROM user_auth_perms
+		WHERE user_id = ?
+		AND type = 2
+		AND item_id = ?',
+		array($user_id, $tree_id));
 
-		/* check for group trees */
-		$gtrees = db_fetch_assoc_prepared("SELECT uagm.user_id
-			FROM user_auth_group AS uag
-			INNER JOIN user_auth_group_members AS uagm
-			ON uag.id = uagm.group_id
-			INNER JOIN user_auth_group_perms as uagp
-			ON uagp.group_id = uag.id
-			WHERE uag.enabled = 'on'
-			AND uagm.user_id = ?
-			AND uagp.item_id = ?",
-			array($user_id, $tree_id));
-
-		foreach ($groups as $g) {
-			if (auth_check_perms($gtrees, $g['policy_trees'])) {
-				$_SESSION[SESS_TREE_PERMS][$tree_id] = true;
-
-				return true;
-			}
-		}
-
-		$_SESSION[SESS_TREE_PERMS][$tree_id] = false;
-
-		return false;
-	} else {
+	if (auth_check_perms($trees, $policy)) {
 		$_SESSION[SESS_TREE_PERMS][$tree_id] = true;
 
 		return true;
 	}
+
+	/* check for group perms */
+	$groups = db_fetch_assoc_prepared("SELECT uag.policy_trees
+		FROM user_auth_group AS uag
+		INNER JOIN user_auth_group_members AS uagm
+		ON uag.id = uagm.group_id
+		WHERE uag.enabled = 'on'
+		AND uagm.user_id = ?",
+		array($user_id));
+
+	if (!cacti_sizeof($groups)) {
+		$_SESSION[SESS_TREE_PERMS][$tree_id] = false;
+
+		return false;
+	}
+
+	foreach ($groups as $g) {
+		if (auth_check_perms($trees, $g['policy_trees'])) {
+			$_SESSION[SESS_TREE_PERMS][$tree_id] = true;
+
+			return true;
+		}
+	}
+
+	/* check for group trees */
+	$gtrees = db_fetch_assoc_prepared("SELECT uagm.user_id
+		FROM user_auth_group AS uag
+		INNER JOIN user_auth_group_members AS uagm
+		ON uag.id = uagm.group_id
+		INNER JOIN user_auth_group_perms as uagp
+		ON uagp.group_id = uag.id
+		WHERE uag.enabled = 'on'
+		AND uagm.user_id = ?
+		AND uagp.item_id = ?",
+		array($user_id, $tree_id));
+
+	foreach ($groups as $g) {
+		if (auth_check_perms($gtrees, $g['policy_trees'])) {
+			$_SESSION[SESS_TREE_PERMS][$tree_id] = true;
+
+			return true;
+		}
+	}
+
+	$_SESSION[SESS_TREE_PERMS][$tree_id] = false;
+
+	return false;
 }
 
 /**
@@ -851,45 +845,42 @@ function is_graph_template_allowed($graph_template_id, $user = 0) {
  * @return (bool) True if allowed, else false
  */
 function is_view_allowed($view = 'show_tree') {
-	if (read_config_option('auth_method') != AUTH_METHOD_NONE) {
-		if (!isset($_SESSION[SESS_USER_ID])) {
+	if (!isset($_SESSION[SESS_USER_ID])) {
+		return false;
+	}
+
+	if (db_table_exists('user_auth_group')) {
+		$values = array_rekey(
+			db_fetch_assoc_prepared("SELECT DISTINCT $view
+				FROM user_auth_group AS uag
+				INNER JOIN user_auth_group_members AS uagm
+				ON uag.id = uagm.user_id
+				WHERE uag.enabled = 'on'
+				AND uagm.user_id = ?",
+				array($_SESSION[SESS_USER_ID])
+			), $view, $view
+		);
+
+		if (isset($values[3])) {
 			return false;
 		}
 
-		if (db_table_exists('user_auth_group')) {
-			$values = array_rekey(
-				db_fetch_assoc_prepared("SELECT DISTINCT $view
-					FROM user_auth_group AS uag
-					INNER JOIN user_auth_group_members AS uagm
-					ON uag.id = uagm.user_id
-					WHERE uag.enabled = 'on'
-					AND uagm.user_id = ?",
-					array($_SESSION[SESS_USER_ID])
-				), $view, $view
-			);
-
-			if (isset($values[3])) {
-				return false;
-			}
-
-			if (isset($values['on'])) {
-				return true;
-			}
-
-			if (isset($values[2])) {
-				return true;
-			}
+		if (isset($values['on'])) {
+			return true;
 		}
-		$value = db_fetch_cell_prepared("SELECT $view
-			FROM user_auth
-			WHERE id = ?",
-			array($_SESSION[SESS_USER_ID])
-		);
 
-		return ($value == 'on');
-	} else {
-		return true;
+		if (isset($values[2])) {
+			return true;
+		}
 	}
+
+	$value = db_fetch_cell_prepared("SELECT $view
+		FROM user_auth
+		WHERE id = ?",
+		array($_SESSION[SESS_USER_ID])
+	);
+
+	return ($value == 'on');
 }
 
 /**
@@ -992,51 +983,36 @@ function is_tree_branch_empty($tree_id, $parent = 0) {
 function is_realm_allowed($realm, $check_user = false) {
 	global $config;
 
-	/* list all realms that this user has access to */
-	if (read_config_option('auth_method') != AUTH_METHOD_NONE) {
-		/* if we are only checking another users permission, don't check cache */
-		if ($check_user == false) {
-			/* user is not set, no permissions */
-			if (!isset($_SESSION[SESS_USER_ID])) {
-				return false;
-			}
+	/* if we are only checking another users permission, don't check cache */
+	if ($check_user == false) {
+		/* user is not set, no permissions */
+		if (!isset($_SESSION[SESS_USER_ID])) {
+			return false;
+		}
 
-			/* check to see if the admin invalidated a permission */
-			if (!is_user_perms_valid($_SESSION[SESS_USER_ID])) {
-				if (db_table_exists('user_auth_cache')) {
-					$enabled = db_fetch_cell_prepared('SELECT enabled
-						FROM user_auth
-						WHERE id = ?',
+		/* check to see if the admin invalidated a permission */
+		if (!is_user_perms_valid($_SESSION[SESS_USER_ID])) {
+			if (db_table_exists('user_auth_cache')) {
+				$enabled = db_fetch_cell_prepared('SELECT enabled
+					FROM user_auth
+					WHERE id = ?',
+					array($_SESSION[SESS_USER_ID]));
+
+				if ($enabled == '' && get_guest_account() !== $_SESSION[SESS_USER_ID]) {
+					db_execute_prepared('DELETE FROM user_auth_cache
+						WHERE user_id = ?',
 						array($_SESSION[SESS_USER_ID]));
 
-					if ($enabled == '' && get_guest_account() !== $_SESSION[SESS_USER_ID]) {
-						db_execute_prepared('DELETE FROM user_auth_cache
-							WHERE user_id = ?',
-							array($_SESSION[SESS_USER_ID]));
+					kill_session_var(SESS_USER_ID);
+					kill_session_var(SESS_USER_REALMS);
+					kill_session_var(OPTIONS_USER);
+					kill_session_var(OPTIONS_WEB);
+					kill_session_var(SESS_AUTH_NAMES);
+					kill_session_var(SESS_TREE_PERMS);
+					kill_session_var(SESS_SIMPLE_PERMS);
+					kill_session_var(SESS_SIMPLE_TEMPLATE_PERMS);
 
-						kill_session_var(SESS_USER_ID);
-						kill_session_var(SESS_USER_REALMS);
-						kill_session_var(OPTIONS_USER);
-						kill_session_var(OPTIONS_WEB);
-						kill_session_var(SESS_AUTH_NAMES);
-						kill_session_var(SESS_TREE_PERMS);
-						kill_session_var(SESS_SIMPLE_PERMS);
-						kill_session_var(SESS_SIMPLE_TEMPLATE_PERMS);
-
-						print '<span style="display:none;">cactiLoginSuspend</span>';
-
-						exit;
-					} else {
-						kill_session_var(SESS_USER_REALMS);
-						kill_session_var(OPTIONS_USER);
-						kill_session_var(OPTIONS_WEB);
-						kill_session_var(SESS_AUTH_NAMES);
-						kill_session_var(SESS_TREE_PERMS);
-						kill_session_var(SESS_SIMPLE_PERMS);
-						kill_session_var(SESS_SIMPLE_TEMPLATE_PERMS);
-					}
-
-					print '<span style="display:none;">cactiRedirect</span>';
+					print '<span style="display:none;">cactiLoginSuspend</span>';
 
 					exit;
 				} else {
@@ -1048,72 +1024,70 @@ function is_realm_allowed($realm, $check_user = false) {
 					kill_session_var(SESS_SIMPLE_PERMS);
 					kill_session_var(SESS_SIMPLE_TEMPLATE_PERMS);
 				}
-			}
 
-			/* if the permission is already valid, the session variable will be set */
-			if (isset($_SESSION[SESS_USER_REALMS][$realm])) {
-				return $_SESSION[SESS_USER_REALMS][$realm];
-			}
+				print '<span style="display:none;">cactiRedirect</span>';
 
-			$user_id = $_SESSION[SESS_USER_ID];
-		} else {
-			$user_id = $check_user;
+				exit;
+			} else {
+				kill_session_var(SESS_USER_REALMS);
+				kill_session_var(OPTIONS_USER);
+				kill_session_var(OPTIONS_WEB);
+				kill_session_var(SESS_AUTH_NAMES);
+				kill_session_var(SESS_TREE_PERMS);
+				kill_session_var(SESS_SIMPLE_PERMS);
+				kill_session_var(SESS_SIMPLE_TEMPLATE_PERMS);
+			}
 		}
 
-		/**
-		 * check the permissions from the table, should only happen once per login
-		 * of after a permission change by the administrator.
-		 */
-		if (read_config_option('auth_method') != AUTH_METHOD_NONE) {
-			if (cacti_version_compare($config['cacti_db_version'], '1.0.0', '>=')) {
-				$user_realm = db_fetch_cell_prepared("SELECT realm_id
-					FROM user_auth_realm
-					WHERE user_id = ?
-					AND realm_id = ?
-					UNION
-					SELECT realm_id
-					FROM user_auth_group_realm AS uagr
-					INNER JOIN user_auth_group AS uag
-					ON uag.id = uagr.group_id
-					INNER JOIN user_auth_group_members AS uagm
-					ON uag.id = uagm.group_id
-					WHERE uag.enabled = 'on'
-					AND uagr.realm_id = ?
-					AND uagm.user_id = ?",
-					array($user_id, $realm, $realm, $user_id));
-			} else {
-				$user_realm = db_fetch_cell_prepared('SELECT realm_id
-					FROM user_auth_realm
-					WHERE user_id = ?
-					AND realm_id = ?',
-					array($user_id, $realm));
-			}
-
-			if (!empty($user_realm)) {
-				if ($check_user == false) {
-					$_SESSION[SESS_USER_REALMS][$realm] = true;
-				} else {
-					return true;
-				}
-			} else {
-				if ($check_user == false) {
-					$_SESSION[SESS_USER_REALMS][$realm] = false;
-				} else {
-					return false;
-				}
-			}
-		} else {
-			if ($check_user == false) {
-				$_SESSION[SESS_USER_REALMS][$realm] = true;
-			} else {
-				return true;
-			}
+		/* if the permission is already valid, the session variable will be set */
+		if (isset($_SESSION[SESS_USER_REALMS][$realm])) {
+			return $_SESSION[SESS_USER_REALMS][$realm];
 		}
+
+		$user_id = $_SESSION[SESS_USER_ID];
 	} else {
+		$user_id = $check_user;
+	}
+
+	/**
+	 * check the permissions from the table, should only happen once per login
+	 * of after a permission change by the administrator.
+	 */
+	if (cacti_version_compare($config['cacti_db_version'], '1.0.0', '>=')) {
+		$user_realm = db_fetch_cell_prepared("SELECT realm_id
+			FROM user_auth_realm
+			WHERE user_id = ?
+			AND realm_id = ?
+			UNION
+			SELECT realm_id
+			FROM user_auth_group_realm AS uagr
+			INNER JOIN user_auth_group AS uag
+			ON uag.id = uagr.group_id
+			INNER JOIN user_auth_group_members AS uagm
+			ON uag.id = uagm.group_id
+			WHERE uag.enabled = 'on'
+			AND uagr.realm_id = ?
+			AND uagm.user_id = ?",
+			array($user_id, $realm, $realm, $user_id));
+	} else {
+		$user_realm = db_fetch_cell_prepared('SELECT realm_id
+			FROM user_auth_realm
+			WHERE user_id = ?
+			AND realm_id = ?',
+			array($user_id, $realm));
+	}
+
+	if (!empty($user_realm)) {
 		if ($check_user == false) {
 			$_SESSION[SESS_USER_REALMS][$realm] = true;
 		} else {
 			return true;
+		}
+	} else {
+		if ($check_user == false) {
+			$_SESSION[SESS_USER_REALMS][$realm] = false;
+		} else {
+			return false;
 		}
 	}
 
@@ -1254,33 +1228,29 @@ function get_allowed_tree_content($tree_id, $parent = 0, $sql_where = '', $sql_o
 			ORDER BY gt.sequence');
 	}
 
-	if (read_config_option('auth_method') != AUTH_METHOD_NONE) {
-		$new_hierarchy = array();
+	$new_hierarchy = array();
 
-		if (cacti_sizeof($hierarchy)) {
-			foreach ($hierarchy as $h) {
-				if ($h['host_id'] > 0) {
-					if (is_device_allowed($h['host_id'])) {
-						$new_hierarchy[] = $h;
-					}
-				} elseif ($h['id'] == 0) {
-					if (!is_tree_branch_empty($h['tree_id'], $h['id'])) {
-						if (is_tree_allowed($h['tree_id'])) {
-							$new_hierarchy[] = $h;
-						}
-					}
-				} elseif ($h['site_id'] > 0) {
-					$new_hierarchy[] = $h;
-				} elseif (!is_tree_branch_empty($h['tree_id'], $h['id'])) {
+	if (cacti_sizeof($hierarchy)) {
+		foreach ($hierarchy as $h) {
+			if ($h['host_id'] > 0) {
+				if (is_device_allowed($h['host_id'])) {
 					$new_hierarchy[] = $h;
 				}
+			} elseif ($h['id'] == 0) {
+				if (!is_tree_branch_empty($h['tree_id'], $h['id'])) {
+					if (is_tree_allowed($h['tree_id'])) {
+						$new_hierarchy[] = $h;
+					}
+				}
+			} elseif ($h['site_id'] > 0) {
+				$new_hierarchy[] = $h;
+			} elseif (!is_tree_branch_empty($h['tree_id'], $h['id'])) {
+				$new_hierarchy[] = $h;
 			}
 		}
-
-		return $new_hierarchy;
-	} else {
-		return $hierarchy;
 	}
+
+	return $new_hierarchy;
 }
 
 /**
@@ -1385,9 +1355,7 @@ function get_allowed_tree_header_graphs($tree_id, $leaf_id = 0, $sql_where = '',
 	/* get policies for all groups and user */
 	$policies = get_policies($user_id);
 
-	if ($auth_method != AUTH_METHOD_NONE) {
-		$sql_where = get_policy_where($graph_auth_method, $policies, $sql_where);
-	}
+	$sql_where = get_policy_where($graph_auth_method, $policies, $sql_where);
 
 	$graphs = db_fetch_assoc("SELECT gti.id, gti.title, gtg.local_graph_id, h.description,
 		gt.name AS template_name, gtg.title_cache, gtg.width, gtg.height, gl.host_id, h.disabled,
@@ -1527,7 +1495,7 @@ function get_allowed_graphs($sql_where = '', $sql_order = 'gtg.title_cache', $sq
 	/* get policies for all groups and user */
 	$policies = get_policies($user_id);
 
-	if (!$simple_perms && $auth_method != AUTH_METHOD_NONE) {
+	if (!$simple_perms) {
 		$sql_where = get_policy_where($graph_auth_method, $policies, $sql_where);
 	}
 
@@ -1642,7 +1610,7 @@ function get_allowed_aggregate_graphs($sql_where = '', $sql_order = 'gtg.title_c
 	/* get policies for all groups and user */
 	$policies = get_policies($user_id);
 
-	if (!$simple_perms && $auth_method != AUTH_METHOD_NONE) {
+	if (!$simple_perms) {
 		$sql_where = get_policy_where($graph_auth_method, $policies, $sql_where);
 	}
 
@@ -1926,11 +1894,11 @@ function get_allowed_graph_templates($sql_where = '', $sql_order = 'gt.name', $s
 	$policies = get_policies($user_id);
 
 	/* short circuit if we don't have a user */
-	if ($auth_method > AUTH_METHOD_NONE && $user_id == 0) {
+	if ($user_id == 0) {
 		return array();
 	}
 
-	if (!$simple_perms && $auth_method != AUTH_METHOD_NONE) {
+	if (!$simple_perms) {
 		$sql_where = get_policy_where($graph_auth_method, $policies, $sql_where);
 	}
 
@@ -2548,89 +2516,67 @@ function get_allowed_trees($edit = false, $return_sql = false, $sql_where = '', 
 		$sql_order = "ORDER BY $sql_order";
 	}
 
-	if ($user_id == -1) {
-		$auth_method = AUTH_METHOD_NONE;
-	} else {
-		$auth_method = read_config_option('auth_method');
+	$auth_method = read_config_option('auth_method');
+
+	if ($user_id == 0) {
+		if (isset($_SESSION[SESS_USER_ID])) {
+			$user_id = $_SESSION[SESS_USER_ID];
+		} else {
+			return array();
+		}
 	}
 
-	if ($auth_method != AUTH_METHOD_NONE) {
-		if ($user_id == 0) {
-			if (isset($_SESSION[SESS_USER_ID])) {
-				$user_id = $_SESSION[SESS_USER_ID];
-			} else {
-				return array();
-			}
+	/* get policies for all groups and user */
+	$policies = db_fetch_assoc_prepared("SELECT uag.id, 'group' AS type, policy_trees FROM user_auth_group AS uag
+		INNER JOIN user_auth_group_members AS uagm
+		ON uag.id = uagm.group_id
+		WHERE uag.enabled = 'on'
+		AND uagm.user_id = ?",
+		array($user_id));
+
+	$policies[] = db_fetch_row_prepared("SELECT id, 'user' as type, policy_trees FROM user_auth WHERE id = ?", array($user_id));
+
+	$i          = 0;
+	$sql_join   = '';
+	$sql_where1 = '';
+
+	foreach ($policies as $policy) {
+		if ($policy['policy_trees'] == '1') {
+			$sql_where1 .= ($sql_where1 != '' ? ' OR':'') . " uap$i." . $policy['type'] . '_id IS NULL';
+		} elseif ($policy['policy_trees'] == '2') {
+			$sql_where1 .= ($sql_where1 != '' ? ' OR':'') . " uap$i." . $policy['type'] . '_id IS NOT NULL';
 		}
 
-		/* get policies for all groups and user */
-		$policies = db_fetch_assoc_prepared("SELECT uag.id, 'group' AS type, policy_trees FROM user_auth_group AS uag
-			INNER JOIN user_auth_group_members AS uagm
-			ON uag.id = uagm.group_id
-			WHERE uag.enabled = 'on'
-			AND uagm.user_id = ?",
-			array($user_id));
+		$sql_join .= 'LEFT JOIN user_auth_' . ($policy['type'] == 'group' ? 'group_':'') . "perms AS uap$i
+			ON (gt.id=uap$i.item_id AND uap$i.type=2 AND uap$i." . $policy['type'] . '_id=' . $policy['id'] . ') ';
 
-		$policies[] = db_fetch_row_prepared("SELECT id, 'user' as type, policy_trees FROM user_auth WHERE id = ?", array($user_id));
+		$i++;
+	}
 
-		$i          = 0;
-		$sql_join   = '';
-		$sql_where1 = '';
+	if ($sql_where != '') {
+		$sql_where = 'WHERE ' . ($edit == false ? '(gt.enabled="on") AND ':'') . '(' . $sql_where . ') AND (' . $sql_where1 . ')';
+	} else {
+		$sql_where = 'WHERE ' . ($edit == false ? '(gt.enabled="on") AND ':'') . '(gt.enabled="on") AND (' . $sql_where1 . ')';
+	}
 
-		foreach ($policies as $policy) {
-			if ($policy['policy_trees'] == '1') {
-				$sql_where1 .= ($sql_where1 != '' ? ' OR':'') . " uap$i." . $policy['type'] . '_id IS NULL';
-			} elseif ($policy['policy_trees'] == '2') {
-				$sql_where1 .= ($sql_where1 != '' ? ' OR':'') . " uap$i." . $policy['type'] . '_id IS NOT NULL';
-			}
+	$sql = "SELECT id, name
+		FROM graph_tree AS gt
+		$sql_join
+		$sql_where
+		$sql_order
+		$sql_limit";
 
-			$sql_join .= 'LEFT JOIN user_auth_' . ($policy['type'] == 'group' ? 'group_':'') . "perms AS uap$i
-				ON (gt.id=uap$i.item_id AND uap$i.type=2 AND uap$i." . $policy['type'] . '_id=' . $policy['id'] . ') ';
+	if ($return_sql) {
+		return $sql;
+	} else {
+		$trees = db_fetch_assoc($sql);
 
-			$i++;
-		}
-
-		if ($sql_where != '') {
-			$sql_where = 'WHERE ' . ($edit == false ? '(gt.enabled="on") AND ':'') . '(' . $sql_where . ') AND (' . $sql_where1 . ')';
-		} else {
-			$sql_where = 'WHERE ' . ($edit == false ? '(gt.enabled="on") AND ':'') . '(gt.enabled="on") AND (' . $sql_where1 . ')';
-		}
-
-		$sql = "SELECT id, name
+		$sql = "SELECT COUNT(gt.id)
 			FROM graph_tree AS gt
 			$sql_join
-			$sql_where
-			$sql_order
-			$sql_limit";
+			$sql_where";
 
-		if ($return_sql) {
-			return $sql;
-		} else {
-			$trees = db_fetch_assoc($sql);
-
-			$sql = "SELECT COUNT(gt.id)
-				FROM graph_tree AS gt
-				$sql_join
-				$sql_where";
-
-			$total_rows = get_total_row_data($user_id, $sql, array(), 'tree');
-		}
-	} else {
-		if ($sql_where != '') {
-			$sql_where = "WHERE enabled='on' AND $sql_where";
-		} else {
-			$sql_where = "WHERE enabled='on'";
-		}
-
-		if ($return_sql) {
-			return "SELECT id, name FROM graph_tree $sql_where $sql_order";
-		} else {
-			$trees = db_fetch_assoc("SELECT id, name FROM graph_tree AS gt $sql_where $sql_order");
-
-			$sql = "SELECT COUNT(*) FROM graph_tree AS gt $sql_where";
-
-			$total_rows = get_total_row_data($user_id, $sql, array(), 'tree');
-		}
+		$total_rows = get_total_row_data($user_id, $sql, array(), 'tree');
 	}
 
 	return $trees;
@@ -2675,13 +2621,9 @@ function get_allowed_branches($sql_where = '', $sql_order = 'name', $sql_limit =
 	// suppress total rows
 	$total_rows = -1;
 
-	if ($user_id == -1) {
-		$auth_method = AUTH_METHOD_NONE;
-	} else {
-		$auth_method = read_config_option('auth_method');
-	}
+	$auth_method = read_config_option('auth_method');
 
-	if ($auth_method > AUTH_METHOD_NONE && $user_id == 0) {
+	if ($user_id == 0) {
 		if (isset($_SESSION[SESS_USER_ID])) {
 			$user_id = $_SESSION[SESS_USER_ID];
 		} else {
@@ -2723,91 +2665,56 @@ function get_allowed_branches($sql_where = '', $sql_order = 'name', $sql_limit =
 		}
 	}
 
-	if ($auth_method != AUTH_METHOD_NONE) {
-		$i          = 0;
-		$sql_join   = '';
-		$sql_where1 = '';
+	$i          = 0;
+	$sql_join   = '';
+	$sql_where1 = '';
 
-		foreach ($policies as $policy) {
-			if ($policy['policy_trees'] == '1') {
-				$sql_where1 .= ($sql_where1 != '' ? ' OR':'') . " uap$i." . $policy['type'] . '_id IS NULL';
-			} elseif ($policy['policy_trees'] == '2') {
-				$sql_where1 .= ($sql_where1 != '' ? ' OR':'') . " uap$i." . $policy['type'] . '_id IS NOT NULL';
-			}
-
-			$sql_join .= 'LEFT JOIN user_auth_' . ($policy['type'] == 'group' ? 'group_':'') . "perms AS uap$i
-				ON (gt.id=uap$i.item_id AND uap$i.type=2 AND uap$i." . $policy['type'] . '_id=' . $policy['id'] . ') ';
-
-			$i++;
+	foreach ($policies as $policy) {
+		if ($policy['policy_trees'] == '1') {
+			$sql_where1 .= ($sql_where1 != '' ? ' OR':'') . " uap$i." . $policy['type'] . '_id IS NULL';
+		} elseif ($policy['policy_trees'] == '2') {
+			$sql_where1 .= ($sql_where1 != '' ? ' OR':'') . " uap$i." . $policy['type'] . '_id IS NOT NULL';
 		}
 
-		if ($sql_where != '') {
-			$sql_where = 'WHERE gt.enabled="on" AND (' . $sql_where . ')' . ($sql_where1 != '' ? ' AND (' . $sql_where1 . ')':'');
-		} elseif ($sql_where1 != '') {
-			$sql_where = 'WHERE gt.enabled="on" AND (' . $sql_where1 . ')';
-		}
+		$sql_join .= 'LEFT JOIN user_auth_' . ($policy['type'] == 'group' ? 'group_':'') . "perms AS uap$i
+			ON (gt.id=uap$i.item_id AND uap$i.type=2 AND uap$i." . $policy['type'] . '_id=' . $policy['id'] . ') ';
 
-		$sql = "(SELECT gti.id, CONCAT('". __('Branch:') . " ', gti.title) AS name
-			FROM graph_tree AS gt
-			INNER JOIN graph_tree_items AS gti
-			ON gti.graph_tree_id = gt.id
-			AND gti.host_id = 0
-			AND gti.local_graph_id=0
-			$sql_join
-			$sql_where
-			) UNION (
-			SELECT gti.id, CONCAT('" . __('Device:') . " ', h.description) AS name
-			FROM graph_tree AS gt
-			INNER JOIN graph_tree_items AS gti
-			ON gti.graph_tree_id = gt.id
-			INNER JOIN host AS h
-			ON h.id=gti.host_id
-			$sql_hosts_where
-			$sql_join
-			$sql_where
- 			)
-			$sql_order
-			$sql_limit";
-
-		$branches = db_fetch_assoc($sql);
-
-		$sql = 'SELECT COUNT(*) FROM (' . $sql . ') AS rower';
-
-		$total_rows = get_total_row_data($user_id, $sql, array(), 'branch');
-	} else {
-		if ($sql_where != '') {
-			$sql_where = "WHERE gt.enabled='on' AND h.disabled='' AND ((h.id > 0 AND h.deleted = '') OR h.id IS NULL) AND $sql_where";
-		} else {
-			$sql_where = "WHERE gt.enabled='on' AND h.disabled='on' AND ((h.id > 0 AND h.deleted = '') OR h.id IS NULL)";
-		}
-
-		$sql = "(
-			SELECT gti.id, CONCAT('". __('Branch:') . " ', gti.title) AS name
-			FROM graph_tree AS gt
-			INNER JOIN graph_tree_items AS gti
-			ON gti.graph_tree_id = gt.id
-			AND gti.host_id=0
-			AND gti.local_graph_id=0
-			$sql_where
-			) UNION (
-			SELECT gti.id, CONCAT('" . __('Device:') . " ', h.description) AS name
-			FROM graph_tree AS gt
-			INNER JOIN graph_tree_items AS gti
-			ON gti.graph_tree_id = gt.id
-			INNER JOIN host AS h
-			ON h.id=gti.host_id
-			$sql_join
-			$sql_where
-			)
-			$sql_order
-			$sql_limit";
-
-		$branches = db_fetch_assoc($sql);
-
-		$sql = 'SELECT COUNT(*) FROM (' . $sql . ') AS rower';
-
-		$total_rows = get_total_row_data($user_id, $sql, array(), 'branch');
+		$i++;
 	}
+
+	if ($sql_where != '') {
+		$sql_where = 'WHERE gt.enabled="on" AND (' . $sql_where . ')' . ($sql_where1 != '' ? ' AND (' . $sql_where1 . ')':'');
+	} elseif ($sql_where1 != '') {
+		$sql_where = 'WHERE gt.enabled="on" AND (' . $sql_where1 . ')';
+	}
+
+	$sql = "(SELECT gti.id, CONCAT('". __('Branch:') . " ', gti.title) AS name
+		FROM graph_tree AS gt
+		INNER JOIN graph_tree_items AS gti
+		ON gti.graph_tree_id = gt.id
+		AND gti.host_id = 0
+		AND gti.local_graph_id=0
+		$sql_join
+		$sql_where
+		) UNION (
+		SELECT gti.id, CONCAT('" . __('Device:') . " ', h.description) AS name
+		FROM graph_tree AS gt
+		INNER JOIN graph_tree_items AS gti
+		ON gti.graph_tree_id = gt.id
+		INNER JOIN host AS h
+		ON h.id=gti.host_id
+		$sql_hosts_where
+		$sql_join
+		$sql_where
+ 		)
+		$sql_order
+		$sql_limit";
+
+	$branches = db_fetch_assoc($sql);
+
+	$sql = 'SELECT COUNT(*) FROM (' . $sql . ') AS rower';
+
+	$total_rows = get_total_row_data($user_id, $sql, array(), 'branch');
 
 	return $branches;
 }
@@ -2836,13 +2743,9 @@ function get_allowed_devices($sql_where = '', $sql_order = 'description', $sql_l
 		return array();
 	}
 
-	if ($user_id == -1) {
-		$auth_method = AUTH_METHOD_NONE;
-	} else {
-		$auth_method = read_config_option('auth_method');
-	}
+	$auth_method = read_config_option('auth_method');
 
-	if ($auth_method > AUTH_METHOD_NONE && $user_id == 0) {
+	if ($user_id == 0) {
 		if (isset($_SESSION[SESS_USER_ID])) {
 			$user_id = $_SESSION[SESS_USER_ID];
 		} else {
@@ -2885,7 +2788,7 @@ function get_allowed_devices($sql_where = '', $sql_order = 'description', $sql_l
 	/* get policies for all groups and user */
 	$policies = get_policies($user_id);
 
-	if (!$simple_perms && $auth_method != AUTH_METHOD_NONE) {
+	if (!$simple_perms) {
 		$sql_where = get_policy_where($graph_auth_method, $policies, $sql_where);
 	}
 
@@ -2978,15 +2881,11 @@ function get_allowed_sites($sql_where = '', $sql_order = 'name', $sql_limit = ''
 		$sql_where .= ($sql_where != '' ? ' AND ' : 'WHERE ') . " s.id=$site_id";
 	}
 
-	if ($user_id == -1) {
-		$auth_method = AUTH_METHOD_NONE;
-	} else {
-		$auth_method = read_config_option('auth_method');
-	}
+	$auth_method = read_config_option('auth_method');
 
 	if (isset($_SESSION[SESS_USER_ID]) && $user_id == 0) {
 		$user_id = $_SESSION[SESS_USER_ID];
-	} elseif ($auth_method > AUTH_METHOD_NONE) {
+	} else {
 		return array();
 	}
 
@@ -3035,13 +2934,9 @@ function get_allowed_site_devices($site_id, $sql_where = '', $sql_order = 'descr
 		return array();
 	}
 
-	if ($user_id == -1) {
-		$auth_method = AUTH_METHOD_NONE;
-	} else {
-		$auth_method = read_config_option('auth_method');
-	}
+	$auth_method = read_config_option('auth_method');
 
-	if ($auth_method > AUTH_METHOD_NONE && $user_id == 0) {
+	if ($user_id == 0) {
 		if (isset($_SESSION[SESS_USER_ID])) {
 			$user_id = $_SESSION[SESS_USER_ID];
 		} else {
@@ -3079,7 +2974,7 @@ function get_allowed_site_devices($site_id, $sql_where = '', $sql_order = 'descr
 		$sql_where .= ($sql_where != '' ? ' AND ' : 'WHERE ') . " h.site_id=$site_id";
 	}
 
-	if ($auth_method != AUTH_METHOD_NONE && !$simple_perms) {
+	if (!$simple_perms) {
 		$sql_where = get_policy_where($graph_auth_method, $policies, $sql_where);
 	}
 
