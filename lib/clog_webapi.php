@@ -211,7 +211,9 @@ function clog_view_logfile() {
 		$should_expand = read_config_option('log_expand') != LOG_EXPAND_NONE;
 	}
 
-	$logcontents = tail_file($logfile, $number_of_lines, get_request_var('message_type'), get_request_var('rfilter'), $page_nr, $total_rows, get_request_var('matches'), $should_expand);
+	$reverse = get_request_var('reverse');
+
+	$logcontents = tail_file($logfile, $number_of_lines, get_request_var('message_type'), get_request_var('rfilter'), $page_nr, $total_rows, get_request_var('matches'), $should_expand, $reverse);
 
 	if (get_request_var('reverse') == 1) {
 		$logcontents = array_reverse($logcontents);
@@ -236,7 +238,7 @@ function clog_view_logfile() {
 		$start_string = __('Log [Total Lines: %d %s - Unfiltered]', $total_rows, $ad_filter);
 	}
 
-	$base_url     = CACTI_PATH_URL . 'clog.php';
+	$base_url = CACTI_PATH_URL . 'clog.php';
 
 	$nav = html_nav_bar($base_url, MAX_DISPLAY_PAGES, $page_nr, $number_of_lines, $total_rows, 1, __('Entries'), 'page', 'main');
 
@@ -305,13 +307,7 @@ function clog_view_logfile() {
 			$linecolor = !$linecolor;
 		}
 
-		?>
-		<tr class='<?php print $class;?>'>
-			<td>
-				<?php print $new_item;?>
-			</td>
-		</tr>
-		<?php
+		print "<tr class='$class'><td>$new_item</td></tr>";
 	}
 
 	html_end_box(false);
@@ -519,10 +515,10 @@ function create_filter($logfile, $clogAdmin) {
 					'method'        => 'drop_array',
 					'friendly_name' => __('Tail Lines'),
 					'filter'        => FILTER_VALIDATE_INT,
-					'default'       => '-1',
+					'default'       => read_config_option('max_display_rows'),
 					'pageset'       => true,
 					'array'         => $log_tail_lines,
-					'value'         => '-1'
+					'value'         => ''
 				),
 				'expand' => array(
 					'method'        => 'drop_array',

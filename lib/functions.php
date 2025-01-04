@@ -1651,18 +1651,19 @@ function cacti_log($string, $output = false, $environ = 'CMDPHP', $level = '') {
  * It is used in 0.8.6 to speed the viewing of the Cacti log file, which
  * can be problematic in the 0.8.6 branch.
  *
- * @param  $file_name    - (char constant) the name of the file to tail
- * @param  $line_cnt     - (int constant)  the number of lines to count
- * @param  $message_type - (int constant) the type of message to return
- * @param  $filter       - (char) the filtering expression to search for
- * @param  $page_nr      - (int) the page we want to show rows for
- * @param  $total_rows   - (int) the total number of rows in the logfile
- * @param  $matches      - (bool) match or does not match the filter
- * @param  $expand_text  - (bool) expand text to perform replacements
+ * @param  string $file_name    The name of the file to tail
+ * @param  int    $line_cnt     The number of lines to count
+ * @param  int    $message_type The type of message to return
+ * @param  string $filter       The filtering expression to search for
+ * @param  int    $page_nr      The page we want to show rows for
+ * @param  int    $total_rows   The total number of rows in the logfile
+ * @param  bool   $matches      Match or does not match the filter
+ * @param  bool   $expand_text  Expand text to perform replacements
+ * @param  int    $reverse      1 => Normal tail, 2 => Reverse tail
  *
  * @return array
  */
-function tail_file(string $file_name, int $number_of_lines, ?int $message_type = -1, ?string $filter = '', ?int &$page_nr = 1, ?int &$total_rows = 0, ?bool $matches = true, ?bool $expand_text = false): array {
+function tail_file(string $file_name, int $number_of_lines, ?int $message_type = -1, ?string $filter = '', ?int &$page_nr = 1, ?int &$total_rows = 0, ?bool $matches = true, ?bool $expand_text = false, $reverse = false0): array {
 	if (!file_exists($file_name)) {
 		touch($file_name);
 
@@ -1687,6 +1688,11 @@ function tail_file(string $file_name, int $number_of_lines, ?int $message_type =
 		$should_expand = !empty($filter) && !empty($expand_text);
 	}
 
+	/**
+	 * Read the entire file into a display buffer checking the match
+	 * status along the way and odly enough returning true and false
+	 * instead of the line number from time to time for some reason.
+	 */
 	while (($line = fgets($fp)) !== false) {
 		$display = (determine_display_log_entry($message_type, $line, $filter, $matches));
 
@@ -1695,7 +1701,7 @@ function tail_file(string $file_name, int $number_of_lines, ?int $message_type =
 
 			if ($expanded != $line) {
 				// expand line different so lets see if we want it now after all
-				$display = determine_display_log_entry($message_type, $expanded, $filter, $matches);
+				$display = (determine_display_log_entry($message_type, $expanded, $filter, $matches));
 			}
 		}
 
@@ -1873,7 +1879,6 @@ function determine_display_log_entry($message_type, $line, $filter, $matches = t
 			$display = true;
 
 			break;
-
 		default: /* all other lines */
 			if ($thold_enabled) {
 				if ($message_type == 99) {
@@ -1892,14 +1897,10 @@ function determine_display_log_entry($message_type, $line, $filter, $matches = t
 			} elseif (stripos($line, $filter) !== false) {
 				return $line;
 			}
-		} else {
-			if (validate_is_regex($filter)) {
-				if (!preg_match('/' . $filter . '/i', $line)) {
-					return $line;
-				}
-			} elseif (!stripos($line, $filter) !== false) {
-				return $line;
-			}
+		} elseif (validate_is_regex($filter) && !preg_match('/' . $filter . '/i', $line)) {
+			return $line;
+		} elseif (!stripos($line, $filter) !== false) {
+			return $line;
 		}
 
 		return false;
