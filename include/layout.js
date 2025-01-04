@@ -1376,8 +1376,6 @@ function makeFiltersResponsive() {
 				child = id + '_child';
 				filterContents = $('#' + child);
 
-				filterHeader.find('.cactiTableTitle, .cactiTableButton').css('cursor', 'pointer');
-
 				if (pageHasHidableColumnsAndProfile()) {
 					if (filterHeader.find('.cactiSwitchConstraints').length == 0) {
 						if (hScroll) {
@@ -1408,14 +1406,8 @@ function makeFiltersResponsive() {
 					}
 				}
 
-				if (filterHeader.find('div.cactiTableButton').find('.cactiFilterAdd').length) {
-					markFilterTDs(child, filterNum);
-
-					$('.cactiFilterAdd').tooltip();
-				}
-
 				if (filterContents.find('#export').length) {
-					title = $('#export').attr('value');
+					title = $('#export').attr('title');
 					filterHeader.find('div.cactiTableButton').append('<span title="' + title + '" style="display:none;" class="cactiFilterExport"><i class="fa fa-chevron-down"></i></span>');
 
 					$('.cactiFilterExport').off('click').on('click', function (event) {
@@ -1425,7 +1417,7 @@ function makeFiltersResponsive() {
 				}
 
 				if (filterContents.find('#import').length) {
-					title = $('#import').attr('value');
+					title = $('#import').attr('title');
 					filterHeader.find('div.cactiTableButton').append('<span title="' + title + '" style="display:none;" class="cactiFilterImport"><i class="fa fa-chevron-up"></i></span>');
 
 					$('.cactiFilterImport').off('click').on('click', function (event) {
@@ -1439,19 +1431,13 @@ function makeFiltersResponsive() {
 						filterHeader.find('div.cactiTableButton').append('<span title="' + clearFilterTitle + '" style="display:none;" class="cactiFilterClear"><i class="fa fa-trash-alt"></i></span>');
 					}
 
-					$('.cactiFilterClear').off('click').on('click', function (event) {
+					$('.cactiFilterClear').off('click').on('click', function(event) {
 						event.stopPropagation();
 						$('#clear').trigger('click');
 					}).tooltip();
 				}
 
 				toggleFilterAndIcon(id, child, true);
-
-				filterHeader.find('.cactiTableTitle, .cactiTableButton').off('click').on('click', function () {
-					id = $(this).closest('.cactiTable').attr('id');
-					child = id + '_child';
-					toggleFilterAndIcon(id, child, false);
-				});
 
 				if (storage.isSet('filterVisibility')) {
 					state = storage.get('filterVisibility');
@@ -1461,13 +1447,19 @@ function makeFiltersResponsive() {
 
 				if (state == 'hidden') {
 					if (filterHeader.find('.cactiFilterState').length == 0) {
-						filterHeader.find('div.cactiTableButton').append('<span class="cactiFilterState"><i class="fa fa-angle-double-down"></i></span>');
+						filterHeader.find('div.cactiTableButton').append('<a class="cactiFilterState" href="#"><i class="fa fa-angle-double-down"></i></a>');
 					}
 				} else {
 					if (filterHeader.find('.cactiFilterState').length == 0) {
-						filterHeader.find('div.cactiTableButton').append('<span class="cactiFilterState"><i class="fa fa-angle-double-up"></i></span>');
+						filterHeader.find('div.cactiTableButton').append('<a class="cactiFilterState" href="#"><i class="fa fa-angle-double-up"></i></a>');
 					}
 				}
+
+				filterHeader.find('.cactiFilterState').off('click').on('click', function() {
+					id = $(this).closest('.cactiTable').attr('id');
+					child = id + '_child';
+					toggleFilterAndIcon(id, child, false);
+				});
 
 				if (typeof showHideFilter != 'undefined') {
 					$('.cactiFilterState').attr('title', showHideFilter).tooltip();
