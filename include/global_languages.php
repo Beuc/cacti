@@ -882,23 +882,6 @@ function read_user_i18n_setting($config_name) {
 	/* users must have cacti user auth turned on to use this, or the guest account must be active */
 	if (isset($_SESSION[SESS_USER_ID])) {
 		$effective_uid = $_SESSION[SESS_USER_ID];
-	} elseif ((read_config_option('auth_method') == AUTH_METHOD_NONE)) {
-		if (isset($_SESSION[OPTIONS_WEB])) {
-			$config_array = $_SESSION[OPTIONS_WEB];
-		} elseif (isset($config[OPTIONS_CLI])) {
-			$config_array = $config[OPTIONS_CLI];
-		}
-
-		if (!isset($config_array[$config_name])) {
-			$effective_uid = db_fetch_cell_prepared('SELECT id
-				FROM user_auth
-				WHERE id = ?',
-				array(get_guest_account()));
-		}
-
-		if ($effective_uid == '') {
-			$effective_uid = 0;
-		}
 	} else {
 		$effective_uid = 0;
 	}

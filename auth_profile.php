@@ -416,9 +416,7 @@ function settings() {
 			unset($settings_user['general']['client_timezone_support']);
 		}
 
-		if (read_config_option('auth_method') != AUTH_METHOD_NONE) {
-			$settings_user['tree']['default_tree_id']['sql'] = get_allowed_trees(false, true);
-		}
+		$settings_user['tree']['default_tree_id']['sql'] = get_allowed_trees(false, true);
 
 		html_start_box(__('User Settings'), '100%', true, '3', 'center', '');
 
