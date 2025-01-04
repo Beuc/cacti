@@ -81,7 +81,6 @@ if ($auth_method != AUTH_METHOD_BASIC) {
 
 	/* check for remember me functionality */
 	if (!isset($_SESSION[SESS_USER_ID])) {
-cacti_log('Cookie is good');
 		$cookie_user = check_auth_cookie();
 
 		if ($cookie_user !== false) {
