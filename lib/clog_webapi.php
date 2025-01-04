@@ -96,7 +96,7 @@ function clog_purge_logfile() {
 		if (is_writable($purgefile)) {
 			if ($logfile != $purgefile) {
 				unlink($purgefile);
-				raise_message('clog_removed', __('The Cacti Log File \'%s\' was removed by \'%s\'', basename($purgefile), get_username()), MESSAGE_LEVEL_INFO);
+				raise_message('clog_removed', __('The Cacti Log File \'%s\' was Removed by user \'%s\'', basename($purgefile), get_username()), MESSAGE_LEVEL_INFO);
 			} else {
 				/* fill in the current date for printing in the log */
 				if (defined('CACTI_DATE_TIME_FORMAT')) {
@@ -108,10 +108,10 @@ function clog_purge_logfile() {
 				$log_fh = fopen($logfile, 'w');
 				fwrite($log_fh, __('%s - WEBUI NOTE: Cacti Log Cleared from Web Management Interface.', $date) . PHP_EOL);
 				fclose($log_fh);
-				raise_message('clog_removed', __('The Cacti Log File \'%s\' was removed by \'%s\'', basename($logfile), get_username()), MESSAGE_LEVEL_INFO);
+				raise_message('clog_removed', __('The Cacti Log File \'%s\' was Removed by user \'%s\'', basename($logfile), get_username()), MESSAGE_LEVEL_INFO);
 			}
 
-			cacti_log('NOTE: Cacti Log file ' . $purgefile . ', Removed by user ' . get_username($_SESSION[SESS_USER_ID]), false, 'WEBUI');
+			cacti_log(sprintf('NOTE: Cacti Log file \'%s\', Removed by user \'%s\'', basename($purgefile), get_username()), false, 'WEBUI');
 		} else {
 			raise_message('clog_permissions');
 		}
