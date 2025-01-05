@@ -432,7 +432,12 @@ function generate_report($schedule_id, $report, $force = false) {
 		return false;
 	}
 
-	$theme = 'modern';
+	if (!isset_request_var('style') || get_request_var('style') == 'true') {
+		$theme = 'modern';
+	} else {
+		$theme = get_selected_theme();
+	}
+
 	$body  = reports_generate_html($report['id'], REPORTS_OUTPUT_EMAIL, $theme);
 
 	$start_time  = time();
@@ -814,7 +819,7 @@ function reports_generate_history_html($history_id, $output = REPORTS_OUTPUT_STD
 
 		foreach($graph_data as $index => $graph) {
 			$report = str_replace('<GRAPH:' . $graph['local_graph_id'] . ':' . $graph['timespan'] . '>',
-				'<img class="graphimage" src="data:image/png;base64,' . $graph['attachment'] . '">', $report);
+				'<img class="graph" src="data:image/png;base64,' . $graph['attachment'] . '">', $report);
 		}
 
 		print $report;
@@ -874,18 +879,24 @@ function reports_generate_html($reports_id, $output = REPORTS_OUTPUT_STDOUT, &$t
 	$first_weekdayid = read_user_setting('first_weekdayid');
 
 	/* process the format file as applicable */
-	if ($report['cformat'] == 'on') {
-		$format_ok = reports_load_format_file($report['format_file'], $format_data, $report_tag, $theme);
+	if (!isset_request_var('style') || get_request_var('style') == 'true') {
+		if ($report['cformat'] == 'on') {
+			$format_ok = reports_load_format_file($report['format_file'], $format_data, $report_tag, $theme);
+		}
+
+		if ($output == REPORTS_OUTPUT_STDOUT) {
+			$format_data = str_replace('<html>', '', $format_data);
+			$format_data = str_replace('</html>', '', $format_data);
+			$format_data = str_replace('<body>', '', $format_data);
+			$format_data = str_replace('</body>', '', $format_data);
+			$format_data = preg_replace('#(<head>).*?(</head>)#si', '', $format_data);
+			$format_data = str_replace('<head>', '', $format_data);
+			$format_data = str_replace('</head>', '', $format_data);
+		}
 	}
 
-	if ($output == REPORTS_OUTPUT_STDOUT) {
-		$format_data = str_replace('<html>', '', $format_data);
-		$format_data = str_replace('</html>', '', $format_data);
-		$format_data = str_replace('<body>', '', $format_data);
-		$format_data = str_replace('</body>', '', $format_data);
-		$format_data = preg_replace('#(<head>).*?(</head>)#si', '', $format_data);
-		$format_data = str_replace('<head>', '', $format_data);
-		$format_data = str_replace('</head>', '', $format_data);
+	if (get_request_var('style') == 'false') {
+		$format_ok = true;
 	}
 
 	if ($format_ok && $report_tag) {
@@ -915,7 +926,7 @@ function reports_generate_html($reports_id, $output = REPORTS_OUTPUT_STDOUT, &$t
 			$outstr .= "\t\t\t<td class='title' style='text-align:" . $alignment[$report['alignment']] . ';font-size:' . $report['font_size'] . "pt;'>" . PHP_EOL;
 		}
 
-		$outstr .= "\t\t\t\t" . html_escape($report['name']) . PHP_EOL;
+		$outstr .= "\t\t\t\t<h3>" . html_escape($report['name']) . '</h3>' . PHP_EOL;
 		$outstr .= "\t\t\t</td>" . PHP_EOL;
 		$outstr .= "\t\t</tr>" . PHP_EOL;
 		# this function should be called only at the appropriate targeted time when in batch mode
@@ -1014,6 +1025,19 @@ function reports_generate_html($reports_id, $output = REPORTS_OUTPUT_STDOUT, &$t
 		if ($output == REPORTS_OUTPUT_EMAIL && $include_body) {
 			$outstr .= '</body>';
 		}
+	}
+
+	if (get_request_var('style') == 'false') {
+		$outstr = str_replace('report_table', 'cactiTable', $outstr);
+		$outstr = str_replace('title_row', 'cactiTableTitleRow', $outstr);
+		$outstr = str_replace('text_row', 'cactiTableTitleRow', $outstr);
+		$outstr = str_replace('text', 'center', $outstr);
+		$outstr = str_replace('title', 'center', $outstr);
+		$outstr = str_replace('image_table', 'cactiTable', $outstr);
+		$outstr = str_replace('image_row', 'tableRow', $outstr);
+		$outstr = str_replace('image_column\'', 'image_column\' style=\'text-align:center;\'', $outstr);
+		$outstr = str_replace('image_column"', 'image_column" style="text-align:center;"', $outstr);
+		$outstr = str_replace('<table>', '<table class="cactiTable">', $outstr);
 	}
 
 	if ($format_ok) {
@@ -1233,7 +1257,7 @@ function reports_expand_device(&$report, $item, $device_id, $output, $format_ok,
 					$outstr .= "\t\t\t<td class='text' style='text-align:" . $alignment[$item['align']] . ';font-size: ' . $item['font_size'] . "pt;'>" . PHP_EOL;
 				}
 
-				$outstr .= "\t\t\t\t$title" . PHP_EOL;
+				$outstr .= "\t\t\t\t<h3>$title</h3>" . PHP_EOL;
 				$outstr .= "\t\t\t</td>" . PHP_EOL;
 				$outstr .= "\t\t</tr>" . PHP_EOL;
 			}
@@ -1422,7 +1446,7 @@ function reports_expand_tree(&$report, $item, $parent, $output, $format_ok, $the
 						} else {
 							$outstr .= "\t\t\t<td class='text' style='text-align:" . $alignment[$item['align']] . ';font-size: ' . $item['font_size'] . "pt;'>" . PHP_EOL;
 						}
-						$outstr .= "\t\t\t\t$title" . PHP_EOL;
+						$outstr .= "\t\t\t\t<h3>$title</h3>" . PHP_EOL;
 						$outstr .= "\t\t\t</td>" . PHP_EOL;
 						$outstr .= "\t\t</tr>" . PHP_EOL;
 					}
@@ -1466,7 +1490,7 @@ function reports_expand_tree(&$report, $item, $parent, $output, $format_ok, $the
 						} else {
 							$outstr .= "\t\t\t<td class='text' style='text-align:" . $alignment[$item['align']] . ';font-size: ' . $item['font_size'] . "pt;'>" . PHP_EOL;
 						}
-						$outstr .= "\t\t\t\t$title" . PHP_EOL;
+						$outstr .= "\t\t\t\t<h3>$title</h3>" . PHP_EOL;
 						$outstr .= "\t\t\t</td>" . PHP_EOL;
 						$outstr .= "\t\t</tr>" . PHP_EOL;
 					}
@@ -1547,7 +1571,7 @@ function reports_expand_tree(&$report, $item, $parent, $output, $format_ok, $the
 										$outstr .= "\t\t\t<td class='text' style='text-align:" . $alignment[$item['align']] . ';font-size: ' . $item['font_size'] . "pt;'>" . PHP_EOL;
 									}
 
-									$outstr .= "\t\t\t\t$title" . PHP_EOL;
+									$outstr .= "\t\t\t\t<h3>$title</h3>" . PHP_EOL;
 									$outstr .= "\t\t\t</td>" . PHP_EOL;
 									$outstr .= "\t\t</tr>" . PHP_EOL;
 								}
@@ -1614,7 +1638,7 @@ function reports_expand_tree(&$report, $item, $parent, $output, $format_ok, $the
 											} else {
 												$outstr .= "\t\t\t<td class='text' style='text-align:" . $alignment[$item['align']] . ';font-size: ' . $item['font_size'] . "pt;'>" . PHP_EOL;
 											}
-											$outstr .= "\t\t\t\t$title" . PHP_EOL;
+											$outstr .= "\t\t\t\t<h3>$title</h3>" . PHP_EOL;
 											$outstr .= "\t\t\t</td>" . PHP_EOL;
 											$outstr .= "\t\t</tr>" . PHP_EOL;
 										}
@@ -1688,7 +1712,7 @@ function reports_expand_tree(&$report, $item, $parent, $output, $format_ok, $the
 							} else {
 								$outstr .= "\t\t\t<td class='text' style='text-align:" . $alignment[$item['align']] . ';font-size: ' . $item['font_size'] . "pt;'>" . PHP_EOL;
 							}
-							$outstr .= "\t\t\t\t$title" . PHP_EOL;
+							$outstr .= "\t\t\t\t<h3>$title</h3>" . PHP_EOL;
 							$outstr .= "\t\t\t</td>" . PHP_EOL;
 							$outstr .= "\t\t</tr>" . PHP_EOL;
 						}
@@ -1709,7 +1733,7 @@ function reports_expand_tree(&$report, $item, $parent, $output, $format_ok, $the
 				} else {
 					$outstr .= "\t\t\t<td class='text' style='text-align:" . $alignment[$item['align']] . ';font-size: ' . $item['font_size'] . "pt;'>" . PHP_EOL;
 				}
-				$outstr .= "\t\t\t\t$title" . PHP_EOL;
+				$outstr .= "\t\t\t\t<h3>$title</h3>" . PHP_EOL;
 				$outstr .= "\t\t\t</td>" . PHP_EOL;
 				$outstr .= "\t\t</tr>" . PHP_EOL;
 			}

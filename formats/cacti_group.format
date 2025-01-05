@@ -22,6 +22,10 @@ table {
 	width: 100%;
 }
 
+h3 {
+	margin: 3px;
+}
+
 .report_table {
 	background-color: #F9F9F9;
 	text-align: center;

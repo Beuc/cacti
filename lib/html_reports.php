@@ -1602,8 +1602,13 @@ function reports_edit() {
 			process_sanitize_draw_preview_filter(true, $header_label);
 
 			if (get_request_var('rdate') == '-1') {
+				if (get_request_var('style') == 'false') {
+					$theme = get_selected_theme();
+				} else {
+					$theme = '';
+				}
 				print '<tr><td>';
-				print reports_generate_html($report['id'], REPORTS_OUTPUT_STDOUT);
+				print reports_generate_html($report['id'], REPORTS_OUTPUT_STDOUT, $theme);
 				print '</td></tr>';
 			} else {
 				print '<tr><td>';
@@ -1849,7 +1854,8 @@ function create_preview_filter() {
 	$sql_params[] = 'reports';
 
 	if (get_nfilter_request_var('filter') != '') {
-		$sql_where    = ' AND name LIKE ?';
+		$sql_where    = ' AND (name LIKE ? OR send_time LIKE ?)';
+		$sql_params[] = '%' . get_nfilter_request_var('filter') . '%';
 		$sql_params[] = '%' . get_nfilter_request_var('filter') . '%';
 	}
 
@@ -1859,7 +1865,7 @@ function create_preview_filter() {
 		AND source = ?
 		$sql_where
 		ORDER BY send_time DESC",
-		array($id, 'reports'));
+		$sql_params);
 
 	$dreports  = array_rekey($reports, 'id', 'name');
 	$dreports  = $live + $dreports;

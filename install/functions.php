@@ -34,6 +34,7 @@ function prune_deprecated_files() {
 		'lib/graph_export.php',
 		'lib/adodb',
 		'include/zoom.js',
+		'formats/lotus_notes.format',
 		'include/main.css',
 		'include/jscalendar',
 		'include/html',
