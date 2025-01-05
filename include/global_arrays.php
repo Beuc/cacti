@@ -1804,7 +1804,6 @@ if (!$config['is_web'] || is_realm_allowed(21)) {
 
 $attach_types = array(
 	REPORTS_TYPE_INLINE_PNG => __('Inline PNG Image'),
-	#REPORTS_TYPE_INLINE_JPG => 'Inline JPEG Image'
 );
 
 if (extension_loaded(REPORTS_EXTENSION_GD)) {
@@ -1817,15 +1816,6 @@ $attach_types[REPORTS_TYPE_ATTACH_PNG] = __('Attached PNG Image');
 if (extension_loaded(REPORTS_EXTENSION_GD)) {
 	$attach_types[REPORTS_TYPE_ATTACH_JPG] = __('Attached JPEG Image');
 	$attach_types[REPORTS_TYPE_ATTACH_GIF] = __('Attached GIF Image');
-}
-
-if (read_config_option('reports_allow_ln') != '') {
-	$attach_types[REPORTS_TYPE_INLINE_PNG_LN] = __('Inline PNG Image, LN Style');
-
-	if (extension_loaded(REPORTS_EXTENSION_GD)) {
-		$attach_types[REPORTS_TYPE_INLINE_JPG_LN] = __('Inline JPEG Image, LN Style');
-		$attach_types[REPORTS_TYPE_INLINE_GIF_LN] = __('Inline GIF Image, LN Style');
-	}
 }
 
 $item_types = array(

@@ -192,7 +192,7 @@ $fields_reports_edit += array(
 		'value'         => '|arg1:bcc|'
 	),
 	'attachment_type' => array(
-		'friendly_name' => __('Image attach type'),
+		'friendly_name' => __('Image Attachment Type'),
 		'method'        => 'drop_array',
 		'default'       => read_config_option('reports_default_image_format'),
 		'description'   => __('Select one of the given Types for the Image Attachments'),
@@ -308,11 +308,7 @@ function reports_form_save() {
 			($atype != REPORTS_TYPE_INLINE_GIF) &&
 			($atype != REPORTS_TYPE_ATTACH_PNG) &&
 			($atype != REPORTS_TYPE_ATTACH_JPG) &&
-			($atype != REPORTS_TYPE_ATTACH_GIF) &&
-			($atype != REPORTS_TYPE_INLINE_PNG_LN) &&
-			($atype != REPORTS_TYPE_INLINE_JPG_LN) &&
-			($atype != REPORTS_TYPE_INLINE_GIF_LN)
-		) {
+			($atype != REPORTS_TYPE_ATTACH_GIF)) {
 			$atype = REPORTS_TYPE_INLINE_PNG;
 		}
 

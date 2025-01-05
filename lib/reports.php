@@ -558,39 +558,6 @@ function generate_report($schedule_id, $report, $force = false) {
 					);
 
 					break;
-				case REPORTS_TYPE_INLINE_PNG_LN:
-					$attachments[] = array(
-						'attachment'     => base64_encode(rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user)),
-						'filename'       => '',	# LN does not accept filenames for inline attachments
-						'mime_type'      => 'image/png',
-						'local_graph_id' => $local_graph_id,
-						'timespan'       => $timesp,
-						'inline'         => 'inline'
-					);
-
-					break;
-				case REPORTS_TYPE_INLINE_JPG_LN:
-					$attachments[] = array(
-						'attachment'     => base64_encode(png2jpeg(rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user))),
-						'filename'       => '',	# LN does not accept filenames for inline attachments
-						'mime_type'      => 'image/jpg',
-						'local_graph_id' => $local_graph_id,
-						'timespan'       => $timesp,
-						'inline'         => 'inline'
-					);
-
-					break;
-				case REPORTS_TYPE_INLINE_GIF_LN:
-					$attachments[] = array(
-						'attachment'     => base64_encode(png2gif(rrdtool_function_graph($local_graph_id, '', $graph_data_array, null, $xport_meta, $user))),
-						'filename'       => '',	# LN does not accept filenames for inline attachments
-						'mime_type'      => 'image/gif',
-						'local_graph_id' => $local_graph_id,
-						'timespan'       => $timesp,
-						'inline'         => 'inline'
-					);
-
-					break;
 			}
 		}
 	}

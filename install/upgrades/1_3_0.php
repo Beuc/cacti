@@ -757,6 +757,12 @@ function upgrade_reports() {
 			DROP COLUMN `mailtime`,
 			DROP COLUMN `lastsent`');
 	}
+
+	/* get rid of legacy Lotus Notes setting */
+	db_execute_prepared('DELETE FROM settings WHERE name = ?', array('reports_allow_ln'));
+	db_execute_prepared('UPDATE reports SET attachment_type = ? WHERE attachment_type = ?', array(REPORTS_TYPE_INLINE_PNG, 91));
+	db_execute_prepared('UPDATE reports SET attachment_type = ? WHERE attachment_type = ?', array(REPORTS_TYPE_INLINE_JPG, 92));
+	db_execute_prepared('UPDATE reports SET attachment_type = ? WHERE attachment_type = ?', array(REPORTS_TYPE_INLINE_GIF, 93));
 }
 
 function ldap_convert_1_3_0() {

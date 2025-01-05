@@ -184,6 +184,7 @@ Cacti CHANGELOG
 -feature: Add year display to get_daysfromtime function
 -feature: Add class and version columns to Graph Template to support Streams feature
 -feature: Allow Reports to be sent to a Notification List if thold is installed
+-feature: Remove legacy Lotus Notes Attachment Types from Reports
 
 1.2.29
 -issue#5843: Issue with temporary tables with use of microtime

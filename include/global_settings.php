@@ -2335,12 +2335,6 @@ $settings['mail'] = array(
 		'default'       => POLLER_VERBOSITY_LOW,
 		'array'         => $logfile_verbosity,
 	),
-	'reports_allow_ln' => array(
-		'friendly_name' => __('Enable Lotus Notes (R) tweak'),
-		'description'   => __('Enable code tweak for specific handling of Lotus Notes Mail Clients.'),
-		'method'        => 'checkbox',
-		'default'       => '',
-	),
 	'settings_dns_header' => array(
 		'friendly_name' => __('DNS Options'),
 		'collapsible'   => 'true',
