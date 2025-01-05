@@ -179,7 +179,8 @@ html {
 }
 
 .navControl {
-    padding-right: calc( 0.5rem + 5px);
+    /* padding-right: calc( 0.5rem + 5px); */
+    padding-right: 0.5rem;
 }
 
 /* ensure that save buttons stay at the bottom. no solution has been found yet to use grid-area: footer instead */
@@ -193,6 +194,10 @@ html {
     padding-right: 0.5rem;
     border-top: 1px solid var(--border-color-semilight);
     background: var(--background-content);
+
+    & .formRow {
+        display: block;
+    }
 }
 
 /* Console Navigation Area */
@@ -349,10 +354,7 @@ html {
 
         .navBox-content {
             overflow-y: auto;
-            padding: 0;
-            & nav {
-                padding: 0 1rem;
-            }
+            padding: 0 1rem;
         }
     }
 
@@ -414,6 +416,27 @@ html {
             writing-mode: unset;
         }
     }
+
+    & .filterColumn:has(div.filterFieldName) {
+        display: none;
+    }
+
+    & .filterRow:has(div.filterColumnButton) {
+        display: flex;
+        flex-direction: column;
+
+        .filterColumnButton {
+            order: 0;
+        }
+        .filterColumn {
+            order: 1;
+        }
+    }
+
+    & .filterColumn {
+        line-height: 1.5rem;
+    }
+
 }
 
 #nav li a,

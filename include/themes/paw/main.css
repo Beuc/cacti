@@ -180,7 +180,8 @@ label {
 }
 
 .glyph_tab-console:before {
-	content: "\f1b0";
+	content: "\f689";
+	display: inline-block;
 }
 
 .text_tab-console {
@@ -2070,15 +2071,15 @@ tr th:last-child .checkbox {
 	margin-right: 10px !important;
 }
 
-.fa-angle-double-up, .fa-angle-double-down {
+.ti-chevrons-up, .ti-chevrons-down {
 	margin-right: 10px;
 }
 
-.cactiTableButton .fa-plus, .cactiTableButton .fa-question-circle, .cactiTableButton .fa-bars, .cactiTableButton .fa-sort-alpha-down, .cactiTableButton .fa-sort-alpha-up {
+.cactiTableButton .ti-plus, .cactiTableButton .ti-help-circle-filled, .cactiTableButton .ti-menu-2, .cactiTableButton .ti-sort-ascending-letters, .cactiTableButton .ti-sort-descending-letters {
 	margin-right: 10px;
 }
 
-.fa-compress, .fa-expand {
+.ti-arrows-diagonal-minimize-2, .ti-arrows-diagonal {
 	margin-right: 10px;
 }
 
@@ -2304,6 +2305,7 @@ tr#realtime td:first-child {
 	vertical-align: middle;
 	text-align: left;
 	width: 20px;
+	margin-right: 0.3rem;
 }
 
 .menuitem span {

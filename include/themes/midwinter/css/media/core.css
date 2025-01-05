@@ -264,8 +264,8 @@ input[type="checkbox"]:focus-within + label:before {
     display: inline-block;
     width: 2.25rem;
     height: 0.75rem;
-    margin-right: 15px;
-    margin-left: 5px;
+    margin-right: 1rem;
+    /* margin-left: 5px;*/
     cursor: pointer;
 }
 
@@ -430,7 +430,7 @@ label {
 
 .glyph_tab-console:before {
     margin-left: 17px;
-    content: "\f0c9";
+    content: "\ec42";
 }
 
 .text_tab-console {
@@ -1323,9 +1323,11 @@ legend::before {
 .graphWrapper {
     width: fit-content;
     position: relative;
+}
+
+.graphimage {
     border: 1px solid var(--border-color);
     border-radius: 2px;
-    background-color: var(--background);
 }
 
 .cactiGraphContentArea {

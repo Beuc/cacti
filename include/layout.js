@@ -71,31 +71,31 @@ var previousMainWidth = null;
 var previousColumns = null;
 var faIcons = {
 	open: {
-		icon: '<i class="fas fa-caret-down" aria-hidden="true"></i>'
+		icon: '<i class="ti ti-caret-down-filled" aria-hidden="true"></i>'
 	},
 	close: {
-		icon: '<i class="fas fa-times-circle" aria-hidden="true"></i>'
+		icon: '<i class="ti ti-circle-x-filled" aria-hidden="true"></i>'
 	},
 	checkAll: {
-		icon: '<i class="fas fa-check" aria-hidden="true"></i>'
+		icon: '<i class="ti ti-check" aria-hidden="true"></i>'
 	},
 	uncheckAll: {
-		icon: '<i class="fas fa-ban" aria-hidden="true"></i>'
+		icon: '<i class="ti ti-ban" aria-hidden="true"></i>'
 	},
 	flipAll: {
-		icon: '<i class="fas fa-undo" aria-hidden="true"></i>'
+		icon: '<i class="ti ti-arrow-back-up" aria-hidden="true"></i>'
 	},
 	collapseAll: {
-		icon: '<i class="fas fa-double-angle-down" aria-hidden="true"></i>'
+		icon: '<i class="ti ti-chevrons-down" aria-hidden="true"></i>'
 	},
 	expandAll: {
-		icon: '<i class="fas fa-double-angle-right" aria-hidden="true"></i>'
+		icon: '<i class="ti ti-chevrons-right" aria-hidden="true"></i>'
 	},
 	collapse: {
-		icon: '<i class="fas fa-chevron-down" aria-hidden="true"></i>'
+		icon: '<i class="ti ti-chevron-down" aria-hidden="true"></i>'
 	},
 	expand: {
-		icon: '<i class="fas fa-chevron-right" aria-hidden="true"></i>'
+		icon: '<i class="ti ti-chevron-right" aria-hidden="true"></i>'
 	}
 };
 
@@ -1053,10 +1053,10 @@ function checkPasswordConfirm() {
 	if ($('#password_confirm').val().length > 0) {
 		if ($('#password').val() != $('#password_confirm').val()) {
 			$('#passconfirm').remove();
-			$('#password_confirm').after('<div id="passconfirm" class="badpassword fa fa-times" title="' + passwordNotMatch + '"></div>');
+			$('#password_confirm').after('<div id="passconfirm" class="badpassword ti ti-x" title="' + passwordNotMatch + '"></div>');
 		} else {
 			$('#passconfirm').remove();
-			$('#password_confirm').after('<div id="passconfirm" class="goodpassword fa fa-check" title="' + passwordMatch + '"></div>');
+			$('#password_confirm').after('<div id="passconfirm" class="goodpassword ti ti-check" title="' + passwordMatch + '"></div>');
 		}
 	} else {
 		$('#passconfirm').remove();
@@ -1352,12 +1352,12 @@ function markFilterTDs(child, filterNum) {
 function finalizeAuthProfileData(options, data) {
 	if (hScroll) {
 		$('#main, .cactiConsoleContentArea').css({ 'overflow-x': 'visible' });
-		$('#overflow').removeClass('fa-expand').addClass('fa-compress');
+		$('#overflow').removeClass('ti-arrows-diagonal').addClass('ti-arrows-diagonal-minimize-2');
 
 		resetTables();
 	} else {
 		$('#main, .cactiConsoleContentArea').css({ 'overflow-x': 'hidden' });
-		$('#overflow').removeClass('fa-compress').addClass('fa-expand');
+		$('#overflow').removeClass('ti-arrows-diagonal-minimize-2').addClass('ti-arrows-diagonal');
 
 		tuneTables();
 	}
@@ -1380,10 +1380,10 @@ function makeFiltersResponsive() {
 					if (filterHeader.find('.cactiSwitchConstraints').length == 0) {
 						if (hScroll) {
 							$('#main, .cactiConsoleContentArea').css({ 'overflow-x': 'visible' });
-							filterHeader.find('div.cactiTableButton').append('<span class="cactiSwitchConstraintWrapper"><a title="' + tableConstraints + '" class="linkOverDark cactiSwitchConstraints" href="#"><i id="overflow" class="fa fa-compress"></i></a></span>');
+							filterHeader.find('div.cactiTableButton').append('<span class="cactiSwitchConstraintWrapper"><a title="' + tableConstraints + '" class="linkOverDark cactiSwitchConstraints" href="#"><i id="overflow" class="ti ti-arrows-diagonal-minimize-2"></i></a></span>');
 						} else {
 							$('#main, .cactiConsoleContentArea').css({ 'overflow-x': 'hidden' });
-							filterHeader.find('div.cactiTableButton').append('<span class="cactiSwitchConstraintWrapper"><a title="' + tableConstraints + '" class="linkOverDark cactiSwitchConstraints" href="#"><i id="overflow" class="fa fa-expand"></i></a></span>');
+							filterHeader.find('div.cactiTableButton').append('<span class="cactiSwitchConstraintWrapper"><a title="' + tableConstraints + '" class="linkOverDark cactiSwitchConstraints" href="#"><i id="overflow" class="ti ti-arrows-diagonal"></i></a></span>');
 						}
 
 						$('.cactiSwitchConstraints').off('click').on('click', function (event) {
@@ -1408,7 +1408,7 @@ function makeFiltersResponsive() {
 
 				if (filterContents.find('#export').length) {
 					title = $('#export').attr('title');
-					filterHeader.find('div.cactiTableButton').append('<span title="' + title + '" style="display:none;" class="cactiFilterExport"><i class="fa fa-chevron-down"></i></span>');
+					filterHeader.find('div.cactiTableButton').append('<span title="' + title + '" style="display:none;" class="cactiFilterExport"><i class="ti ti-chevron-down"></i></span>');
 
 					$('.cactiFilterExport').off('click').on('click', function (event) {
 						event.stopPropagation();
@@ -1418,7 +1418,7 @@ function makeFiltersResponsive() {
 
 				if (filterContents.find('#import').length) {
 					title = $('#import').attr('title');
-					filterHeader.find('div.cactiTableButton').append('<span title="' + title + '" style="display:none;" class="cactiFilterImport"><i class="fa fa-chevron-up"></i></span>');
+					filterHeader.find('div.cactiTableButton').append('<span title="' + title + '" style="display:none;" class="cactiFilterImport"><i class="ti ti-chevron-up"></i></span>');
 
 					$('.cactiFilterImport').off('click').on('click', function (event) {
 						event.stopPropagation();
@@ -1428,7 +1428,7 @@ function makeFiltersResponsive() {
 
 				if (filterContents.find('#clear').length) {
 					if (filterHeader.find('.cactiFilterClear').length == 0) {
-						filterHeader.find('div.cactiTableButton').append('<span title="' + clearFilterTitle + '" style="display:none;" class="cactiFilterClear"><i class="fa fa-trash-alt"></i></span>');
+						filterHeader.find('div.cactiTableButton').append('<span title="' + clearFilterTitle + '" style="display:none;" class="cactiFilterClear"><i class="ti ti-trash"></i></span>');
 					}
 
 					$('.cactiFilterClear').off('click').on('click', function(event) {
@@ -1447,11 +1447,11 @@ function makeFiltersResponsive() {
 
 				if (state == 'hidden') {
 					if (filterHeader.find('.cactiFilterState').length == 0) {
-						filterHeader.find('div.cactiTableButton').append('<a class="cactiFilterState" href="#"><i class="fa fa-angle-double-down"></i></a>');
+						filterHeader.find('div.cactiTableButton').append('<a class="cactiFilterState" href="#"><i class="ti ti-chevrons-down"></i></a>');
 					}
 				} else {
 					if (filterHeader.find('.cactiFilterState').length == 0) {
-						filterHeader.find('div.cactiTableButton').append('<a class="cactiFilterState" href="#"><i class="fa fa-angle-double-up"></i></a>');
+						filterHeader.find('div.cactiTableButton').append('<a class="cactiFilterState" href="#"><i class="ti ti-chevrons-up"></i></a>');
 					}
 				}
 
@@ -1475,8 +1475,8 @@ function makeFiltersResponsive() {
 				anchors.each(function () {
 					$(this).attr('title', $(this).text());
 				});
-				anchors.not('.cactiTableCopy').addClass('fa fa-trash-alt');
-				anchors.filter('.cactiTableCopy').addClass('fa fa-copy');
+				anchors.not('.cactiTableCopy').addClass('ti ti-trash');
+				anchors.filter('.cactiTableCopy').addClass('ti ti-copy');
 				anchors.tooltip().text('');
 			}
 		});

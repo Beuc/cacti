@@ -370,12 +370,12 @@ function create_filter($host, $snmp_queries) {
 			array(
 				'display' => __('Edit this Device'),
 				'url'     => 'host.php?action=edit&id=' . get_request_var('host_id'),
-				'class'   => 'fa fa-wrench newDevice'
+				'class'   => 'ti ti-tool newDevice'
 			),
 			array(
 				'display' => __('Create New Device'),
 				'url'     => 'host.php?action=edit',
-				'class'   => 'fa fa-server editDevice'
+				'class'   => 'ti ti-device-cog editDevice'
 			),
 		)
 	);
@@ -735,7 +735,7 @@ function graphs() {
 							<span>" . __esc('Data Query [%s]', $snmp_query['name']) . "</span>
 						</div>
 						<div class='cactiTableButton'>
-							<span class='reloadquery fa fa-sync' id='reload" . $snmp_query['id'] . "' data-id='" . $snmp_query['id'] . "'></span>
+							<span class='reloadquery ti ti-refresh' id='reload" . $snmp_query['id'] . "' data-id='" . $snmp_query['id'] . "'></span>
 						</div>
 					</div>
 				</div>";

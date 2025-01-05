@@ -2551,7 +2551,7 @@ function graph_edit() {
 		$('#unlockid').click(function(event) {
 			event.preventDefault;
 
-			$('body').append("<div id='modal' class='ui-widget-overlay ui-front' style='z-index: 100;'><i style='position:absolute;top:50%;left:50%;' class='fa fa-spin fa-circle-notch'/></div>");
+			$('body').append("<div id='modal' class='ui-widget-overlay ui-front' style='z-index: 100;'><i style='position:absolute;top:50%;left:50%;' class='ti fa-spin ti-loader-2'/></div>");
 
 			$.get('graphs.php?action=unlock&id='+$('#local_graph_id').val())
 				.done(function(data) {

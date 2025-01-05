@@ -168,22 +168,22 @@ function changelog_view() {
 
 					switch ($type) {
 						case 'issue':
-							$icon = '<i class="fas fa-wrench"></i>';
+							$icon = '<i class="ti ti-tool"></i>';
 
 							break;
 						case 'feature':
-							$icon      = '<i class="fas fa-rocket"></i>';
+							$icon      = '<i class="ti ti-rocket"></i>';
 							$highlight = true;
 
 							break;
 						case ' security':
-							$icon      = '<i class="fas fa-shield-alt"></i>';
+							$icon      = '<i class="ti ti-shield-half"></i>';
 							$highlight = true;
 
 							break;
 
 						default:
-							$icon = '<i class="far fa-question-circle"></i>';
+							$icon = '<i class="ti ti-help"></i>';
 
 							break;
 					}

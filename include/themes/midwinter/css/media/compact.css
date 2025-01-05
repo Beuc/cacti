@@ -146,12 +146,56 @@
             grid-area: left;
             height: auto;
             border-right: 1px solid var(--border-color-semilight);
+            width: min-content;
+            padding: 0 0.5rem;
+
+            & .cactiTable {
+                width: 100% !important;
+                padding: 0 !important; /* again usage of inline style detected :(  */
+                margin: 0 !important;
+            }
+
+            & .filterTable {
+                white-space: unset;
+                display: flex;
+                width: 100%;
+
+                & tbody {
+                    flex: 1;
+                }
+
+                & td {
+                    display: inline-block;
+                    width: 100%;
+                }
+
+                & tr:has(input) {
+                    display: flex;
+                    flex-direction: column-reverse;
+                }
+
+                &:has(div) {
+
+                }
+            }
         }
 
         & .mdw-DockRight {
             grid-area: right;
             height: auto;
             border-left: 1px solid var(--border-color-semilight);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+
+            & .mdw-ConsoleNavigationBox {
+                visibility: visible !important;     /* NavigationBoxes within docks cannot be hidden */
+                height: 50%;                        /* we allow two Boxes per total per dock, in this case set initial height to 50% */
+            }
+
+            & .mdw-ConsoleNavigationBox:only-child {
+                height: 100%;
+            }
         }
 
         & > div[class^="mdw-Dock"] {
@@ -192,14 +236,12 @@
     .displayOptions {
         height: 100%;
         width: 100%;
-        padding: 1rem;
 
         .displayOptionsTap {
             .tab-label {
                 display: inline-flex;
                 width: 100%;
                 margin-top: 1rem;
-                padding: 0rem 1rem;
                 border-bottom: 3px solid transparent;
                 justify-content: space-between;
                 align-items: center;
@@ -256,12 +298,10 @@
                 overflow: hidden;
                 border-bottom: 1px solid var(--border-color-semilight);
                 line-height: 3.5em;
-                padding: 0.25rem 0;
 
                 & div:nth-child(2n+1) {
                     float: left;
                     width: 70%;
-                    padding-left: 1rem;
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
@@ -271,6 +311,7 @@
                     float: left;
                     width: 30%;
                     text-align: right;
+                    padding-left: 2.1rem;
                 }
             }
 

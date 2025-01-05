@@ -808,12 +808,12 @@ function data_query_item_edit() {
 				</td>
 				<td class='center'>
 					<?php if ($show_down) {?>
-					<a class='remover fa fa-caret-down moveArrow' title='<?php print __('Move Down');?>' href='<?php print html_escape('data_queries.php?action=item_movedown_gsv&snmp_query_graph_id=' . get_request_var('id') . '&id=' . $suggested_value['id'] . '&snmp_query_id=' . get_request_var('snmp_query_id') . '&field_name=' . $suggested_value['field_name']);?>'></a>
+					<a class='remover ti ti-caret-down-filled moveArrow' title='<?php print __('Move Down');?>' href='<?php print html_escape('data_queries.php?action=item_movedown_gsv&snmp_query_graph_id=' . get_request_var('id') . '&id=' . $suggested_value['id'] . '&snmp_query_id=' . get_request_var('snmp_query_id') . '&field_name=' . $suggested_value['field_name']);?>'></a>
 					<?php } else {?>
 					<span class='moveArrowNone'></span>
 					<?php } ?>
 					<?php if ($show_up) {?>
-					<a class='remover fa fa-caret-up moveArrow' title='<?php print __('Move Up');?>' href='<?php print html_escape('data_queries.php?action=item_moveup_gsv&snmp_query_graph_id=' . get_request_var('id') . '&id=' . $suggested_value['id'] . '&snmp_query_id=' . get_request_var('snmp_query_id') . '&field_name=' . $suggested_value['field_name']);?>'></a>
+					<a class='remover ti ti-caret-up-filled moveArrow' title='<?php print __('Move Up');?>' href='<?php print html_escape('data_queries.php?action=item_moveup_gsv&snmp_query_graph_id=' . get_request_var('id') . '&id=' . $suggested_value['id'] . '&snmp_query_id=' . get_request_var('snmp_query_id') . '&field_name=' . $suggested_value['field_name']);?>'></a>
 					<?php } else {?>
 					<span class='moveArrowNone'></span>
 					<?php } ?>
@@ -822,7 +822,7 @@ function data_query_item_edit() {
 					<?php print html_escape($suggested_value['text']);?>
 				</td>
 				<td class='right'>
-					<a class='remover deleteMarker fa fa-times' title='<?php print html_escape(__('Delete'));?>' href='<?php print html_escape('data_queries.php?action=item_remove_gsv&snmp_query_graph_id=' . get_request_var('id') . '&id=' . $suggested_value['id'] . '&snmp_query_id=' . get_request_var('snmp_query_id'));?>'></a>
+					<a class='remover deleteMarker ti ti-x' title='<?php print html_escape(__('Delete'));?>' href='<?php print html_escape('data_queries.php?action=item_remove_gsv&snmp_query_graph_id=' . get_request_var('id') . '&id=' . $suggested_value['id'] . '&snmp_query_id=' . get_request_var('snmp_query_id'));?>'></a>
 				</td>
 				<?php
 
@@ -916,12 +916,12 @@ function data_query_item_edit() {
 						</td>
 						<td class='center'>
 							<?php if ($show_down) {?>
-							<a class='remover fa fa-caret-down moveArrow' title='<?php print __('Move Down');?>' href='<?php print html_escape('data_queries.php?action=item_movedown_dssv&snmp_query_graph_id=' . get_request_var('id') . '&id='. $suggested_value['id'] . '&snmp_query_id=' . get_request_var('snmp_query_id') . '&data_template_id=' . $data_template['id'] . '&field_name=' . $suggested_value['field_name']);?>'></a>
+							<a class='remover ti ti-caret-down-filled moveArrow' title='<?php print __('Move Down');?>' href='<?php print html_escape('data_queries.php?action=item_movedown_dssv&snmp_query_graph_id=' . get_request_var('id') . '&id='. $suggested_value['id'] . '&snmp_query_id=' . get_request_var('snmp_query_id') . '&data_template_id=' . $data_template['id'] . '&field_name=' . $suggested_value['field_name']);?>'></a>
 							<?php } else {?>
 							<span class='moveArrowNone'></span>
 							<?php } ?>
 							<?php if ($show_up) {?>
-							<a class='remover fa fa-caret-up moveArrow' title='<?php print __('Move Up');?>' href='<?php print html_escape('data_queries.php?action=item_moveup_dssv&snmp_query_graph_id=' . get_request_var('id') . '&id=' . $suggested_value['id'] . '&snmp_query_id=' . get_request_var('snmp_query_id') . '&data_template_id=' . $data_template['id'] . '&field_name=' . $suggested_value['field_name']);?>'></a>
+							<a class='remover ti ti-caret-up-filled moveArrow' title='<?php print __('Move Up');?>' href='<?php print html_escape('data_queries.php?action=item_moveup_dssv&snmp_query_graph_id=' . get_request_var('id') . '&id=' . $suggested_value['id'] . '&snmp_query_id=' . get_request_var('snmp_query_id') . '&data_template_id=' . $data_template['id'] . '&field_name=' . $suggested_value['field_name']);?>'></a>
 							<?php } else {?>
 							<span class='moveArrowNone'></span>
 							<?php } ?>
@@ -930,7 +930,7 @@ function data_query_item_edit() {
 							<?php print html_escape($suggested_value['text']);?>
 						</td>
 						<td class='right'>
-							<a class='remover deleteMarker fa fa-times' title='<?php print __('Delete');?>' href='<?php print html_escape('data_queries.php?action=item_remove_dssv&snmp_query_graph_id=' . get_request_var('id') . '&id=' . $suggested_value['id'] . '&snmp_query_id=' . get_request_var('snmp_query_id') . '&data_template_id=' . $data_template['id']);?>'></a>
+							<a class='remover deleteMarker ti ti-x' title='<?php print __('Delete');?>' href='<?php print html_escape('data_queries.php?action=item_remove_dssv&snmp_query_graph_id=' . get_request_var('id') . '&id=' . $suggested_value['id'] . '&snmp_query_id=' . get_request_var('snmp_query_id') . '&data_template_id=' . $data_template['id']);?>'></a>
 						</td>
 						<?php
 
@@ -1207,9 +1207,9 @@ function data_query_edit() {
 				if ($snmp_query_graph['graphs'] == 0) {
 					$url = html_escape('data_queries.php?action=item_remove_confirm&id=' . $snmp_query_graph['id'] . '&snmp_query_id=' . $snmp_query['id']);
 
-					form_selectable_cell("<a class='delete deleteMarker fa fa-times' title='" . __('Delete') . "' href='" . $url . "'</a>", $i, '', 'right');
+					form_selectable_cell("<a class='delete deleteMarker ti ti-x' title='" . __('Delete') . "' href='" . $url . "'</a>", $i, '', 'right');
 				} else {
-					form_selectable_cell("<a class='deleteMarkerDisabled fa fa-times' title='" . __esc('Mapped Graph Templates with Graphs are read only') . "' href='#'></a>", $i, '', 'right');
+					form_selectable_cell("<a class='deleteMarkerDisabled ti ti-x' title='" . __esc('Mapped Graph Templates with Graphs are read only') . "' href='#'></a>", $i, '', 'right');
 				}
 
 				form_end_row();

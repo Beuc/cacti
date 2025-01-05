@@ -1239,7 +1239,7 @@ function display_match_rule_items($title, $rule, $rule_type, $module) {
 		ORDER BY sequence',
 		array($rule_id, $rule_type));
 
-	html_start_box($title . '&nbsp;<i id="show_device_sql" title="' . __esc('Show Matching Device SQL Query') . '" class="cactiTooltipHint fas fa-stethoscope" style="cursor:pointer"></i>', '100%', '', '3', 'center', $module . '?action=item_edit&id=' . $rule_id . '&rule_type=' . $rule_type);
+	html_start_box($title . '&nbsp;<i id="show_device_sql" title="' . __esc('Show Matching Device SQL Query') . '" class="cactiTooltipHint ti ti-stethoscope" style="cursor:pointer"></i>', '100%', '', '3', 'center', $module . '?action=item_edit&id=' . $rule_id . '&rule_type=' . $rule_type);
 
 	$display_text = array(
 		array(
@@ -1302,7 +1302,7 @@ function display_match_rule_items($title, $rule, $rule_type, $module) {
 			if ($i != cacti_sizeof($items)-1) {
 				$url = $module . '?action=item_movedown&item_id=' . $item['id'] . '&id=' . $rule_id . '&rule_type=' . $rule_type;
 
-				$form_data .= '<a class="pic fa fa-caret-down moveArrow"
+				$form_data .= '<a class="pic ti ti-caret-down-filled moveArrow"
 					href="' . html_escape($url) . '" title="' . __esc('Move Down') . '"></a>';
 			} else {
 				$form_data .= '<span class="moveArrowNone"></span>';
@@ -1311,7 +1311,7 @@ function display_match_rule_items($title, $rule, $rule_type, $module) {
 			if ($i > 0) {
 				$url = $module . '?action=item_moveup&item_id=' . $item['id'] .   '&id=' . $rule_id . '&rule_type=' . $rule_type;
 
-				$form_data .= '<a class="pic fa fa-caret-up moveArrow"
+				$form_data .= '<a class="pic ti ti-caret-up-filled moveArrow"
 					href="' . html_escape($url) . '" title="' . __esc('Move Up') . '"></a>';
 			} else {
 				$form_data .= '<span class="moveArrowNone"></span>';
@@ -1321,7 +1321,7 @@ function display_match_rule_items($title, $rule, $rule_type, $module) {
 
 			$url = $module . '?action=item_remove&item_id=' . $item['id'] .    '&id=' . $rule_id . '&rule_type=' . $rule_type;
 
-			$form_data = '<a class="pid deleteMarker fa fa-times"
+			$form_data = '<a class="pid deleteMarker ti ti-x"
 				href="' . html_escape($url) . '" title="' . __esc('Delete') . '"></a>';
 
 			form_selectable_cell($form_data, $i, '16px', 'right nowrap');
@@ -1356,7 +1356,7 @@ function display_graph_rule_items($title, &$rule, $rule_type, $module) {
 		ORDER BY sequence',
 		array($rule_id));
 
-	html_start_box($title . '&nbsp;<i id="show_sql" title="' . __esc('Show Matching Indexes SQL Query') . '" class="cactiTooltipHint fas fa-stethoscope" style="cursor:pointer"></i>', '100%', '', '3', 'center', $module . '?action=item_edit&id=' . $rule_id . '&rule_type=' . $rule_type);
+	html_start_box($title . '&nbsp;<i id="show_sql" title="' . __esc('Show Matching Indexes SQL Query') . '" class="cactiTooltipHint ti ti-stethoscope" style="cursor:pointer"></i>', '100%', '', '3', 'center', $module . '?action=item_edit&id=' . $rule_id . '&rule_type=' . $rule_type);
 
 	$display_text = array(
 		array('display' => __('Item'),      'align' => 'left'),
@@ -1396,20 +1396,20 @@ function display_graph_rule_items($title, &$rule, $rule_type, $module) {
 			$form_data = '';
 
 			if ($i != cacti_sizeof($items)-1) {
-				$form_data .= '<a class="pic fa fa-caret-down moveArrow" href="' . html_escape($module . '?action=item_movedown&item_id=' . $item['id'] . '&id=' . $rule_id .	'&rule_type=' . $rule_type) . '" title="' . __esc('Move Down') . '"></a>';
+				$form_data .= '<a class="pic ti ti-caret-down-filled moveArrow" href="' . html_escape($module . '?action=item_movedown&item_id=' . $item['id'] . '&id=' . $rule_id .	'&rule_type=' . $rule_type) . '" title="' . __esc('Move Down') . '"></a>';
 			} else {
 				$form_data .= '<span class="moveArrowNone"></span>';
 			}
 
 			if ($i > 0) {
-				$form_data .= '<a class="pic fa fa-caret-up moveArrow" href="' . html_escape($module . '?action=item_moveup&item_id=' . $item['id'] .	'&id=' . $rule_id .	'&rule_type=' . $rule_type) . '" title="' . __esc('Move Up') . '"></a>';
+				$form_data .= '<a class="pic ti ti-caret-up-filled moveArrow" href="' . html_escape($module . '?action=item_moveup&item_id=' . $item['id'] .	'&id=' . $rule_id .	'&rule_type=' . $rule_type) . '" title="' . __esc('Move Up') . '"></a>';
 			} else {
 				$form_data .= '<span class="moveArrowNone"></span>';
 			}
 
 			form_selectable_cell($form_data, $i, '32px', 'right nowrap');
 
-			$form_data = '<a class="pic deleteMarker fa fa-times"
+			$form_data = '<a class="pic deleteMarker ti ti-x"
 				href="' . html_escape($module . '?action=item_remove&item_id=' . $item['id'] .	'&id=' . $rule_id .	'&rule_type=' . $rule_type) . '" title="' . __esc('Delete') . '"></a>';
 
 			form_selectable_cell($form_data, $i, '16px', 'right nowrap');
@@ -1488,7 +1488,7 @@ function display_tree_rule_items($title, $rule, $item_type, $rule_type, $module)
 			if ($i != cacti_sizeof($items)-1) {
 				$url = $module . '?action=item_movedown&item_id=' . $item['id'] . '&id=' . $rule_id . '&rule_type=' . $rule_type;
 
-				$form_data .= '<a class="pic fa fa-caret-down moveArrow" href="' .
+				$form_data .= '<a class="pic ti ti-caret-down-filled moveArrow" href="' .
 					html_escape($url) . '" title="' . __esc('Move Down') . '"></a>';
 			} else {
 				$form_data .= '<span class="moveArrowNone"></span>';
@@ -1497,7 +1497,7 @@ function display_tree_rule_items($title, $rule, $item_type, $rule_type, $module)
 			if ($i > 0) {
 				$url = $module . '?action=item_moveup&item_id=' . $item['id'] . '&id=' . $rule_id . '&rule_type=' . $rule_type;
 
-				$form_data .= '<a class="pic fa fa-caret-up moveArrow" href="' .
+				$form_data .= '<a class="pic ti ti-caret-up-filled moveArrow" href="' .
 					html_escape($url) . '" title="' . __esc('Move Up') . '"></a>';
 			} else {
 				$form_data .= '<span class="moveArrowNone" style="width:16px"></span>';
@@ -1507,7 +1507,7 @@ function display_tree_rule_items($title, $rule, $item_type, $rule_type, $module)
 
 			$url = $module . '?action=item_remove&item_id=' . $item['id'] . '&id=' . $rule_id .  '&rule_type=' . $rule_type;
 
-			$form_data = '<a class="pic deleteMarker fa fa-times"
+			$form_data = '<a class="pic deleteMarker ti ti-x"
 				href="' . html_escape($url) . '" title="' . __esc('Delete') . '"></a>';
 
 			form_selectable_cell($form_data, $i, '16px', 'right nowrap');

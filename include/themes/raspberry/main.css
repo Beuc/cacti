@@ -178,6 +178,7 @@ label {
 }
 
 .glyph_tab-console:before {
+	display: inline-block;
 	content: '';
 }
 
@@ -2260,6 +2261,7 @@ tr#realtime td:first-child {
 	font-size: 12px;
 	width: 20px;
 	vertical-align: 30%;
+	margin-right: 0.3rem;
 }
 
 .menuitem span {

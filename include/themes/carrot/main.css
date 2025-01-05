@@ -167,8 +167,8 @@ label {
 }
 
 .glyph_tab-console:before {
-	content: '\f787';
-	font-family: "Font Awesome 5 Free";
+	content: '\f21c';
+	display: inline-block;
 }
 
 .text_tab-console {
@@ -2253,6 +2253,7 @@ tr#realtime td:first-child {
 	font-size: 12px;
 	width: 20px;
 	vertical-align: 30%;
+	margin-right: 0.3rem;
 }
 
 .menuitem span {

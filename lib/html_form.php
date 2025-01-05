@@ -88,7 +88,7 @@ function draw_edit_form($array) {
 
 				print "<div class='spacer formHeader" . ($collapsible ? ' collapsible' : '') . "' id='row_$field_name'><div class='formHeaderText'>" . html_escape($field_array['friendly_name']);
 				print '<div class="formTooltip">' . (isset($field_array['description']) ? display_tooltip($field_array['description']) : '') . '</div>';
-				print($collapsible ? "<div class='formHeaderAnchor'><i class='fa fa-angle-double-up'></i></div>" : '') . '</div></div>';
+				print($collapsible ? "<div class='formHeaderAnchor'><i class='ti ti-chevrons-up'></i></div>" : '') . '</div></div>';
 			} else {
 				// Make a row using a div
 				if (isset($config_array['force_row_color'])) {
@@ -722,13 +722,13 @@ function form_dirpath_box($form_name, $form_previous_value, $form_default_value,
 	}
 
 	if (is_dir($form_previous_value)) {
-		$extra_data = "<span class='cactiTooltipHint fa fa-check-circle' style='padding:5px;font-size:16px;color:green' title='" . __esc('Directory Found') . "'></span>";
+		$extra_data = "<span class='cactiTooltipHint ti ti-check-circle' style='padding:5px;font-size:16px;color:green' title='" . __esc('Directory Found') . "'></span>";
 	} elseif (is_file($form_previous_value)) {
-		$extra_data = "<span class='cactiTooltipHint fa fa-times-circle' style='padding:5px;font-size:16px;color:red' title='" . __esc('Path is a File and not a Directory') . '></span>';
+		$extra_data = "<span class='cactiTooltipHint ti ti-x-circle' style='padding:5px;font-size:16px;color:red' title='" . __esc('Path is a File and not a Directory') . '></span>';
 	} elseif ($form_previous_value == '') {
 		$extra_data = '';
 	} else {
-		$extra_data = "<span class='cactiTooltipHint fa fa-times-circle' style='padding:5px;font-size:16px;color:red' title='" . __esc('Directory is Not found') . "'></span>";
+		$extra_data = "<span class='cactiTooltipHint ti ti-x-circle' style='padding:5px;font-size:16px;color:red' title='" . __esc('Directory is Not found') . "'></span>";
 	}
 
 	print " id='$form_name' name='$form_name' placeholder='" . __esc('Enter a valid directory path') . "' size='$form_size'" . (!empty($form_max_length) ? " maxlength='$form_max_length'" : '') . " value='" . html_escape($form_previous_value) . "'>" . $extra_data;
@@ -872,7 +872,7 @@ function form_dropdown($form_name, $form_data, $column_display, $column_id, $for
  *   $dropdown_array = array(
  *     'server' => array(
  *        'display' => __('Some Value'),
- *        'class'   => 'fa fa-server',
+ *        'class'   => 'ti ti-server',
  *        'style'   => 'width:30px;...'
  *     ),
  *     ...

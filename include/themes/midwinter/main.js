@@ -187,7 +187,7 @@ function setupTheme() {
 
 		$('.versionInfo').detach().appendTo('.cactiAuthBody');
 
-		$('<i class="far fa-user"></i>').insertAfter('#login_username');
+		$('<i class="ti ti-user"></i>').insertAfter('#login_username');
 	}
 
 
@@ -213,15 +213,15 @@ function setupTheme() {
 				'<div id="navFilter" class="navFilter" >' +
 	/*
 				'<div id="reportrange"style="cursor: pointer; padding: 5px 10px; border: 1px solid var(--border-color);">' +
-				'<i className="fa fa-calendar"></i>&nbsp;<span></span> <i className="fa fa-caret-down"></i>' +
+				'<i className="fa fa-calendar"></i>&nbsp;<span></span> <i className="ti ti-caret-down-filled"></i>' +
 				'</div>' +
 	*/
 				'</div>' +
 				'<div id="navControl" class="navControl" ></div>' +
 			'</div>' +
 			'<div id="mdw-Main" class="mdw-Main">' +
-				'<div id="mdw-DockTop" class="mdw-DockTop invisible" data-helper="displayDockTop"></div>'+
-				'<div id="mdw-DockLeft" class="mdw-DockLeft invisible"></div>'+
+				'<div id="mdw-DockTop" class="mdw-DockTop invisible" ></div>'+
+				'<div id="mdw-DockLeft" class="mdw-DockLeft" data-helper="displayDockTop"></div>'+
 				'<div id="mdw-DockRight" class="mdw-DockRight invisible"></div>' +
 				'<div id="mdw-DockBottom" class="mdw-DockBottom invisible"></div>'+
 			'</div>' +
@@ -296,7 +296,7 @@ function setupTheme() {
 			}
 
 			/* user help */
-			new navigationButton('help', 'Help', 'Help', 'far fa-comment-alt', '#compact_user_menu').show();
+			new navigationButton('help', 'Help', 'Help', 'ti ti-message-circle-question', '#compact_user_menu').show();
 			new navigationBox(help, 'help', 'half', '2', {
 				close: false,
 				search: false,
@@ -304,7 +304,7 @@ function setupTheme() {
 			}, 'left', justCacti+' &reg; v'+cactiVersion).build();
 
 			/* user settings */
-			new navigationButton('user', 'User', 'User Settings', 'far fa-user', '#compact_user_menu').show();
+			new navigationButton('user', 'User', 'User Settings', 'ti ti-user', '#compact_user_menu').show();
 			new navigationBox( cactiUser, 'user', 'half', '2', {
 				close: false,
 				search: false,
@@ -319,7 +319,7 @@ function setupTheme() {
 				close: true,
 				search: false,
 				resize: false,
-				dock: false,
+				dock: true,
 			}, 'right','Table Layout', 'auto').build();
 			new navigationButton('toggleColorMode', 'Color', 'Toggle light/dark Mode', 'fas fa-adjust', '#navControl', 'toggleColorMode', 'on').show();
 			new navigationButton('kioskMode', 'Kiosk', 'Enable Kiosk Mode', 'fas fa-tv', '#navControl', 'kioskMode', 'on').show();
@@ -329,16 +329,6 @@ function setupTheme() {
 	/* CLEAN UP */
 	$('#menu_main_console').remove();
 	$('a.menu_parent').removeClass('mdw-active').prop('inert', true); // suppress focus
-
-	/* replace default icons */
-	$('i.menu_glyph:not(.ignore).fa-home').removeClass('fa fa-home').addClass('fa fa-tools');
-	$('i.menu_glyph.fa-folder').removeClass('fa').addClass('far');
-	$('i.menu_glyph.fa-clone').removeClass('fa').addClass('far');
-	$('i.menu_glyph.fa-database').removeClass('fa fa-database').addClass('far fa-hdd');
-	$('i.menu_glyph:not(.ignore).fa-chart-area').removeClass('fa fa-chart-area').addClass('fa fa-plus');
-	$('i.menu_glyph.fa-cogs').removeClass('fa fa-cogs').addClass('fa fa-toolbox');
-	$('i.menu_glyph.fa-superpowers').removeClass('fab fa-superpowers').addClass('fas fa-network-wired');
-
 
 	/* hide settings icon if the user got access to console only for e.g. Intropage, but nothing else */
 	if($('[class^="mdw-ConsoleNavigationBox"][data-helper="settings"]').has('li').length === 0) {
@@ -576,14 +566,25 @@ function setupDefaultElements() {
 		$('.stickyContainer').remove();
 	}
 
-	let btn_filter 	= new navigationButton('displayDockTop', 'Filter', 'Show Filter Dock','fas fa-filter', '#navFilter', 'toggleCactiDockNavigationBox', 'Top');
+
+//	let btn_filter1 	= new navigationButton('displayDockTop', 'Filter', 'Show Filter Dock','fas fa-filter', '#navFilter', 'toggleCactiDockNavigationBox', 'Top');
+	let btn_filter 	= new navigationButton('displayFilterOptions', 'Filter', 'Show Filter Dock','fas fa-filter', '#navFilter');
 	let btn_calendar	= new navigationButton('daterangepicker', 'Calendar', 'Select Timeframe', 'fas fa-calendar-alt', '#navFilter', '', '');
 	let btn_add		= new navigationButton('formAction', 'New', 'Add','fas fa-plus', '#navFilter');
 
 	if ($("#main .filterTable").length) {
 		let filter;
-		filter = $("#main .filterTable:first").closest('div').detach();
-		$(".mdw-DockTop").html(filter);
+		filter = $("#main .filterTable:first").closest('div.cactiTable').detach();
+
+		if( !$('[class^="mdw-ConsoleNavigationBox"][data-helper="displayFilterOptions"]').length ) {
+			new navigationBox('Filter', 'displayFilterOptions', 'auto', '1', {
+				close: true,
+				search: false,
+				resize: false,
+				dock: true,
+			}, 'right', 'Display Filter', '').build();
+		}
+		$('[class^="mdw-ConsoleNavigationBox"][data-helper="displayFilterOptions"] .navBox-content').html(filter);
 
 		/* custom content */
 		if($("#main >div:first .filterTable:first").closest('div').length === 1) {
@@ -728,16 +729,16 @@ function setupDefaultElements() {
 	}
 
 	// Add nice search filter to filters
-	if ($('input[id="filter"]').length > 0 && $('input[id="filter"] > i[class="fa fa-search filter"]').length < 1) {
-		$('input[id="filter"]').after("<i class='fa fa-search filter'/>").attr('autocomplete', 'off').attr('placeholder', searchFilter).parent('td').css('white-space', 'nowrap');
+	if ($('input[id="filter"]').length > 0 && $('input[id="filter"] > i[class="ti ti-search filter"]').length < 1) {
+		$('input[id="filter"]').after("<i class='ti ti-search filter'/>").attr('autocomplete', 'off').attr('placeholder', searchFilter).parent('td').css('white-space', 'nowrap');
 	}
 
-	if ($('input[id="filterd"]').length > 0 && $('input[id="filterd"] > i[class="fa fa-search filter"]').length < 1) {
-		$('input[id="filterd"]').after("<i class='fa fa-search filter'/>").attr('autocomplete', 'off').attr('placeholder', searchFilter).parent('td').css('white-space', 'nowrap');
+	if ($('input[id="filterd"]').length > 0 && $('input[id="filterd"] > i[class="ti ti-search filter"]').length < 1) {
+		$('input[id="filterd"]').after("<i class='ti ti-search filter'/>").attr('autocomplete', 'off').attr('placeholder', searchFilter).parent('td').css('white-space', 'nowrap');
 	}
 
-	if ($('input[id="rfilter"]').length > 0 && $('input[id="rfilter"] > i[class="fa fa-search filter"]').length < 1) {
-		$('input[id="rfilter"]').after("<i class='fa fa-search filter'/>").attr('autocomplete', 'off').attr('placeholder', searchRFilter).parent('td').css('white-space', 'nowrap');
+	if ($('input[id="rfilter"]').length > 0 && $('input[id="rfilter"] > i[class="ti ti-search filter"]').length < 1) {
+		$('input[id="rfilter"]').after("<i class='ti ti-search filter'/>").attr('autocomplete', 'off').attr('placeholder', searchRFilter).parent('td').css('white-space', 'nowrap');
 	}
 
 	$('input#filter, input#rfilter').addClass('ui-state-default ui-corner-all');

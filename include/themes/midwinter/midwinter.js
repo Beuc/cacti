@@ -333,7 +333,7 @@ function get_help_content() {
         +   '</li>'
         +   '<li class="menuitem" id="menu_user_shortcuts">'
         +       '<a class="menu_parent" href="#" inert>'
-        +           '<i class="menu_glyph far fa-keyboard"></i>'
+        +           '<i class="menu_glyph ti ti-keyboard"></i>'
         +           '<span>'+cactiKeyboard+'</span>'
         +       '</a>'
         +       '<ul>'

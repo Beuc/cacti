@@ -1069,7 +1069,7 @@ function tree_edit($partial = false) {
 
 		function getHostSortIcon(type, nodeid) {
 			if (hostSortInfo[nodeid] == type) {
-				return 'fa fa-check';
+				return 'ti ti-check';
 			} else {
 				return 'false';
 			}
@@ -1077,7 +1077,7 @@ function tree_edit($partial = false) {
 
 		function getBranchSortIcon(type, nodeid) {
 			if (branchSortInfo[nodeid] == type) {
-				return 'fa fa-check';
+				return 'ti ti-check';
 			} else {
 				return 'false';
 			}
@@ -1570,7 +1570,7 @@ function tree_edit($partial = false) {
 				'create' : {
 					'separator_before'	: false,
 					'separator_after'	: true,
-					'icon'				: 'fa fa-folder',
+					'icon'				: 'ti ti-folder-filled',
 					'_disabled'			: false,
 					'label'				: '<?php print __esc('Create');?>',
 					'action'			: function (data) {
@@ -1584,7 +1584,7 @@ function tree_edit($partial = false) {
 				'rename' : {
 					'separator_before'	: false,
 					'separator_after'	: false,
-					'icon'				: 'fa fa-pencil-alt',
+					'icon'				: 'ti ti-pencil',
 					'_disabled'			: false,
 					'label'				: '<?php print __esc('Rename');?>',
 					'action'			: function (data) {
@@ -1595,7 +1595,7 @@ function tree_edit($partial = false) {
 				},
 				'remove' : {
 					'separator_before'	: false,
-					'icon'				: 'fa fa-times',
+					'icon'				: 'ti ti-x',
 					'separator_after'	: false,
 					'_disabled'			: false,
 					'label'				: '<?php print __esc('Delete');?>',
@@ -1611,7 +1611,7 @@ function tree_edit($partial = false) {
 				},
 				'bst' : {
 					'separator_before'	: true,
-					'icon'				: 'fa fa-sort',
+					'icon'				: 'ti ti-caret-up-down-filled',
 					'separator_after'	: false,
 					'label'				: '<?php print __esc('Branch Sorting');?>',
 					'action'			: false,
@@ -1690,7 +1690,7 @@ function tree_edit($partial = false) {
 				},
 				'ccp' : {
 					'separator_before'	: true,
-					'icon'				: 'fa fa-edit',
+					'icon'				: 'ti ti-edit',
 					'separator_after'	: false,
 					'label'				: '<?php print __esc('Edit');?>',
 					'action'			: false,
@@ -1698,7 +1698,7 @@ function tree_edit($partial = false) {
 						'cut' : {
 							'separator_before'	: false,
 							'separator_after'	: false,
-							'icon'				: 'fa fa-cut',
+							'icon'				: 'ti ti-scissors',
 							'label'				: '<?php print __esc('Cut');?>',
 							'action'			: function (data) {
 								var inst = $.jstree.reference(data.reference);
@@ -1712,7 +1712,7 @@ function tree_edit($partial = false) {
 						},
 						'copy' : {
 							'separator_before'	: false,
-							'icon'				: 'fa fa-copy',
+							'icon'				: 'ti ti-copy',
 							'separator_after'	: false,
 							'label'				: '<?php print __esc('Copy');?>',
 							'action'			: function (data) {
@@ -1727,7 +1727,7 @@ function tree_edit($partial = false) {
 						},
 						'paste' : {
 							'separator_before'	: false,
-							'icon'				: 'fa fa-clipboard',
+							'icon'				: 'ti ti-clipboard-copy',
 							'_disabled'			: function (data) {
 								return !$.jstree.reference(data.reference).can_paste();
 							},
@@ -1748,7 +1748,7 @@ function tree_edit($partial = false) {
 			return {
 				'remove' : {
 					'separator_before'	: false,
-					'icon'				: 'fa fa-times',
+					'icon'				: 'ti ti-x',
 					'separator_after'	: false,
 					'_disabled'			: false, //(this.check('delete_node', data.reference, this.get_parent(data.reference), '')),
 					'label'				: '<?php print __esc('Delete');?>',
@@ -1764,7 +1764,7 @@ function tree_edit($partial = false) {
 				},
 				'ccp' : {
 					'separator_before'	: true,
-					'icon'				: 'fa fa-edit',
+					'icon'				: 'ti ti-edit',
 					'separator_after'	: false,
 					'label'				: '<?php print __esc('Edit');?>',
 					'action'			: false,
@@ -1772,7 +1772,7 @@ function tree_edit($partial = false) {
 						'cut' : {
 							'separator_before'	: false,
 							'separator_after'	: false,
-							'icon'				: 'fa fa-cut',
+							'icon'				: 'ti ti-scissors',
 							'label'				: '<?php print __esc('Cut');?>',
 							'action'			: function (data) {
 								var inst = $.jstree.reference(data.reference);
@@ -1786,7 +1786,7 @@ function tree_edit($partial = false) {
 						},
 						'copy' : {
 							'separator_before'	: false,
-							'icon'				: 'fa fa-copy',
+							'icon'				: 'ti ti-copy',
 							'separator_after'	: false,
 							'label'				: '<?php print __esc('Copy');?>',
 							'action'			: function (data) {
@@ -1808,7 +1808,7 @@ function tree_edit($partial = false) {
 			return {
 				'remove' : {
 					'separator_before'	: false,
-					'icon'				: 'fa fa-times',
+					'icon'				: 'ti ti-x',
 					'separator_after'	: false,
 					'_disabled'			: false,
 					'label'				: '<?php print __esc('Delete');?>',
@@ -1829,7 +1829,7 @@ function tree_edit($partial = false) {
 			return {
 				'remove' : {
 					'separator_before'	: false,
-					'icon'				: 'fa fa-times',
+					'icon'				: 'ti ti-x',
 					'separator_after'	: false,
 					'_disabled'			: false,
 					'label'				: '<?php print __esc('Delete');?>',
@@ -1846,7 +1846,7 @@ function tree_edit($partial = false) {
 				'hso' : {
 					'separator_before'	: true,
 					'separator_after'	: false,
-					'icon'				: 'fa fa-sort',
+					'icon'				: 'ti ti-caret-up-down-filled',
 					'label'				: '<?php print __esc('Sorting Type');?>',
 					'action'			: false,
 					'submenu' : {
@@ -1872,7 +1872,7 @@ function tree_edit($partial = false) {
 				},
 				'ccp' : {
 					'separator_before'	: true,
-					'icon'				: 'fa fa-edit',
+					'icon'				: 'ti ti-edit',
 					'separator_after'	: false,
 					'label'				: '<?php print __esc('Edit');?>',
 					'action'			: false,
@@ -1880,7 +1880,7 @@ function tree_edit($partial = false) {
 						'cut' : {
 							'separator_before'	: false,
 							'separator_after'	: false,
-							'icon'				: 'fa fa-cut',
+							'icon'				: 'ti ti-scissors',
 							'label'				: '<?php print __esc('Cut');?>',
 							'action'			: function (data) {
 								var inst = $.jstree.reference(data.reference),
@@ -1894,7 +1894,7 @@ function tree_edit($partial = false) {
 						},
 						'copy' : {
 							'separator_before'	: false,
-							'icon'				: 'fa fa-copy',
+							'icon'				: 'ti ti-copy',
 							'separator_after'	: false,
 							'label'				: '<?php print __esc('Copy');?>',
 							'action'			: function (data) {
@@ -2038,7 +2038,7 @@ function tree() {
 		'href'     => 'tree.php?action=sortasc',
 		'callback' => true,
 		'title'    => __esc('Sort Trees Ascending'),
-		'class'    => 'fa fa-sort-alpha-down'
+		'class'    => 'ti ti-sort-ascending-letters'
 	);
 
 	$button2 = array(
@@ -2046,7 +2046,7 @@ function tree() {
 		'href'     => 'tree.php?action=sortdesc',
 		'callback' => true,
 		'title'    => __esc('Sort Trees Descending'),
-		'class'    => 'fa fa-sort-alpha-up'
+		'class'    => 'ti ti-sort-descending-letters'
 	);
 
 	/* create the page filter */
@@ -2197,14 +2197,14 @@ function tree() {
 					$sequence .= '<span class="moveArrowNone"></span>';
 					$sequence .= '<span class="moveArrowNone"></span>';
 				} elseif ($i == 1) {
-					$sequence .= '<a class="pic fa fa-caret-down moveArrow" href="' . htmlspecialchars('tree.php?action=tree_down&id=' . $tree['id']) . '" title="' . __esc('Move Down') . '"></a>';
+					$sequence .= '<a class="pic ti ti-caret-down-filled moveArrow" href="' . htmlspecialchars('tree.php?action=tree_down&id=' . $tree['id']) . '" title="' . __esc('Move Down') . '"></a>';
 					$sequence .= '<span class="moveArrowNone"></span>';
 				} elseif ($i == cacti_sizeof($trees)) {
 					$sequence .= '<span class="moveArrowNone"></span>';
-					$sequence .= '<a class="pic fa fa-caret-up moveArrow" href="' . html_escape('tree.php?action=tree_up&id=' . $tree['id']) . '" title="' . __esc('Move Up') . '"></a>';
+					$sequence .= '<a class="pic ti ti-caret-up-filled moveArrow" href="' . html_escape('tree.php?action=tree_up&id=' . $tree['id']) . '" title="' . __esc('Move Up') . '"></a>';
 				} else {
-					$sequence .= '<a class="pic fa fa-caret-down moveArrow" href="' . html_escape('tree.php?action=tree_down&id=' . $tree['id']) . '" title="' . __esc('Move Down') . '"></a>';
-					$sequence .= '<a class="pic fa fa-caret-up moveArrow" href="' . html_escape('tree.php?action=tree_up&id=' . $tree['id']) . '" title="' . __esc('Move Up') . '"></a>';
+					$sequence .= '<a class="pic ti ti-caret-down-filled moveArrow" href="' . html_escape('tree.php?action=tree_down&id=' . $tree['id']) . '" title="' . __esc('Move Down') . '"></a>';
+					$sequence .= '<a class="pic ti ti-caret-up-filled moveArrow" href="' . html_escape('tree.php?action=tree_up&id=' . $tree['id']) . '" title="' . __esc('Move Up') . '"></a>';
 				}
 			}
 

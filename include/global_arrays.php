@@ -1169,19 +1169,19 @@ if ($config['poller_id'] == 1 || $config['connection'] == 'online') {
 }
 
 $menu_glyphs = array(
-	__('Main Console')    => 'fa fa-map',
-	__('Create')          => 'fa fa-chart-area',
-	__('Management')      => 'fa fa-home',
-	__('Data Collection') => 'fa fa-database',
-	__('Templates')       => 'fa fa-clone',
-	__('Automation')      => 'fab fa-superpowers',
-	__('Presets')         => 'fa fa-archive',
-	__('Import/Export')   => 'fa fa-exchange-alt',
-	__('Configuration')   => 'fa fa-sliders-h',
-	__('Utilities')       => 'fa fa-cogs',
-	__('External Links')  => 'fa fa-external-link-alt',
-	__('Support')         => 'fa fa-question-circle',
-	__('Troubleshooting') => 'fa fa-bug'
+	__('Main Console')    => 'ti ti-map',
+	__('Create')          => 'ti ti-chart-area-line',
+	__('Management')      => 'ti ti-devices',
+	__('Data Collection') => 'ti ti-affiliate',
+	__('Templates')       => 'ti ti-template',
+	__('Automation')      => 'ti ti-automation',
+	__('Presets')         => 'ti ti-color-swatch',
+	__('Import/Export')   => 'ti ti-transfer',
+	__('Configuration')   => 'ti ti-adjustments-cog',
+	__('Utilities')       => 'ti ti-tools',
+	__('External Links')  => 'ti ti-external-link',
+	__('Support')         => 'ti ti-help-circle',
+	__('Troubleshooting') => 'ti ti-bug'
 );
 
 $device_classes = array(
