@@ -556,7 +556,6 @@ function reports_form_actions() {
 	}
 }
 
-
 /**
  * Sends a report via email based on the provided report ID.
  *
@@ -1436,7 +1435,7 @@ function reports_tabs($report_id) {
 	global $config;
 
 	if ($report_id > 0) {
-		$tabs = array('details' => __('Details'), 'items' => __('Items'), 'preview' => __('Preview'), 'logs' => __('Logs'));
+		$tabs = array('details' => __('Details'), 'items' => __('Items'), 'preview' => __('View Reports'));
 	} else {
 		$tabs = array('details' => __('Details'));
 	}
@@ -1449,26 +1448,21 @@ function reports_tabs($report_id) {
 	$current_tab = get_request_var('tab');
 
 	if (cacti_sizeof($tabs) && isset_request_var('id')) {
-		$i = 0;
-
 		/* draw the tabs */
-		print "<div class='tabs'><nav><ul role='tablist'>\n";
+		print "<div class='tabs'><nav><ul role='tablist'>";
 
-		foreach (array_keys($tabs) as $tab_short_name) {
-			print "<li class='subTab'><a class='tab" . (($tab_short_name == $current_tab) ? " selected'" : "'") .
-				" href='" . html_escape(CACTI_PATH_URL .
-					get_reports_page() . '?action=edit&id=' . get_request_var('id') .
-					'&tab=' . $tab_short_name) .
-				"'>" . $tabs[$tab_short_name] . "</a></li>\n";
-
-			$i++;
+		foreach ($tabs as $tab => $name) {
+			print "<li class='subTab'><a class='tab" . ($tab == $current_tab ? " selected'" : "'") .
+				" href='" . html_escape(CACTI_PATH_URL .  get_reports_page() .  '?action=edit' .
+					'&id='  . get_request_var('id') .  '&tab=' . $tab) .
+				"'>" . $name . '</a></li>';
 		}
 
 		if (!isempty_request_var('id')) {
-			print "<li style='float:right;position:relative;'><a class='tab' href='" . html_escape(get_reports_page() . '?action=send&id=' . get_request_var('id') . '&tab=' . get_request_var('tab')) . "'>" . __('Send Report') . "</a></li>\n";
+			print "<li style='float:right;position:relative;'><a class='tab' href='" . html_escape(get_reports_page() . '?action=send&id=' . get_request_var('id') . '&tab=' . get_request_var('tab')) . "'>" . __('Send Report') . '</a></li>';
 		}
 
-		print "</ul></nav></div>\n";
+		print '</ul></nav></div>';
 	}
 }
 
@@ -1604,19 +1598,36 @@ function reports_edit() {
 						});
 					});
 				</script>
-	<?php
+				<?php
 			}
 
 			break;
-		case 'logs':
-
-			break;
 		case 'preview':
-			html_start_box(__esc('Report Preview %s', $header_label), '100%', '', '0', 'center', '');
-			print "\t\t\t\t\t<tr><td>\n";
-			print reports_generate_html($report['id'], REPORTS_OUTPUT_STDOUT);
-			print "\t\t\t\t\t</td></tr>\n";
+			process_sanitize_draw_preview_filter(true, $header_label);
+
+			if (get_request_var('rdate') == '-1') {
+				print '<tr><td>';
+				print reports_generate_html($report['id'], REPORTS_OUTPUT_STDOUT);
+				print '</td></tr>';
+			} else {
+				print '<tr><td>';
+				print reports_generate_history_html(get_request_var('rdate'), REPORTS_OUTPUT_STDOUT);
+				print '</td></tr>';
+			}
+
 			html_end_box(false);
+
+			?>
+			<script type='text/javascript'>
+			$('#rdate').change(function() {
+				if ($('#rdate').val() == '-1') {
+					$('#delete').button('disable');
+				} else {
+					$('#delete').button('enable')
+				}
+			});
+			</script>
+			<?php
 
 			break;
 	}
@@ -1829,6 +1840,108 @@ function is_reports_admin() {
 	return (is_realm_allowed(21) ? true : false);
 }
 
+function create_preview_filter() {
+	$id    = get_filter_request_var('id');
+	$rdate = get_filter_request_var('rdate');
+
+	$any   = array('-1' => __('Any'));
+	$none  = array('0'  => __('None'));
+	$live  = array('-1' => __('Live Data'));
+
+	$sql_where    = '';
+	$sql_params[] = $id;
+	$sql_params[] = 'reports';
+
+	if (get_nfilter_request_var('filter') != '') {
+		$sql_where    = ' AND name LIKE ?';
+		$sql_params[] = '%' . get_nfilter_request_var('filter') . '%';
+	}
+
+	$reports = db_fetch_assoc_prepared("SELECT id, source_id, CONCAT(name, ' [ ', send_time, ' ]') AS name
+		FROM reports_log
+		WHERE source_id = ?
+		AND source = ?
+		$sql_where
+		ORDER BY send_time DESC",
+		array($id, 'reports'));
+
+	$dreports  = array_rekey($reports, 'id', 'name');
+	$dreports  = $live + $dreports;
+
+	if (isset_request_var('style')) {
+		$value = get_nfilter_request_var('style');
+	} else {
+		$value = '';
+	}
+
+	return array(
+		'rows' => array(
+			array(
+				'filter' => array(
+					'method'        => 'textbox',
+					'friendly_name'  => __('Search'),
+					'filter'         => FILTER_DEFAULT,
+					'placeholder'    => __('Enter a search term'),
+					'size'           => '30',
+					'default'        => '',
+					'pageset'        => true,
+					'max_length'     => '120',
+					'value'          => ''
+				),
+				'rdate' => array(
+					'method'         => 'drop_array',
+					'friendly_name'  => __('Report Date'),
+					'filter'         => FILTER_VALIDATE_INT,
+					'default'        => '-1',
+					'array'          => $dreports,
+					'value'          => '-1'
+				),
+				'style' => array(
+					'method'         => 'filter_checkbox',
+					'friendly_name'  => __('Apply Report Style'),
+					'filter'         => FILTER_VALIDATE_REGEXP,
+					'filter_options' => array('options' => array('regexp' => '(true|false)')),
+					'default'        => '',
+					'value'          => $value
+				)
+			)
+		),
+		'buttons' => array(
+			'go' => array(
+				'method'  => 'submit',
+				'display' => __('Go'),
+				'title'   => __('Apply filter to table'),
+			),
+			'delete' => array(
+				'method'   => 'button',
+				'display'  => __('Delete'),
+				'title'    => __('Remove Archived Report'),
+				'callback' => "loadUrl({ url: 'reports.php?action=remove_history&rdate=$rdate&id=$id'})"
+			),
+		)
+	);
+}
+
+function process_sanitize_draw_preview_filter($render = false, $header_label = '') {
+	$filters = create_preview_filter();
+
+	$report_id  = get_request_var('id');
+	$history_id = get_request_var('rdate');
+
+	$header = __esc('Report Preview %s', $header_label);
+
+	/* create the page filter */
+	$pageFilter = new CactiTableFilter($header, "reports.php?action=edit&id=$report_id&tab=preview", 'forms', 'sess_repprv');
+
+	$pageFilter->set_filter_array($filters);
+
+	if ($render) {
+		$pageFilter->render();
+	} else {
+		$pageFilter->sanitize();
+	}
+}
+
 function create_filter() {
 	global $item_rows;
 
@@ -1989,14 +2102,14 @@ function reports() {
 
 			$reports_list = db_fetch_assoc("
 				SELECT 'reports' AS type, ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
-				report.sched_type, report.last_runtime, report.last_started,
+				report.sched_type, report.last_runtime, report.last_started, report.run_limit,
 				report.from_email, report.from_name, report.email, report.bcc, report.next_start
 				FROM reports AS report
 				$sql_join
 				$sql_where
 				UNION
 				SELECT 'reportit' AS type, ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
-				report.sched_type, report.last_runtime, report.last_started,
+				report.sched_type, report.last_runtime, report.last_started, report.run_limit,
 				'-' AS from_email, '-' AS from_name, '-' AS email, '-' AS bcc, report.next_start
 				FROM plugin_reportit_reports AS report
 				$sql_join
@@ -2011,7 +2124,7 @@ function reports() {
 
 			$reports_list = db_fetch_assoc("SELECT
 				'reports' AS type, ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
-				report.sched_type, report.last_runtime, report.last_started,
+				report.sched_type, report.last_runtime, report.last_started, report.run_limit,
 				report.from_email, report.from_name, report.email, report.bcc, report.next_start
 				FROM reports AS report
 				$sql_join
@@ -2026,7 +2139,7 @@ function reports() {
 
 			$reports_list = db_fetch_assoc("SELECT
 				'reportit' AS type, ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
-				report.sched_type, report.last_runtime, report.last_started,
+				report.sched_type, report.last_runtime, report.last_started, report.run_limit,
 				'-' AS from_email, '-' AS from_name, '-' AS email, '-' AS bcc, report.next_start
 				FROM plugin_reportit_reports AS report
 				$sql_join
@@ -2042,7 +2155,7 @@ function reports() {
 
 		$reports_list = db_fetch_assoc("SELECT
 			'reports' AS type, ua.full_name, ua.username, report.id, report.user_id, report.name, report.enabled,
-			report.sched_type, report.last_runtime, report.last_started,
+			report.sched_type, report.last_runtime, report.last_started, report.run_limit,
 			report.from_email, report.from_name, report.email, report.bcc, report.next_start
 			FROM reports AS report
 			$sql_join
@@ -2092,6 +2205,11 @@ function reports() {
 			'display' => __('Last Started'),
 			'align'   => 'right',
 			'sort'    => 'ASC'
+		),
+		'report.run_limit' => array(
+			'display' => __('Run Limit'),
+			'align'   => 'right',
+			'sort'    => 'DESC'
 		),
 		'report.last_runtime' => array(
 			'display' => __('Last Runtime'),
@@ -2182,6 +2300,8 @@ function reports() {
 			}
 
 			form_selectable_cell($report['last_started'] == '0000-00-00 00:00:00' ? __('Never') : date($date_format, strtotime($report['last_started'])), $id, '', 'right');
+
+			form_selectable_cell(__('%s sec', number_format_i18n($report['run_limit'], 1)), $id, '', 'right');
 
 			form_selectable_cell(__('%0.2f sec', number_format_i18n($report['last_runtime'], 2)), $id, '', 'right');
 

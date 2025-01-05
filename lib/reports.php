@@ -790,6 +790,86 @@ function reports_tree_has_graphs($tree_id, $branch_id, $effective_user, $search_
 	return cacti_sizeof($graphs);
 }
 
+function reports_generate_history_html($history_id, $output = REPORTS_OUTPUT_STDOUT) {
+	$data   = db_fetch_row_prepared('SELECT *
+		FROM reports_log
+		WHERE id = ?',
+		array($history_id));
+
+	if (cacti_sizeof($data)) {
+		$oreport = db_fetch_row_prepared('SELECT *
+			FROM reports
+			WHERE id = ?',
+			array($data['source_id']));
+
+		/* here is the report html as sent to the user */
+		$report = $data['report_html_output'];
+
+		/* strip out the css/format if selected */
+		if (get_request_var('style') == 'false') {
+			$instyle  = false;
+			$pinstyle = null;
+			$nreport  = '';
+			$lines    = explode("\n", $report);
+
+			foreach($lines as $l) {
+				if (strpos($l, '<style') !== false) {
+					$instyle = true;
+				} elseif (strpos($l, '</style>') !== false) {
+					$instyle = false;
+				}
+
+				if (($pinstyle === null && !$instyle) || $pinstyle === false) {
+					$nreport .= $l . PHP_EOL;
+				}
+
+				$pinstyle = $instyle;
+			}
+
+			$report = $nreport;
+		}
+
+		/* make generic style changes to match Cacti when not showing with style */
+		if (get_request_var('style') == 'false') {
+			$report = str_replace('report_table', 'cactiTable', $report);
+			$report = str_replace('title_row', 'cactiTableTitleRow', $report);
+			$report = str_replace('text_row', 'cactiTableTitleRow', $report);
+			$report = str_replace('text', 'center', $report);
+			$report = str_replace('title', 'center', $report);
+			$report = str_replace('image_table', 'cactiTable', $report);
+			$report = str_replace('image_row', 'tableRow', $report);
+			$report = str_replace('image_column\'', 'image_column\' style=\'text-align:center;\'', $report);
+			$report = str_replace('image_column"', 'image_column" style="text-align:center;"', $report);
+			$report = str_replace('<table>', '<table class="cactiTable">', $report);
+		}
+
+		$graph_data = json_decode(base64_decode($data['report_attachments']), true);
+
+		foreach($graph_data as $index => $graph) {
+			$report = str_replace('<GRAPH:' . $graph['local_graph_id'] . ':' . $graph['timespan'] . '>',
+				'<img class="graphimage" src="data:image/png;base64,' . $graph['attachment'] . '">', $report);
+		}
+
+		print $report;
+	}
+}
+
+function reports_remove_history($history_id, $report_id = 0) {
+	if ($report_id == 0) {
+		$report_id = db_fetch_cell_prepared('SELECT source_id FROM reports_log WHERE id = ?', array($history_id));
+	}
+
+	$report = db_fetch_row_prepared('SELECT * FROM reports WHERE id = ?', array($report_id));
+
+	if (is_reports_admin() || $report['user_id'] == SESS_USER_ID) {
+		db_execute_prepared('DELETE FROM reports_log WHERE id = ?', array($history_id));
+
+		raise_message('remove_message', __('Report \'%s\' History Removed by user \'%s\' or a Report Administrator can remove the report.', $report['name'], get_username($_SESSION[SESS_USER_ID])), MESSAGE_LEVEL_INFO);
+	} else {
+		raise_message('remove_error', __('Only the owning user \'%s\' or a Report Administrator can remove the report.', get_username($user_id)), MESSAGE_LEVEL_ERROR);
+	}
+}
+
 /** reports_generate_html  print report to html for online verification
  * @param int $reports_id	- id of report report
  * @param int $output		- type of output

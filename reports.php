@@ -62,6 +62,19 @@ switch (get_request_var('action')) {
 		header('Location: reports.php?action=edit&tab=' . get_request_var('tab') . '&id=' . get_request_var('id'));
 
 		break;
+	case 'remove_history':
+		process_sanitize_draw_preview_filter();
+
+		$history_id = get_request_var('rdate');
+		$report_id  = get_request_var('id');
+
+		if ($history_id > 0) {
+			reports_remove_history($history_id, $report_id);
+		}
+
+		header('Location: reports.php?action=edit&tab=preview&rdate=-1&id=' . $report_id);
+
+		break;
 	case 'ajax_dnd':
 		reports_item_dnd();
 
@@ -178,7 +191,6 @@ switch (get_request_var('action')) {
 		bottom_footer();
 
 		break;
-
 	default:
 		general_header();
 		reports();
