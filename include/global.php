@@ -627,6 +627,7 @@ include_once(CACTI_PATH_LIBRARY . '/poller.php');
 include_once(CACTI_PATH_LIBRARY . '/snmpagent.php');
 include_once(CACTI_PATH_LIBRARY . '/aggregate.php');
 include_once(CACTI_PATH_LIBRARY . '/api_automation.php');
+include_once(CACTI_PATH_INCLUDE . '/vendor/autoload.php');
 
 if ($config['is_web']) {
 	include_once(CACTI_PATH_INCLUDE . '/csrf.php');

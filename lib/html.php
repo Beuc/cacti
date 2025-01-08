@@ -3290,7 +3290,7 @@ function html_common_header($title, $selectedTheme = '') {
 	print get_md5_include_css('include/css/billboard.css');
 	print get_md5_include_css('include/fa/css/all.css');
     print get_md5_include_css('include/tabler/webfont/tabler-icons.css');
-	print get_md5_include_css('include/vendor/flag-icons/css/flag-icons.css');
+	print get_md5_include_css('include/vendor/lipis/flag-icons/css/flag-icons.css');
 	print get_md5_include_css('include/themes/' . $selectedTheme .'/main.css');
 
 	/* Global scripts */

@@ -129,7 +129,9 @@ asort($logfiles);
 $mail_methods = array(
 	CACTI_MAIL_PHP      => __('PHP Mail() Function'),
 	CACTI_MAIL_SENDMAIL => __('Sendmail'),
-	CACTI_MAIL_SMTP     => __('SMTP')
+	CACTI_MAIL_SMTP     => __('SMTP'),
+	CACTI_MAIL_OAUTH2   => __('OAuth 2')
+
 );
 
 if ($config['cacti_server_os'] == 'win32') {
@@ -2232,7 +2234,7 @@ $settings['mail'] = array(
 	),
 	'settings_from_name' => array(
 		'friendly_name' => __('From Name'),
-		'description'   => __('This is the actual name that the Email will appear from.'),
+		'description'   => __('This is the actual name that the Email will appear from. Not used for OAuth2 method.'),
 		'method'        => 'textbox',
 		'max_length'    => 255,
 	),
@@ -2302,6 +2304,94 @@ $settings['mail'] = array(
 		'default' => 'none'
 	),
 	'settings_smtp_timeout' => array(
+		'friendly_name' => __('SMTP Timeout'),
+		'description'   => __('Please enter the SMTP timeout in seconds.'),
+		'method'        => 'textbox',
+		'default'       => '10',
+		'max_length'    => '10',
+		'size'          => '5'
+	),
+	'settings_oauth2_header' => array(
+		'friendly_name' => __('OAuth 2 Options'),
+		'collapsible'   => 'true',
+		'method'        => 'spacer',
+	),
+	'settings_oauth2_provider' => array(
+		'friendly_name' => __('Oauth2 Provider'),
+		'description'   => __('Choose your OAuth2 provider.'),
+		'method'        => 'drop_array',
+		'array'         => array(
+			'google'    => 'Google',
+			'yahoo'     => 'Yahoo',
+			'microsoft' => 'Microsoft',
+			'azure'     => 'Azure',
+		),
+		'default' => 'google'
+	),
+	'settings_oauth2_from_email' => array(
+		'friendly_name' => __('Email Address'),
+		'description'   => __('Email address connected with your oauth.'),
+		'method'        => 'textbox',
+		'max_length'    => 255,
+	),
+	'settings_oauth2_client_id' => array(
+		'friendly_name' => __('OAuth2 Client ID'),
+		'description'   => __('Please enter OAuth Client'),
+		'method'        => 'textbox',
+		'max_length'    => 255,
+	),
+	'settings_oauth2_client_secret' => array(
+		'friendly_name' => __('Oauth2 Client Secret'),
+		'description'   => __('Please enter OAuth secret'),
+		'method'        => 'textbox',
+		'max_length'    => 255,
+	),
+	'settings_oauth2_tenant_id' => array(
+		'friendly_name' => __('Azure Tenant ID'),
+		'description'   => __('Only relevant for Azure'),
+		'method'        => 'textbox',
+		'max_length'    => 255,
+	),
+	'settings_oauth2_redirect_uri' => array(
+		'friendly_name' => __('Oauth2 Redirect URI'),
+		'description'   => __('Please check this URI. It could be accessible from internet.'),
+		'method'        => 'textbox',
+		'max_length'    => 255,
+		'default'       => read_config_option('base_url') . 'oauth2.php'
+	),
+	'settings_oauth2_refresh_token' => array(
+		'friendly_name' => __('Oauth2 refresh token'),
+		'description'   => __('From OAuth2 provider'),
+		'method'        => 'textbox',
+		'max_length'    => 255,
+	),
+	'settings_oauth2_host' => array(
+		'friendly_name' => __('SMTP Hostname'),
+		'description'   => __('This is the hostname/IP of the SMTP Server you will send the Email to. For failover, separate your hosts using a semi-colon.'),
+		'method'        => 'textbox',
+		'default'       => 'localhost',
+		'max_length'    => 255,
+	),
+	'settings_oauth2_port' => array(
+		'friendly_name' => __('SMTP Port'),
+		'description'   => __('The port on the SMTP Server to use.'),
+		'method'        => 'textbox',
+		'max_length'    => 255,
+		'default'       => 25,
+		'size'          => 5
+	),
+	'settings_oauth2_secure' => array(
+		'friendly_name' => __('SMTP Security'),
+		'description'   => __('The encryption method to use for the Email.'),
+		'method'        => 'drop_array',
+		'array'         => array(
+			'none' => __('None'),
+			'ssl'  => __('SSL'),
+			'tls'  => __('TLS')
+		),
+		'default' => 'none'
+	),
+	'settings_oauth2_timeout' => array(
 		'friendly_name' => __('SMTP Timeout'),
 		'description'   => __('Please enter the SMTP timeout in seconds.'),
 		'method'        => 'textbox',
