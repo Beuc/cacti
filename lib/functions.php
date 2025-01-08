@@ -1663,7 +1663,7 @@ function cacti_log($string, $output = false, $environ = 'CMDPHP', $level = '') {
  *
  * @return array
  */
-function tail_file(string $file_name, int $number_of_lines, ?int $message_type = -1, ?string $filter = '', ?int &$page_nr = 1, ?int &$total_rows = 0, ?bool $matches = true, ?bool $expand_text = false, $reverse = false0): array {
+function tail_file(string $file_name, int $number_of_lines, ?int $message_type = -1, ?string $filter = '', ?int &$page_nr = 1, ?int &$total_rows = 0, ?bool $matches = true, ?bool $expand_text = false, $reverse = false): array {
 	if (!file_exists($file_name)) {
 		touch($file_name);
 
@@ -9382,3 +9382,5 @@ function get_keyup_delay() {
 function cacti_unserialize($strobj) {
 	return unserialize($strobj, array('allowed_classes' => false));
 }
+
+
