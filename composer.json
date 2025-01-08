@@ -26,19 +26,53 @@
     "type": "composer-plugin",
     "license": "GPL2",
     "require": {
-        "friendsofphp/php-cs-fixer": "^3.13",
-        "phpmailer/phpmailer": "^6.7"
+        "php": ">=8.0",
+        "ext-mysqlnd": "*",
+        "ext-PDO": "*",
+        "ext-dom": "*",
+        "ext-pdo_mysql": "*",
+        "ext-json": "*",
+        "ext-gmp": "*",
+        "ext-gd": "*",
+        "ext-Phar": "*",
+        "ext-sqlite3": "*",
+        "ext-posix": "*",
+        "ext-pcntl": "*",
+        "ext-intl": "*",
+        "ext-openssl": "*",
+        "ext-sockets": "*",
+        "ext-mbstring": "*",
+        "ext-ldap": "*",
+        "ext-xml": "*",
+        "league/oauth2-google": "^4.0",
+        "hayageek/oauth2-yahoo": "^2.0",
+        "stevenmaguire/oauth2-keycloak": "^5.1",
+        "greew/oauth2-azure-provider": "^2.0",
+        "league/oauth2-client": "^2.7",
+        "stevenmaguire/oauth2-microsoft": "^2.2",
+        "phpmailer/phpmailer": "^6.7.1",
+        "lipis/flag-icons": "^6.11.0"
     },
+	"suggest": {
+        "friendsofphp/php-cs-fixer": "^3.13"
+	},
     "authors": [
         {
             "name": "The Cacti Group",
             "email": "developers@cacti.net"
         }
     ],
+    "funding": [
+        {
+            "url": "https://github.com/sponsors/Cacti",
+            "type": "github"
+        }
+    ],
     "minimum-stability": "dev",
     "prefer-stable": true,
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+		"vendor-dir": "./include/vendor"
     },
     "scripts": {
         "lint": "phplint --no-cache src/",
