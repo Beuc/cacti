@@ -1466,7 +1466,8 @@ $user_auth_realm_filenames = array(
 	'support.php'                => 15,
 	'changelog.php'              => 15,
 	'permission_denied.php'      => -1,
-	'help.php'                   => -1
+	'help.php'                   => -1,
+	'oauth2.php'                 => -1
 );
 
 $hash_type_codes = array(

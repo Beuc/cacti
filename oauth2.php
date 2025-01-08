@@ -1,7 +1,28 @@
 <?php
+/*
+ +-------------------------------------------------------------------------+
+ | Copyright (C) 2004-2024 The Cacti Group                                 |
+ |                                                                         |
+ | This program is free software; you can redistribute it and/or           |
+ | modify it under the terms of the GNU General Public License             |
+ | as published by the Free Software Foundation; either version 2          |
+ | of the License, or (at your option) any later version.                  |
+ |                                                                         |
+ | This program is distributed in the hope that it will be useful,         |
+ | but WITHOUT ANY WARRANTY; without even the implied warranty of          |
+ | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
+ | GNU General Public License for more details.                            |
+ +-------------------------------------------------------------------------+
+ | Cacti: The Complete RRDtool-based Graphing Solution                     |
+ +-------------------------------------------------------------------------+
+ | This code is designed, written, and maintained by the Cacti Group. See  |
+ | about.php and/or the AUTHORS file for specific developer information.   |
+ +-------------------------------------------------------------------------+
+ | http://www.cacti.net/                                                   |
+ +-------------------------------------------------------------------------+
+*/
 
-include(__DIR__ . '/include/global.php');
-require_once(__DIR__ . '/include/vendor/oauth2-client/vendor/autoload.php');
+require('./include/auth.php');
 
 if (read_config_option('settings_how') != 3) {
 	cacti_log('WARNING: Trying get OAuth2 token but different mail method is configured');
@@ -26,9 +47,7 @@ $options = [];
 $providerName = read_config_option('settings_oauth2_provider');
 
 switch ($providerName) {
-
 	case 'google':
-
 		$provider = new League\OAuth2\Client\Provider\Google($params);
 		$options = [
 			'scope' => [
@@ -37,12 +56,10 @@ switch ($providerName) {
 		];
 
 		break;
-
 	case 'yahoo':
 		$provider = new Hayageek\OAuth2\Client\Provider\Yahoo($params);
 
 		break;
-
 	case 'microsoft':
 		$provider = new Stevenmaguire\OAuth2\Client\Provider\Microsoft($params);
 		$options = [
@@ -53,7 +70,6 @@ switch ($providerName) {
 		];
 
 		break;
-
 	case 'azure':
 		$params['tenantId'] = $tenantId;
 
@@ -66,7 +82,6 @@ switch ($providerName) {
 		];
 
 		break;
-
 	default:
 		cacti_log('ERROR: Unknown OAuth2 provider');
 		die('Provider missing');
@@ -98,4 +113,3 @@ if (!isset($_GET['code'])) { // If we don't have an authorization code then get 
 	print '<br/>' . __('Store this token in Settings -> Mail/Reporting/DNS -> Oauth2 refresh token');
 }
 
-?>
