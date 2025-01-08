@@ -1446,28 +1446,36 @@ function get_allowed_graphs($sql_where = '', $sql_order = 'gtg.title_cache', $sq
 
 		$table = dsstats_get_best_partition($sql_order['start_time'], $sql_order['end_time']);
 
-		if ($sql_order['cf'] == 'avg') {
-			$cf = 0;
-		} elseif ($sql_order['cf'] == 'max') {
-			$cf = 1;
+		if ($table != '' && $sql_order['data_source'] != '') {
+			if ($sql_order['cf'] == 'avg') {
+				$cf = 0;
+			} elseif ($sql_order['cf'] == 'max') {
+				$cf = 1;
+			} else {
+				$cf = 0;
+			}
+
+			$sql_order_join = "INNER JOIN
+			(
+				SELECT DISTINCT gti.local_graph_id, ot.*
+				FROM graph_templates_item AS gti
+				INNER JOIN data_template_rrd AS dtr
+				ON gti.task_item_id = dtr.id
+				INNER JOIN $table AS ot
+				ON dtr.local_data_id = ot.local_data_id
+				WHERE ot.rrd_name = " . db_qstr($sql_order['data_source']) . "
+				AND ot.cf = $cf
+			) AS rs
+			ON gl.id = rs.local_graph_id";
+
+			$sql_order = "ORDER BY rs." . $sql_order['measure'] . ' ' . $sql_order['order'];
+		} elseif ($sql_order['data_source'] == '') {
+			cacti_log('WARNING: Graph Order missing Data Source name for ordering.', false, 'AUTH');
+			cacti_log('ORDER, DETAIL: ' . json_encode($sql_order), false, 'AUTH');
 		} else {
-			$cf = $sql_order['cf'];
+			cacti_log('WARNING: Graph Order unable to determine table for ordering.', false, 'AUTH');
+			cacti_log('ORDER DETAIL: ' . json_encode($sql_order), false, 'AUTH');
 		}
-
-		$sql_order_join = "INNER JOIN
-		(
-			SELECT DISTINCT gti.local_graph_id, ot.*
-			FROM graph_templates_item AS gti
-			INNER JOIN data_template_rrd AS dtr
-			ON gti.task_item_id = dtr.id
-			INNER JOIN $table AS ot
-			ON dtr.local_data_id = ot.local_data_id
-			WHERE ot.rrd_name = " . db_qstr($sql_order['data_source']) . "
-			AND ot.cf = $cf
-		) AS rs
-		ON gl.id = rs.local_graph_id";
-
-		$sql_order = "ORDER BY rs." . $sql_order['measure'] . ' ' . $sql_order['order'];
 	} elseif ($sql_order != '') {
 		$sql_order = "ORDER BY $sql_order";
 	}
