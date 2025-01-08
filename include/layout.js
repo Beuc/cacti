@@ -3237,7 +3237,10 @@ function setupPageTimeout() {
 					refreshPage = correctUrlParameters(refreshPage);
 					loadUrl({ url: refreshPage });
 				} else {
-					eval(refreshFunction);
+					var funct = refreshFunction.replace('()', '');
+
+					window[funct]();
+
 					setupPageTimeout();
 				}
 			}
