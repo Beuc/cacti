@@ -5316,12 +5316,6 @@ function mailer(array|string $from, array|string $to, null|array|string $cc = nu
 	null|array $headers = array(), bool $html = true, bool $expandIds = false): string {
 	global $cacti_locale, $mail_methods;
 
-	require_once(CACTI_PATH_INCLUDE . '/vendor/phpmailer/src/Exception.php');
-	require_once(CACTI_PATH_INCLUDE . '/vendor/phpmailer/src/PHPMailer.php');
-	require_once(CACTI_PATH_INCLUDE . '/vendor/phpmailer/src/SMTP.php');
-	require_once(CACTI_PATH_INCLUDE . '/vendor/phpmailer/src/OAuthTokenProvider.php');
-	require_once(CACTI_PATH_INCLUDE . '/vendor/phpmailer/src/OAuth.php');
-
 	$start_time = microtime(true);
 
 	$subject = $subject ?? '';
@@ -5342,7 +5336,7 @@ function mailer(array|string $from, array|string $to, null|array|string $cc = nu
 	$langparts = explode('-', $cacti_locale);
 
 	if (file_exists(CACTI_PATH_INCLUDE . '/vendor/phpmailer/language/phpmailer.lang-' . $langparts[0] . '.php')) {
-		$mail->setLanguage($langparts[0], CACTI_PATH_INCLUDE . '/vendor/phpmailer/language/');
+		$mail->setLanguage($langparts[0], CACTI_PATH_INCLUDE . '/vendor/phpmailer/phpmailer/language/');
 	}
 
 	$how = read_config_option('settings_how');
@@ -9382,5 +9376,3 @@ function get_keyup_delay() {
 function cacti_unserialize($strobj) {
 	return unserialize($strobj, array('allowed_classes' => false));
 }
-
-
