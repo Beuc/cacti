@@ -96,13 +96,13 @@ img {
 	vertical-align: middle;
 }
 
-i.fa, i.fas, i.fab, i.far, i.fal {
+i.fa, i.fas, i.fab, i.far, i.fal, i.ti {
 	padding: 0px 3px;
 	font-size: 13px;
 	vertical-align: middle;
 }
 
-.menu_parent i.fa, .menu_parent i.fas, .menu_parent i.fab, .menu_parent i.far, .menu_parent i.fal {
+.menu_parent i.fa, .menu_parent i.fas, .menu_parent i.fab, .menu_parent i.far, .menu_parent i.fal, .menu_parent i.ti {
 	color: snow;
 }
 
@@ -187,7 +187,7 @@ a:hover {
 	color: #fff;
 }
 
-th i.fa {
+th i.fa, th i.ti {
 	margin-top: -5px;
 	position: absolute;
 	right: 3px;
