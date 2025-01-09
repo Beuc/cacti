@@ -727,6 +727,11 @@ label {
 	z-index: 4;
 }
 
+.cactiPageHead #tabs {
+	overflow-x: auto;
+	overflow-y: hidden;
+}
+
 .cactiGraphPageHeadBackdrop {
 	background: transparent url("./images/cacti_logo.svg") no-repeat scroll left 40% / 380px auto;
 	padding-bottom: 0px;
@@ -2092,11 +2097,9 @@ div#gtabs {
 }
 
 .tabs li, .maintabs li {
-	bottom: -1px;
 	float: left;
 	margin: 0 3px 0 0;
 	position: relative;
-	line-height: 14px;
 }
 
 .tabs li.current a, .maintabs li.current a {
@@ -2112,6 +2115,7 @@ div#gtabs {
 .tabs nav, .maintabs nav {
 	padding: 0 0 0 4px;
 	zoom: 1;
+	height: 25px;
 }
 
 .tabs nav:after, .maintabs nav:after {
@@ -2126,6 +2130,7 @@ div#gtabs {
 	list-style: none;
 	margin: 0;
 	padding: 0;
+	display: block;
 }
 
 /* Navigation Area */
