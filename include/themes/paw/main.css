@@ -2084,6 +2084,11 @@ tr th:last-child .checkbox {
 	margin-right: 10px;
 }
 
+.ti {
+	font-size: 1.4em;
+	font-weight: bold;
+}
+
 #nav li a.pic:hover:not(.selected) {
 	background: rgba(224,224,224,1);
 }

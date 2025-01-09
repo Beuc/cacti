@@ -2213,6 +2213,11 @@ tr th:last-child .checkbox {
 	margin-right: 10px;
 }
 
+.ti {
+	font-size: 1.4em;
+	font-weight: bold;
+}
+
 #nav li a.pic:hover, #nav li a.selected {
 	background: -moz-linear-gradient(top, rgba(167,217,134,0.4) 0%, rgba(148,179,107,0.4) 100%);
 	background: -webkit-gradient(left top, left bottom, color-stop(0%, rgba(167,217,134,0.4)), color-stop(100%, rgba(148,179,107,0.2)));

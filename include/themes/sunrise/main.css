@@ -2240,6 +2240,10 @@ tr th:last-child .formCheckboxLabel {
 	margin-right: 10px;
 }
 
+.ti {
+	font-size: 1.4em;
+	font-weight: bold;
+}
 
 /* Navigation Area */
 #nav {
