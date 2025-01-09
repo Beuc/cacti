@@ -1500,6 +1500,7 @@ table.cactiTable {
 
 .settingsFilter {
 	display: table;
+	white-space: nowrap;
 }
 
 .settingsFilter div {
