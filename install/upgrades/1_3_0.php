@@ -119,6 +119,8 @@ function upgrade_to_1_3_0() {
 	$data['columns'][] = array('name' => 'last_updated', 'type' => 'timestamp', 'NULL' => true, 'default' => 'CURRENT_TIMESTAMP');
 	$data['primary'] = 'plugin`,`tag_name';
 	$data['type'] = 'InnoDB';
+	$data['charset'] = 'utf8mb4';
+	$data['collate'] = 'utf8mb4_unicode_ci';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('plugin_available', $data);
 
@@ -139,6 +141,8 @@ function upgrade_to_1_3_0() {
 	$data['primary'] = 'id';
 	$data['keys'][] = array('name' => 'directory', 'columns' => array('plugin'));
 	$data['type'] = 'InnoDB';
+	$data['charset'] = 'utf8mb4';
+	$data['collate'] = 'utf8mb4_unicode_ci';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('plugin_archive', $data);
 
@@ -159,6 +163,8 @@ function upgrade_to_1_3_0() {
 	$data['columns'][] = array('name' => 'time', 'type' => 'timestamp', 'NULL' => false, 'default' => '0000-00-00 00:00:00');
 	$data['primary'] = 'id';
 	$data['type'] = 'InnoDB';
+	$data['charset'] = 'utf8mb4';
+	$data['collate'] = 'utf8mb4_unicode_ci';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('poller_time_stats', $data);
 
@@ -178,6 +184,8 @@ function upgrade_to_1_3_0() {
 	$data['columns'][] = array('name' => 'last_updated', 'type' => 'timestamp', 'NULL' => true, 'default' => 'CURRENT_TIMESTAMP');
 	$data['primary'] = 'host_id`,`dimension`,`time_to_live';
 	$data['type'] = 'InnoDB';
+	$data['charset'] = 'utf8mb4';
+	$data['collate'] = 'utf8mb4_unicode_ci';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('host_value_cache', $data);
 
@@ -186,6 +194,8 @@ function upgrade_to_1_3_0() {
 	$data['columns'][] = array('name' => 'stats_command', 'type' => 'blob', 'NULL' => false, 'default' => '');
 	$data['primary'] = 'local_data_id';
 	$data['type'] = 'InnoDB';
+	$data['charset'] = 'utf8mb4';
+	$data['collate'] = 'utf8mb4_unicode_ci';
 	$data['comment'] = 'Holds the RRDfile Stats Commands';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('data_source_stats_command_cache', $data);
@@ -208,6 +218,8 @@ function upgrade_to_1_3_0() {
 	$data['primary'] = 'template_id`,`rule_type`,`rule_id';
 	$data['keys'][] = array('name' => 'id', 'columns' => array('id'));
 	$data['type'] = 'InnoDB';
+	$data['charset'] = 'utf8mb4';
+	$data['collate'] = 'utf8mb4_unicode_ci';
 	$data['comment'] = 'Holds mappings of Automation Templates to Rules';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('automation_templates_rules', $data);
@@ -386,6 +398,8 @@ function upgrade_to_1_3_0() {
 	$data['primary'] = 'id';
 	$data['keys'][] = array('name' => 'location_branch', 'columns' => array('repo_location','repo_branch'));
 	$data['type'] = 'InnoDB';
+	$data['charset'] = 'utf8mb4';
+	$data['collate'] = 'utf8mb4_unicode_ci';
 	$data['comment'] = 'Holds Repository Locations that hold Packages';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('package_repositories', $data);
@@ -400,6 +414,8 @@ function upgrade_to_1_3_0() {
 	$data['primary'] = 'id';
 	$data['keys'][] = array('name' => 'md5sum', 'columns' => array('md5sum'), 'unique' => true);
 	$data['type'] = 'InnoDB';
+	$data['charset'] = 'utf8mb4';
+	$data['collate'] = 'utf8mb4_unicode_ci';
 	$data['comment'] = 'Hold Trusted Package Public Keys';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('package_public_keys', $data);
@@ -435,6 +451,8 @@ function upgrade_to_1_3_0() {
 	$data['primary'] = 'id';
 	$data['keys'][] = array('name' => 'name', 'columns' => array('name'));
 	$data['type'] = 'InnoDB';
+	$data['charset'] = 'utf8mb4';
+	$data['collate'] = 'utf8mb4_unicode_ci';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('host_template', $data);
 
@@ -459,6 +477,8 @@ function upgrade_to_1_3_0() {
 	$data['keys'][] = array('name' => 'host_template_id', 'columns' => array('host_template_id'));
 	$data['keys'][] = array('name' => 'name', 'columns' => array('name'));
 	$data['type'] = 'InnoDB';
+	$data['charset'] = 'utf8mb4';
+	$data['collate'] = 'utf8mb4_unicode_ci';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('host_template_archive', $data);
 
@@ -477,6 +497,8 @@ function upgrade_to_1_3_0() {
 	$data['columns'][] = array('name' => 'expiry', 'type' => 'timestamp', 'NULL' => false, 'default' => '0000-00-00 00:00:00');
 	$data['primary'] = 'user_id`,`expiry';
 	$data['type'] = 'InnoDB';
+	$data['charset'] = 'utf8mb4';
+	$data['collate'] = 'utf8mb4_unicode_ci';
 	$data['comment'] = 'Table that Contains User Password Reset Hashes';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('user_auth_reset_hashes', $data);
@@ -502,6 +524,8 @@ function upgrade_to_1_3_0() {
 	$data['keys'][] = array('name' => 'source', 'columns' => array('source'));
 	$data['keys'][] = array('name' => 'source_id', 'columns' => array('source_id'));
 	$data['type'] = 'InnoDB';
+	$data['charset'] = 'utf8mb4';
+	$data['collate'] = 'utf8mb4_unicode_ci';
 	$data['comment'] = 'Holds All Cacti Report Output';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('reports_log', $data);
@@ -524,6 +548,8 @@ function upgrade_to_1_3_0() {
 	$data['keys'][] = array('name' => 'source', 'columns' => array('source'));
 	$data['keys'][] = array('name' => 'source_id', 'columns' => array('source_id'));
 	$data['type'] = 'InnoDB';
+	$data['charset'] = 'utf8mb4';
+	$data['collate'] = 'utf8mb4_unicode_ci';
 	$data['comment'] = 'Holds Scheduled Reports';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('reports_queued', $data);
@@ -537,6 +563,7 @@ function upgrade_to_1_3_0() {
 	$data['keys'][] = array('name' => 'poller_id', 'columns' => array('poller_id'));
 	$data['type'] = 'InnoDB';
 	$data['charset'] = 'utf8mb4';
+	$data['collate'] = 'utf8mb4_unicode_ci';
 	$data['comment'] = 'Holds Device Error buffer for Spine';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('host_errors', $data);
@@ -558,6 +585,7 @@ function upgrade_to_1_3_0() {
 	$data['keys'][] = array('name' => 'errored', 'columns' => array('errored'));
 	$data['type'] = 'InnoDB';
 	$data['charset'] = 'utf8mb4';
+	$data['collate'] = 'utf8mb4_unicode_ci';
 	$data['row_format'] = 'Dynamic';
 	db_update_table('data_local', $data);
 
