@@ -1882,6 +1882,14 @@ div#gtabs {
 	display: none;
 }
 
+.maintabs span.ti {
+	font-size: 18px;
+}
+
+.maintabs i.ti {
+	font-size: 18px;
+}
+
 #menu-tab-graphs.maintabs-submenu, .maintabs-submenu-ellipsis a {
 	padding: 5px 5px 5px 0px;
 	color: #fff;
@@ -1999,7 +2007,7 @@ tr th:last-child .checkbox {
 
 #nav li a {
 	display: block;
-	padding: 2px 4px 2px 15px;
+	padding: 2px 4px 2px 5px;
 	background: #ccc;
 	color: rgba(119,119,0,119.9);
 	text-decoration: none;
@@ -2259,14 +2267,10 @@ tr#realtime td:first-child {
 }
 
 .menu_glyph {
-	font-size: 12px;
+	font-size: 18px;
 	width: 20px;
-	vertical-align: 30%;
-	margin-right: 0.3rem;
-}
-
-.menuitem span {
-	vertical-align: 20%;
+	padding-right: 3px;
+	vertical-align: middle;
 }
 
 .ui-autocomplete {

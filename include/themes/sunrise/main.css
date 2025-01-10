@@ -2069,7 +2069,7 @@ div#gtabs {
 
 .usertabs {
 	float: right !important;
-	width: 76px !important;
+	width: 85px !important;
 	overflow: hidden;
 }
 
@@ -2140,6 +2140,14 @@ div#gtabs {
 }
 
 .maintabs-submenu i {
+	font-size: 18px;
+}
+
+.maintabs .lefttab span.ti {
+	font-size: 18px;
+}
+
+.maintabs i.ti {
 	font-size: 18px;
 }
 

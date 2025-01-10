@@ -1194,8 +1194,8 @@ legend {
 	text-align: left;
 	display: block;
 	width: 100%;
-	height: 28px;
-	line-height: 28px;
+	height: 25px;
+	line-height: 25px;
 	font-size: 1em;
 	font-weight: 700;
 	background: rgba(0,0,0,0.9);
@@ -1207,8 +1207,8 @@ legend {
 	padding-left: 3px;
 	text-align: left;
 	display: block;
-	height: 28px;
-	line-height: 28px;
+	height: 25px;
+	line-height: 25px;
 	font-size: 1em;
 	font-weight: 700;
 	background: rgba(0,0,0,0.9);
@@ -1219,8 +1219,8 @@ legend {
 	padding: 0px;
 	display: block;
 	text-align: right;
-	height: 28px;
-	line-height: 28px;
+	height: 25px;
+	line-height: 25px;
 	background: rgba(0,0,0,0.9);
 	white-space: nowrap;
 }
@@ -1534,8 +1534,8 @@ th.sortable {
 	font-size: 11px;
 	font-weight: bold;
 	padding: 0px 2px;
-	height: 28px;
-	line-height: 28px;
+	height: 25px;
+	line-height: 25px;
 }
 
 .tableHeader th.sortable {
@@ -1853,7 +1853,7 @@ div#gtabs {
 
 .usertabs {
 	float: right !important;
-	width: 80px;
+	width: 85px;
 	white-space: nowrap;
 }
 
@@ -1891,6 +1891,14 @@ div#gtabs {
 .maintabs li {
 	bottom: -1px;
 	float: left;
+}
+
+.maintabs .lefttab span.ti {
+	font-size: 18px;
+}
+
+.maintabs i.ti {
+	font-size: 18px;
 }
 
 .maintabs-submenu {

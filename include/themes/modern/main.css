@@ -2128,6 +2128,10 @@ div#gtabs {
 	font-size: 18px;
 }
 
+.maintabs li span {
+	display: inline-block;
+}
+
 div.submenu {
 	display: none;
 	position: absolute;

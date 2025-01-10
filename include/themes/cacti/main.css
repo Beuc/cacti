@@ -1978,7 +1978,7 @@ tr th:last-child .checkbox {
 
 #nav li a {
 	display: block;
-	padding: 2px 4px 2px 15px;
+	padding: 2px 4px 2px 5px;
 	background: #ccc;
 	color: rgba(0,0,0,0.9);
 	text-decoration: none;
@@ -2238,14 +2238,14 @@ tr#realtime td:first-child {
 }
 
 .menu_glyph {
-	font-size: 12px;
-	width: 20px;
-	vertical-align: 30%;
-	margin-right: 0.3rem;
+	font-size: 18px;
+	width: 18px;
+	vertical-align: middle;
+	padding-right: 5px;
 }
 
-.menuitem span {
-	vertical-align: 20%;
+.menu_parent span {
+	padding-left: 3px;
 }
 
 .ui-autocomplete {

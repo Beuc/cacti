@@ -2041,6 +2041,10 @@ div#gtabs {
 	display: none;
 }
 
+.maintabs li span {
+	display: inline-block;
+}
+
 .ellipsis {
 	display: none;
 }
@@ -2219,7 +2223,7 @@ tr th:last-child .checkbox {
 }
 
 .ti {
-	font-size: 1.4em;
+	font-size: 1.25rem;
 	font-weight: bold;
 }
 
