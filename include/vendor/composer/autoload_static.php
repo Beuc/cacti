@@ -19,9 +19,15 @@ class ComposerStaticInit4457df976b6743d4cf060b8bfc645118
         ),
         'P' => 
         array (
+            'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
+            'PhpMqtt\\Client\\' => 15,
             'PHPMailer\\PHPMailer\\' => 20,
+        ),
+        'M' => 
+        array (
+            'MyCLabs\\Enum\\' => 13,
         ),
         'L' => 
         array (
@@ -50,6 +56,10 @@ class ComposerStaticInit4457df976b6743d4cf060b8bfc645118
             0 => __DIR__ . '/..' . '/stevenmaguire/oauth2-keycloak/src',
             1 => __DIR__ . '/..' . '/stevenmaguire/oauth2-microsoft/src',
         ),
+        'Psr\\Log\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/log/src',
+        ),
         'Psr\\Http\\Message\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/http-factory/src',
@@ -59,9 +69,17 @@ class ComposerStaticInit4457df976b6743d4cf060b8bfc645118
         array (
             0 => __DIR__ . '/..' . '/psr/http-client/src',
         ),
+        'PhpMqtt\\Client\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/php-mqtt/client/src',
+        ),
         'PHPMailer\\PHPMailer\\' => 
         array (
             0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
+        ),
+        'MyCLabs\\Enum\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/myclabs/php-enum/src',
         ),
         'League\\OAuth2\\Client\\' => 
         array (
@@ -96,6 +114,7 @@ class ComposerStaticInit4457df976b6743d4cf060b8bfc645118
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'Stringable' => __DIR__ . '/..' . '/myclabs/php-enum/stubs/Stringable.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
