@@ -97,7 +97,6 @@ img {
 }
 
 i.fa, i.fas, i.fab, i.far, i.fal, i.ti {
-	padding: 0px 3px;
 	font-size: 13px;
 	vertical-align: middle;
 }
@@ -2049,6 +2048,10 @@ div#gtabs {
 	display: none;
 }
 
+#nav .menu_parent span {
+	padding-left: 5px;
+}
+
 .submenuoptions {
 	border: 0px solid #155413;
 	background: #161616;
@@ -2223,7 +2226,7 @@ tr th:last-child .checkbox {
 }
 
 .ti {
-	font-size: 1.25rem;
+	font-size: 1.4em;
 	font-weight: bold;
 }
 
@@ -2419,13 +2422,12 @@ tr#realtime td:first-child {
 }
 
 .menu_glyph {
-	font-size: 18px !important;
-	line-height: 18px;
+	font-size: 17px !important;
 	float: middle;
+	display: inline-block;
 	vertical-align: middle;
 	text-align: left;
-	width: 24px;
-	margin-right: 0.3rem;
+	width: 20px !important;
 }
 
 .graphDrillDown {
