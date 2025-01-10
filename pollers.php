@@ -36,7 +36,8 @@ $actions = array(
 );
 
 if ($config['poller_id'] == 1) {
-	$actions += array(POLLER_RESYNC => __('Full Sync'));
+	$actions += array(POLLER_RESYNC   => __('Full Sync'));
+	$actions += array(POLLER_AUTHSYNC => __('Auth Sync'));
 }
 
 $poller_status = array(
@@ -271,8 +272,7 @@ switch (get_request_var('action')) {
 
 		break;
 	case 'ajax_tz':
-		print json_encode(db_fetch_assoc_prepared(
-			'SELECT Name AS label, Name AS `value`
+		print json_encode(db_fetch_assoc_prepared('SELECT Name AS label, Name AS `value`
 			FROM mysql.time_zone_name
 			WHERE Name LIKE ?
 			ORDER BY Name
@@ -442,8 +442,7 @@ function poller_check_duplicate_poller_id($poller_id, $hostname, $column) {
 		$sql_where = '';
 	}
 
-	$duplicate = db_fetch_cell_prepared(
-		"SELECT id
+	$duplicate = db_fetch_cell_prepared("SELECT id
 		FROM poller
 		WHERE id != ?
 		$sql_where",
@@ -461,8 +460,7 @@ function poller_host_duplicate($poller_id, $host) {
 	if ($host == 'localhost') {
 		return true;
 	} else {
-		return db_fetch_cell_prepared(
-			'SELECT COUNT(*)
+		return db_fetch_cell_prepared('SELECT COUNT(*)
 			FROM poller
 			WHERE dbhost LIKE ?
 			AND id != ?',
@@ -501,8 +499,14 @@ function form_actions() {
 				db_execute('UPDATE poller SET disabled="" WHERE ' . array_to_sql_or($selected_items, 'id'));
 
 				cacti_log('NOTE: The poller(s) with the id(s): ' . implode(',', $selected_items) . ' enabled by user ' . $_SESSION[SESS_USER_ID], false, 'WEBUI');
-			} elseif (get_request_var('drp_action') == POLLER_RESYNC) { // full sync
+			} elseif (get_request_var('drp_action') == POLLER_RESYNC || get_request_var('drp_action') == POLLER_AUTHSYNC) { // full or auth sync
 				cacti_session_close();
+
+				if (get_request_var('drp_action') == POLLER_RESYNC) {
+					$class = 'all';
+				} else {
+					$class = 'auth';
+				}
 
 				$success = array();
 				$failed  = array();
@@ -516,8 +520,7 @@ function form_actions() {
 
 					$ids[]   = $item;
 
-					$poller = db_fetch_row_prepared(
-						'SELECT *
+					$poller = db_fetch_row_prepared('SELECT *
 						FROM poller
 						WHERE id = ?',
 						array($item)
@@ -534,15 +537,16 @@ function form_actions() {
 
 						continue;
 					} else {
-						if (replicate_out($item)) {
+						if (replicate_out($item, $class)) {
 							$success[] = $item;
 
-							db_execute_prepared(
-								'UPDATE poller
-								SET last_sync = NOW()
-								WHERE id = ?',
-								array($item)
-							);
+							if ($class == 'all') {
+								db_execute_prepared('UPDATE poller
+									SET last_sync = NOW()
+									WHERE id = ?',
+									array($item)
+								);
+							}
 						} else {
 							$failed[] = $item;
 						}
@@ -552,14 +556,13 @@ function form_actions() {
 				cacti_session_start();
 
 				if (cacti_sizeof($failed)) {
-					cacti_log('WARNING: Some selected Remote Data Collectors in [' . implode(', ', $ids) . '] failed synchronization by user ' . get_username($_SESSION[SESS_USER_ID]) . ', Successful/Failed[' . cacti_sizeof($success) . '/' . cacti_sizeof($failed) . '].  See log for details.', false, 'WEBUI');
+					cacti_log('WARNING: Some Selected Remote Data Collectors in [' . implode(', ', $ids) . '] failed synchronization by user ' . get_username($_SESSION[SESS_USER_ID]) . ', Successful/Failed[' . cacti_sizeof($success) . '/' . cacti_sizeof($failed) . '].  See log for details.', false, 'WEBUI');
 				} else {
-					cacti_log('NOTE: All selected Remote Data Collectors in [' . implode(', ', $ids) . '] synchronized correctly by user ' . get_username($_SESSION[SESS_USER_ID]), false, 'WEBUI');
+					cacti_log('NOTE: All Selected Remote Data Collectors in [' . implode(', ', $ids) . '] synchronized correctly by user ' . get_username($_SESSION[SESS_USER_ID]), false, 'WEBUI');
 				}
 			} elseif (get_request_var('drp_action') == '5') { // clear statistics
 				foreach ($selected_items as $item) {
-					db_execute_prepared(
-						'UPDATE poller
+					db_execute_prepared('UPDATE poller
 						SET total_time = 0, max_time = 0, min_time = 9999999, avg_time = 0, total_polls = 0
 						WHERE id = ?',
 						array($item)
@@ -623,6 +626,12 @@ function form_actions() {
 					'scont'    => __('Resync Data Collector'),
 					'pcont'    => __('Resync Data Collectors')
 				),
+				POLLER_AUTHSYNC => array(
+					'smessage' => __('Click \'Continue\' to Synchronize the Authentication Data to Remote Data Collector.'),
+					'pmessage' => __('Click \'Continue\' to Synchronize the Authentication Data to Remote Data Collectors.'),
+					'scont'    => __('Resync Auth Data to Collector'),
+					'pcont'    => __('Resync Auth Data to Collectors')
+				),
 				POLLER_CLEAR_STATS => array(
 					'smessage' => __('Click \'Continue\' to Clear Statistics for the following Data Collector.'),
 					'pmessage' => __('Click \'Continue\' to Clear Statistics for following Data Collectors.'),
@@ -644,8 +653,7 @@ function poller_edit() {
 	/* ==================================================== */
 
 	if (!isempty_request_var('id')) {
-		$poller = db_fetch_row_prepared(
-			'SELECT *
+		$poller = db_fetch_row_prepared('SELECT *
 			FROM poller
 			WHERE id = ?',
 			array(get_request_var('id'))

@@ -112,6 +112,7 @@ define('POLLER_DISABLE', 2);
 define('POLLER_ENABLE', 3);
 define('POLLER_RESYNC', 4);
 define('POLLER_CLEAR_STATS', 5);
+define('POLLER_AUTHSYNC', 6);
 
 /* common user interface actions */
 define('ACTION_ADD', 1);
