@@ -209,18 +209,20 @@ if (empty($_SESSION[SESS_USER_ID])) {
 	exit;
 } else {
 	if (!$cookie_user && empty($_SESSION[SESS_USER_2FA]) && db_column_exists('user_auth', 'tfa_enabled')) {
-		$user_2fa = db_fetch_cell_prepared('SELECT tfa_enabled
-			FROM user_auth
-			WHERE id = ?',
-			array($_SESSION[SESS_USER_ID])
-		);
+		if (read_config_option('secpass_2fa_enabled') == 'on') {
+			$user_2fa = db_fetch_cell_prepared('SELECT tfa_enabled
+				FROM user_auth
+				WHERE id = ?',
+				array($_SESSION[SESS_USER_ID])
+			);
 
-		if (!empty($user_2fa)) {
-			header('Location: ' . CACTI_PATH_URL . '/auth_2fa.php');
+			if (!empty($user_2fa)) {
+				header('Location: ' . CACTI_PATH_URL . '/auth_2fa.php');
 
-			exit;
-		} else {
-			$_SESSION[SESS_USER_2FA] = time();
+				exit;
+			} else {
+				$_SESSION[SESS_USER_2FA] = time();
+			}
 		}
 	}
 
