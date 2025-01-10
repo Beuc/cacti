@@ -52,12 +52,13 @@ this OS version makes PHP 8.1+ available via a DNF Stream.
 
 However, if you wish to run Cacti 1.3.x on the RHEL/CentOS 7 distribution you may
 be able to do so if you use the REMI distributions of PHP.  You will also in this case
-have to build RRDtool 1.8+ from source, which is straightforward.
+have to build RRDtool 1.9.1+ from source, which is straightforward on any modern
+Linux OS such as Rocky Linux 9.x.
 
-If you wish to hover over graphs, you will need RRDtool 1.9.1+.  Though as of 
-January 10, 2025, it has not been released.  So, you may need to run the develop
-version until it's released.  Upon release, depending on Tobi's discretion, the
-release may be 2.0 or some other version.  So, keep your eye on Github.
+If you wish to take advantag of dynamic hover over Graphs, you will need RRDtool 1.9.1+.
+However, as of January 10, 2025, it has not been released.  So, you will likely need 
+to run the develop version until it's released.  Upon release, depending on Tobi's 
+discretion, the release may be 2.0 or some other version.  So, keep your eye on Github.
 
 Due to the recent oauth2 Email feature enhancement in the develop branch, we were
 forced to increase the minimum PHP version for Cacti 1.3+ from PHP 8.0 to 8.1.  
