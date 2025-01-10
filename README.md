@@ -47,8 +47,9 @@ to install those dependencies.
 | Net-SNMP   | 5.5+         | 5.8+        |
 
 For Cacti 1.2.x, it is reasonable to run with RHEL/CentOS 7 or equivalent.  However,
-for Cacti 1.3.x, it would be better to run on RHEL/CentOS/Rocky 9 or equivalent as
-this OS version makes PHP 8.1+ available via a DNF Stream.
+for Cacti 1.3.x, it would be better to run on RHEL 9 +, CentOS Stream 9+, or Rocky 9+ 
+or equivalent as these OS versions makes PHP 8.1+ available via a DNF Stream.  Of course
+Ubuntu/Debian is also well supported.
 
 However, if you wish to run Cacti 1.3.x on the RHEL/CentOS 7 distribution you may
 be able to do so if you use the REMI distributions of PHP.  You will also in this case
@@ -61,9 +62,9 @@ to run the develop version until it's released.  Upon release, depending on Tobi
 discretion, the release may be 2.0 or some other version.  So, keep your eye on Github.
 
 Due to the recent oauth2 Email feature enhancement in the develop branch, we were
-forced to increase the minimum PHP version for Cacti 1.3+ from PHP 8.0 to 8.1.  
-So, keep this in mind if you are planning to upgrade and don't already have 
-PHP 8.2+ installed and operations.
+forced to increase the minimum PHP version for Cacti 1.3+ from PHP 8.0 to 8.1. So, keep 
+this in mind if you are planning to upgrade and don't already have PHP 8.2+ installed 
+and operations.
 
 In the sections below, you can find some important first steps before installing
 either the Cacti 1.2.x version of the pending Cacti 1.3.x version.  Good luck
