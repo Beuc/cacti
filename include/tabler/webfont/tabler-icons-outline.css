@@ -1,12 +1,12 @@
 /*!
- * Tabler Icons 3.26.0 by tabler - https://tabler.io
+ * Tabler Icons 3.28.1 by tabler - https://tabler.io
  * License - https://github.com/tabler/tabler-icons/blob/master/LICENSE
  */
 @font-face {
   font-family: "tabler-icons-outline";
   font-style: normal;
   font-weight: 400;
-  src: url("./fonts/tabler-icons-outline.woff2?v3.26.0") format("woff2"), url("./fonts/tabler-icons-outline.woff?") format("woff"), url("./fonts/tabler-icons-outline.ttf?v3.26.0") format("truetype");
+  src: url("./fonts/tabler-icons-outline.woff2?v3.28.1") format("woff2"), url("./fonts/tabler-icons-outline.woff?") format("woff"), url("./fonts/tabler-icons-outline.ttf?v3.28.1") format("truetype");
 }
 .ti {
   font-family: "tabler-icons-outline" !important;
@@ -8937,6 +8937,10 @@
   content: "\fa27";
 }
 
+.ti-file-text-shield:before {
+  content: "\100f2";
+}
+
 .ti-file-text-spark:before {
   content: "\ffb8";
 }
@@ -9967,6 +9971,10 @@
 
 .ti-hand-click:before {
   content: "\ef4f";
+}
+
+.ti-hand-click-off:before {
+  content: "\100f1";
 }
 
 .ti-hand-finger:before {
@@ -15659,6 +15667,10 @@
 
 .ti-replace-off:before {
   content: "\f422";
+}
+
+.ti-replace-user:before {
+  content: "\100f0";
 }
 
 .ti-report:before {

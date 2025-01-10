@@ -1,12 +1,12 @@
 /*!
- * Tabler Icons 3.26.0 by tabler - https://tabler.io
+ * Tabler Icons 3.28.1 by tabler - https://tabler.io
  * License - https://github.com/tabler/tabler-icons/blob/master/LICENSE
  */
 @font-face {
   font-family: "tabler-icons-filled";
   font-style: normal;
   font-weight: 400;
-  src: url("./fonts/tabler-icons-filled.woff2?v3.26.0") format("woff2"), url("./fonts/tabler-icons-filled.woff?") format("woff"), url("./fonts/tabler-icons-filled.ttf?v3.26.0") format("truetype");
+  src: url("./fonts/tabler-icons-filled.woff2?v3.28.1") format("woff2"), url("./fonts/tabler-icons-filled.woff?") format("woff"), url("./fonts/tabler-icons-filled.ttf?v3.28.1") format("truetype");
 }
 .ti {
   font-family: "tabler-icons-filled" !important;
@@ -37,8 +37,16 @@
   content: "\f6ec";
 }
 
+.ti-aerial-lift:before {
+  content: "\10101";
+}
+
 .ti-affiliate:before {
   content: "\f6ed";
+}
+
+.ti-air-balloon:before {
+  content: "\10100";
 }
 
 .ti-alarm:before {
@@ -159,6 +167,30 @@
 
 .ti-arrow-autofit-content:before {
   content: "\f6f2";
+}
+
+.ti-arrow-autofit-down:before {
+  content: "\10113";
+}
+
+.ti-arrow-autofit-height:before {
+  content: "\10112";
+}
+
+.ti-arrow-autofit-left:before {
+  content: "\10111";
+}
+
+.ti-arrow-autofit-right:before {
+  content: "\10110";
+}
+
+.ti-arrow-autofit-up:before {
+  content: "\1010f";
+}
+
+.ti-arrow-autofit-width:before {
+  content: "\1010e";
 }
 
 .ti-arrow-badge-down:before {
@@ -813,6 +845,10 @@
   content: "\f66a";
 }
 
+.ti-bus:before {
+  content: "\100ff";
+}
+
 .ti-butterfly:before {
   content: "\10016";
 }
@@ -877,6 +913,10 @@
   content: "\1001e";
 }
 
+.ti-car-crane:before {
+  content: "\100fe";
+}
+
 .ti-car-fan:before {
   content: "\1001d";
 }
@@ -887,6 +927,10 @@
 
 .ti-carambola:before {
   content: "\10014";
+}
+
+.ti-caravan:before {
+  content: "\100fd";
 }
 
 .ti-cardboards:before {
@@ -1377,6 +1421,14 @@
   content: "\f673";
 }
 
+.ti-cloud-computing:before {
+  content: "\1010d";
+}
+
+.ti-cloud-data-connection:before {
+  content: "\1010c";
+}
+
 .ti-clover:before {
   content: "\10013";
 }
@@ -1673,6 +1725,10 @@
   content: "\1003c";
 }
 
+.ti-engine:before {
+  content: "\100fc";
+}
+
 .ti-exclamation-circle:before {
   content: "\ff62";
 }
@@ -1693,6 +1749,10 @@
   content: "\10011";
 }
 
+.ti-ferry:before {
+  content: "\100fb";
+}
+
 .ti-file:before {
   content: "\f747";
 }
@@ -1707,6 +1767,10 @@
 
 .ti-filters:before {
   content: "\100c7";
+}
+
+.ti-fish-bone:before {
+  content: "\1010b";
 }
 
 .ti-flag:before {
@@ -1767,6 +1831,10 @@
 
 .ti-garden-cart:before {
   content: "\100c3";
+}
+
+.ti-gas-station:before {
+  content: "\100fa";
 }
 
 .ti-gauge:before {
@@ -1835,6 +1903,10 @@
 
 .ti-heart:before {
   content: "\f67c";
+}
+
+.ti-helicopter:before {
+  content: "\100f9";
 }
 
 .ti-helicopter-landing:before {
@@ -2441,6 +2513,10 @@
   content: "\f684";
 }
 
+.ti-motorbike:before {
+  content: "\100f8";
+}
+
 .ti-mountain:before {
   content: "\1000a";
 }
@@ -2527,6 +2603,10 @@
 
 .ti-picture-in-picture-top:before {
   content: "\fec2";
+}
+
+.ti-pig:before {
+  content: "\1010a";
 }
 
 .ti-pill:before {
@@ -2709,6 +2789,10 @@
   content: "\f69c";
 }
 
+.ti-rollercoaster:before {
+  content: "\100f7";
+}
+
 .ti-rosette:before {
   content: "\f69d";
 }
@@ -2803,6 +2887,14 @@
 
 .ti-spade:before {
   content: "\f6a3";
+}
+
+.ti-speedboat:before {
+  content: "\100f6";
+}
+
+.ti-spider:before {
+  content: "\10109";
 }
 
 .ti-square:before {
@@ -3313,8 +3405,28 @@
   content: "\f6a9";
 }
 
+.ti-sun-high:before {
+  content: "\10108";
+}
+
+.ti-sun-low:before {
+  content: "\10107";
+}
+
 .ti-sunglasses:before {
   content: "\fec8";
+}
+
+.ti-sunrise:before {
+  content: "\10106";
+}
+
+.ti-sunset:before {
+  content: "\10104";
+}
+
+.ti-sunset-2:before {
+  content: "\10105";
 }
 
 .ti-swipe-down:before {
@@ -3345,6 +3457,14 @@
   content: "\ff01";
 }
 
+.ti-temperature-minus:before {
+  content: "\10103";
+}
+
+.ti-temperature-plus:before {
+  content: "\10102";
+}
+
 .ti-test-pipe-2:before {
   content: "\ff53";
 }
@@ -3371,6 +3491,10 @@
 
 .ti-toggle-right:before {
   content: "\febf";
+}
+
+.ti-train:before {
+  content: "\100f5";
 }
 
 .ti-transform:before {
@@ -3413,8 +3537,16 @@
   content: "\fb42";
 }
 
+.ti-trolley:before {
+  content: "\100f4";
+}
+
 .ti-trophy:before {
   content: "\f6af";
+}
+
+.ti-truck:before {
+  content: "\100f3";
 }
 
 .ti-umbrella:before {
