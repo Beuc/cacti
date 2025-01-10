@@ -202,10 +202,6 @@ if (CACTI_LANGUAGE_HANDLER != CACTI_LANGUAGE_HANDLER_DEFAULT) {
 				$i18n[$domain] = load_gettext_motranslator($domain);
 
 				break;
-			case CACTI_LANGUAGE_HANDLER_OSCAROTERO:
-				$i18n[$domain] = load_gettext_oscarotero($domain);
-
-				break;
 		}
 
 		if (empty($i18n[$domain])) {
@@ -301,20 +297,6 @@ function get_src_language_files($i18n_handler) {
 			 */
 			'files' => array('autoload.php'),
 		);
-	}
-
-	if (version_compare(PHP_VERSION, '8.0', '<=')) {
-		if (empty($i18n_handler) || $i18n_handler === CACTI_LANGUAGE_HANDLER_OSCAROTERO) {
-			array_unshift($i18n_providers, array(
-				'handler' => CACTI_LANGUAGE_HANDLER_OSCAROTERO,
-				'paths'   => array(
-					CACTI_PATH_INCLUDE . '/vendor/gettext/src/',
-					CACTI_PATH_INCLUDE . '/vendor/cldr-to-gettext-plural-rules/src/',
-				),
-				'files'   => array( 'autoloader.php' ),
-				'all'     => true,
-			));
-		}
 	}
 
 	$i18n_handler_text = ($i18n_handler === null) ? 'null' : $i18n_handler;
@@ -593,7 +575,6 @@ function __gettext(?string $text, string $domain = 'cacti') {
 				$translated = $i18n[$domain]->translate($text);
 
 				break;
-			case CACTI_LANGUAGE_HANDLER_OSCAROTERO:
 			case CACTI_LANGUAGE_HANDLER_MOTRANSLATOR:
 				$translated = $i18n[$domain]->gettext($text);
 

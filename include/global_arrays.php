@@ -2039,18 +2039,18 @@ $i18n_months = array(
 );
 
 $i18n_months_short = array(
-	'Jan'	=> __x('A short textual representation of a month, three letters', 'Jan'),
-	'Feb'	=> __x('A short textual representation of a month, three letters', 'Feb'),
-	'Mar'	=> __x('A short textual representation of a month, three letters', 'Mar'),
-	'Arp'	=> __x('A short textual representation of a month, three letters', 'Apr'),
-	'May'	=> __x('A short textual representation of a month, three letters', 'May'),
-	'Jun'	=> __x('A short textual representation of a month, three letters', 'Jun'),
-	'Jul'	=> __x('A short textual representation of a month, three letters', 'Jul'),
-	'Aug'	=> __x('A short textual representation of a month, three letters', 'Aug'),
-	'Sep'	=> __x('A short textual representation of a month, three letters', 'Sep'),
-	'Oct'	=> __x('A short textual representation of a month, three letters', 'Oct'),
-	'Nov'	=> __x('A short textual representation of a month, three letters', 'Nov'),
-	'Dec'	=> __x('A short textual representation of a month, three letters', 'Dec'),
+	'Jan' => __x('A short textual representation of a month, three letters', 'Jan'),
+	'Feb' => __x('A short textual representation of a month, three letters', 'Feb'),
+	'Mar' => __x('A short textual representation of a month, three letters', 'Mar'),
+	'Arp' => __x('A short textual representation of a month, three letters', 'Apr'),
+	'May' => __x('A short textual representation of a month, three letters', 'May'),
+	'Jun' => __x('A short textual representation of a month, three letters', 'Jun'),
+	'Jul' => __x('A short textual representation of a month, three letters', 'Jul'),
+	'Aug' => __x('A short textual representation of a month, three letters', 'Aug'),
+	'Sep' => __x('A short textual representation of a month, three letters', 'Sep'),
+	'Oct' => __x('A short textual representation of a month, three letters', 'Oct'),
+	'Nov' => __x('A short textual representation of a month, three letters', 'Nov'),
+	'Dec' => __x('A short textual representation of a month, three letters', 'Dec'),
 );
 
 $i18n_supported_languages = array(
@@ -2061,32 +2061,28 @@ if (is_dir(CACTI_PATH_INCLUDE . '/vendor/phpgettext')) {
 	$i18n_supported_languages[CACTI_LANGUAGE_HANDLER_PHPGETTEXT]  = __('Use the PHP GetText Handler');
 }
 
-if (is_dir(CACTI_PATH_INCLUDE . '/vendor/gettext') && version_compare(PHP_VERSION, '8.0', '<=')) {
-	$i18n_supported_languages[CACTI_LANGUAGE_HANDLER_OSCAROTERO]  = __('Use the Oscarotero GetText Handler');
-}
-
 if (is_dir(CACTI_PATH_INCLUDE . '/vendor/monotranslator')) {
 	$i18n_supported_languages[CACTI_LANGUAGE_HANDLER_MOTRANSLATOR]  = __('Use the MonoTranslator GetText Handler');
 }
 
 $i18n_weekdays = array(
-	'Sunday'	   => __('Sunday'),
-	'Monday'	   => __('Monday'),
-	'Tuesday'	  => __('Tuesday'),
-	'Wednesday'	=> __('Wednesday'),
-	'Thursday'	 => __('Thursday'),
-	'Friday'	   => __('Friday'),
-	'Saturday'	 => __('Saturday')
+	'Sunday'    => __('Sunday'),
+	'Monday'    => __('Monday'),
+	'Tuesday'   => __('Tuesday'),
+	'Wednesday' => __('Wednesday'),
+	'Thursday'  => __('Thursday'),
+	'Friday'    => __('Friday'),
+	'Saturday'  => __('Saturday')
 );
 
 $i18n_weekdays_short = array(
-	'Sun'	=> __x('A textual representation of a day, three letters', 'Sun'),
-	'Mon'	=> __x('A textual representation of a day, three letters', 'Mon'),
-	'Tue'	=> __x('A textual representation of a day, three letters', 'Tue'),
-	'Wed'	=> __x('A textual representation of a day, three letters', 'Wed'),
-	'Thu'	=> __x('A textual representation of a day, three letters', 'Thu'),
-	'Fri'	=> __x('A textual representation of a day, three letters', 'Fri'),
-	'Sat'	=> __x('A textual representation of a day, three letters', 'Sat')
+	'Sun' => __x('A textual representation of a day, three letters', 'Sun'),
+	'Mon' => __x('A textual representation of a day, three letters', 'Mon'),
+	'Tue' => __x('A textual representation of a day, three letters', 'Tue'),
+	'Wed' => __x('A textual representation of a day, three letters', 'Wed'),
+	'Thu' => __x('A textual representation of a day, three letters', 'Thu'),
+	'Fri' => __x('A textual representation of a day, three letters', 'Fri'),
+	'Sat' => __x('A textual representation of a day, three letters', 'Sat')
 );
 
 $i18n_languages = array(
