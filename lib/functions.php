@@ -5335,7 +5335,7 @@ function mailer(array|string $from, array|string $to, null|array|string $cc = nu
 
 	$langparts = explode('-', $cacti_locale);
 
-	if (file_exists(CACTI_PATH_INCLUDE . '/vendor/phpmailer/language/phpmailer.lang-' . $langparts[0] . '.php')) {
+	if (file_exists(CACTI_PATH_INCLUDE . '/vendor/phpmailer/phpmailer/language/phpmailer.lang-' . $langparts[0] . '.php')) {
 		$mail->setLanguage($langparts[0], CACTI_PATH_INCLUDE . '/vendor/phpmailer/phpmailer/language/');
 	}
 
@@ -5850,10 +5850,6 @@ function create_emailtext($e) {
 
 function ping_mail_server($host, $port, $user, $password, $timeout = 10, $secure = 'none') {
 	global $config;
-
-	require_once(CACTI_PATH_INCLUDE . '/vendor/phpmailer/src/Exception.php');
-	require_once(CACTI_PATH_INCLUDE . '/vendor/phpmailer/src/PHPMailer.php');
-	require_once(CACTI_PATH_INCLUDE . '/vendor/phpmailer/src/SMTP.php');
 
 	//Create a new SMTP instance
 	$smtp = new PHPMailer\PHPMailer\SMTP;
