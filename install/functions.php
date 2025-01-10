@@ -40,6 +40,10 @@ function prune_deprecated_files() {
 		'include/html',
 		'include/constants.php',
 		'include/treeview',
+		'include/tabler/eps',
+		'include/tabler/pdf',
+		'include/tabler/png',
+		'include/tabler/svg',
 		'include/js/jquery',
 		'include/js/dygraph-combined.js',
 		'include/js/jquery.sparkline.js',
@@ -189,7 +193,7 @@ function prune_deprecated_files() {
 		if (file_exists($full_path)) {
 			if (is_writable($full_path)) {
 				if (is_dir($full_path)) {
-					install_rmdir_recursive($file, 1);
+					install_rmdir_recursive($file, true);
 				} else {
 					install_unlink($file);
 				}
@@ -286,21 +290,37 @@ function install_create_csrf_secret($file) {
 }
 
 function install_unlink($file) {
-	$full_file = CACTI_PATH_BASE . '/' . $file;
+	if (substr($file, 0, 1) != '/') {
+		$full_file = CACTI_PATH_BASE . '/' . $file;
+	} else {
+		$full_file = $file;
+	}
+
+	if (strpos($full_file, CACTI_BASE_PATH) === false) {
+		log_install_high('file', "Not Unlinking file: $full_file due to it not being in the Cacti base path.");
+	}
 
 	if (file_exists($full_file) && is_writable($full_file)) {
 		log_install_high('file', "Unlinking file: $full_file");
 
-		unlink(CACTI_PATH_BASE . '/' . $file);
+		unlink($full_file);
 	} else {
 		log_install_high('file', "Unlinking file: $full_file failed due to permission errors.");
 	}
 }
 
 function install_rmdir($directory) {
-	if (file_exists(CACTI_PATH_BASE . '/' . $directory) && is_writable(CACTI_PATH_BASE . '/' . $directory)) {
+	if (substr($directory, 0, 1) != '/') {
+		$directory = CACTI_PATH_BASE . '/' . $directory;
+	}
+
+	if (strpos($directory, CACTI_BASE_PATH) === false) {
+		log_install_high('file', "Not Unlinking directory: $directory due to it not being in the Cacti base path.");
+	}
+
+	if (file_exists($directory) && is_writable($directory)) {
 		log_install_high('file', "Unlinking directory: $directory");
-		unlink(CACTI_PATH_BASE . '/' . $directory);
+		rmdir($directory);
 	} else {
 		log_install_high('file', "Unlinking directory: $directory failed due to permission errors.");
 	}
@@ -317,11 +337,19 @@ function install_rmdir($directory) {
  * @return nill       - Nothing is returned
  */
 function install_rmdir_recursive($directory, $delete_parent = null) {
-	$files = glob(CACTI_PATH_BASE . '/' . $directory . '/{,.}[!.,!..]*',GLOB_MARK|GLOB_BRACE);
+	if (substr($directory, 0, 1) != '/') {
+		$directory = CACTI_PATH_BASE . '/' . $directory;
+	}
+
+	if (strpos($directory, CACTI_BASE_PATH) === false) {
+		log_install_high('file', "Not Unlinking directory: $directory due to it not being in the Cacti base path.");
+	}
+
+	$files = glob($directory . '/{,.}[!.,!..]*',GLOB_MARK|GLOB_BRACE);
 
 	foreach ($files as $file) {
 		if (is_dir($file)) {
-			install_rmdir_recursive($file, 1);
+			install_rmdir_recursive($file, true);
 		} else {
 			install_unlink($file);
 		}
