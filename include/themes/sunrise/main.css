@@ -2262,7 +2262,7 @@ tr th:last-child .formCheckboxLabel {
 
 #nav li a {
 	display: block;
-	padding: 2px 4px 2px 9px;
+	padding: 2px 4px 2px 5px;
 	color: #93CEFF;
 	text-decoration: none;
 }
@@ -2526,11 +2526,12 @@ tr#realtime td:first-child {
 }
 
 .menu_glyph {
-	font-size: 12px;
-	vertical-align: 30%;
+	font-size: 15px !important;
+	vertical-align: middle;
 	text-align: left;
-	width: 20px;
-	margin-right: 0.3rem;
+	width: 22px;
+	padding-right: 0px !important;
+	display: inline-block;
 }
 
 .submenu_glyph {

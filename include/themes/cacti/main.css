@@ -2238,10 +2238,12 @@ tr#realtime td:first-child {
 }
 
 .menu_glyph {
-	font-size: 18px;
-	width: 18px;
+	font-size: 18px !important;
 	vertical-align: middle;
-	padding-right: 5px;
+	text-align: left;
+	width: 22px;
+	padding-right: 0px !important;
+	display: inline-block;
 }
 
 .menu_parent span {
