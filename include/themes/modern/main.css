@@ -2283,7 +2283,7 @@ tr th:last-child .checkbox {
 
 .ti {
 	font-size: 1.4em;
-	font-weight: bold;
+	font-weight: normal;
 }
 
 /* Navigation Area */
@@ -2602,8 +2602,9 @@ tr#realtime td:first-child {
 	font-size: 18px;
 	vertical-align: middle;
 	text-align: left;
-	width: 20px;
-	margin-right: 0.3rem;
+	width: 22px;
+	padding-right: 0px !important;
+	display: inline-block;
 }
 
 .menuitem span {
