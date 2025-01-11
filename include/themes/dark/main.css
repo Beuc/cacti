@@ -2423,11 +2423,11 @@ tr#realtime td:first-child {
 
 .menu_glyph {
 	font-size: 17px !important;
-	float: middle;
-	display: inline-block;
 	vertical-align: middle;
 	text-align: left;
-	width: 20px !important;
+	width: 22px;
+	padding-right: 0px !important;
+	display: inline-block;
 }
 
 .graphDrillDown {
