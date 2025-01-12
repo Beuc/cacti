@@ -296,7 +296,7 @@ function install_unlink($file) {
 		$full_file = $file;
 	}
 
-	if (strpos($full_file, CACTI_BASE_PATH) === false) {
+	if (strpos($full_file, CACTI_PATH_BASE) === false) {
 		log_install_high('file', "Not Unlinking file: $full_file due to it not being in the Cacti base path.");
 	}
 
@@ -314,7 +314,7 @@ function install_rmdir($directory) {
 		$directory = CACTI_PATH_BASE . '/' . $directory;
 	}
 
-	if (strpos($directory, CACTI_BASE_PATH) === false) {
+	if (strpos($directory, CACTI_PATH_BASE) === false) {
 		log_install_high('file', "Not Unlinking directory: $directory due to it not being in the Cacti base path.");
 	}
 
@@ -341,7 +341,7 @@ function install_rmdir_recursive($directory, $delete_parent = null) {
 		$directory = CACTI_PATH_BASE . '/' . $directory;
 	}
 
-	if (strpos($directory, CACTI_BASE_PATH) === false) {
+	if (strpos($directory, CACTI_PATH_BASE) === false) {
 		log_install_high('file', "Not Unlinking directory: $directory due to it not being in the Cacti base path.");
 	}
 
