@@ -1107,7 +1107,7 @@ function graph_edit() {
 	if (cacti_sizeof($aggregate_tabs)) {
 		foreach ($aggregate_tabs as $id => $name) {
 			if ($id == 'details' || (!isempty_request_var('id'))) {
-				print "<li class='subTab'><a id='agg_" . $tab_short_name . "' class='tab " . ($id == $current_tab ? "selected'" : "'") .
+				print "<li class='subTab'><a id='agg_" . $id . "' class='tab " . ($id == $current_tab ? "selected'" : "'") .
 					" href='" . html_escape(CACTI_PATH_URL . 'aggregate_graphs.php?action=edit&id=' . get_request_var('id') . "&tab=$id") .
 					"'>" . html_escape($name) . '</a></li>';
 			}
