@@ -1295,7 +1295,7 @@ function process_sanitize_draw_filter($render = false) {
 	$filters = create_filter();
 
 	/* create the page filter */
-	$pageFilter = new CactiTableFilter(__('Data Templates'), 'data_templates.php', 'form_data', 'sess_dt', 'data_templates.php?action=edit');
+	$pageFilter = new CactiTableFilter(__('Data Templates'), 'data_templates.php', 'form_data', 'sess_dt', 'data_templates.php?action=template_edit');
 
 	$pageFilter->rows_label = __('Data Templates');
 	$pageFilter->set_filter_array($filters);

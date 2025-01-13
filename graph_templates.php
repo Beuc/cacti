@@ -1977,7 +1977,7 @@ function process_sanitize_draw_filter($render = false) {
 	$filters = create_filter();
 
 	/* create the page filter */
-	$pageFilter = new CactiTableFilter(__('Graph Templates'), 'graph_templates.php', 'form_graphs', 'sess_gt', 'graph_templates.php?action=edit');
+	$pageFilter = new CactiTableFilter(__('Graph Templates'), 'graph_templates.php', 'form_graphs', 'sess_gt', 'graph_templates.php?action=template_edit');
 
 	$pageFilter->rows_label = __('Graph Templates');
 	$pageFilter->set_filter_array($filters);

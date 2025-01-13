@@ -774,7 +774,7 @@ function color_template() {
 	include_once(CACTI_PATH_LIBRARY . '/api_aggregate.php');
 
 	/* create the page filter */
-	$pageFilter = new CactiTableFilter(__('Color Templates'), 'color_templates.php', 'form_template', 'sess_ct', 'color_templates.php?action=edit');
+	$pageFilter = new CactiTableFilter(__('Color Templates'), 'color_templates.php', 'form_template', 'sess_ct', 'color_templates.php?action=template_edit');
 
 	$pageFilter->rows_label = __('Templates');
 	$pageFilter->has_graphs = true;
