@@ -5352,8 +5352,8 @@ function mailer(array|string $from, array|string $to, null|array|string $cc = nu
 		$mail->isSendmail();
 	} elseif ($how == 2) {
 		$mail->isSMTP();
-		$mail->Host     = read_config_option('settings_smtp_host');
-		$mail->Port     = read_config_option('settings_smtp_port');
+		$mail->Host = read_config_option('settings_smtp_host');
+		$mail->Port = read_config_option('settings_smtp_port');
 
 		if (read_config_option('settings_smtp_username') != '') {
 			$mail->SMTPAuth = true;
@@ -5395,11 +5395,10 @@ function mailer(array|string $from, array|string $to, null|array|string $cc = nu
 		$mail->SMTPAuth = true;
 		$mail->AuthType = 'XOAUTH2';
 
-		$email = read_config_option('settings_oauth2_from_email');
-		$clientId = read_config_option('settings_oauth2_client_id');
+		$email        = read_config_option('settings_oauth2_from_email');
+		$clientId     = read_config_option('settings_oauth2_client_id');
 		$clientSecret = read_config_option('settings_oauth2_client_secret');
-		$tenantId = read_config_option('settings_oauth2_tenant_id');
-
+		$tenantId     = read_config_option('settings_oauth2_tenant_id');
 		$refreshToken = read_config_option('settings_oauth2_refresh_token');
 
 		switch (read_config_option('settings_oauth2_provider')) {
