@@ -4984,9 +4984,9 @@ function sanitize_cdef($cdef) {
  *
  * @param  null|string $items   An array of serialized items from a post
  *
- * @return array               The sanitized selected items array
+ * @return array|bool           The sanitized selected items array
  */
-function sanitize_unserialize_selected_items(?string $items): array {
+function sanitize_unserialize_selected_items(?string $items): array|bool {
 	$return_items = false;
 
 	if (!empty($items) && is_string($items)) {
