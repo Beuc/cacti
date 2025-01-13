@@ -397,6 +397,10 @@ function api_scheduler_augment_save($save, $post) {
 function api_scheduler_is_time_to_start($schedule, $table = 'automation_networks') {
 	$now   = time();
 
+	if (empty($schedule['next_start'])) {
+		$schedule['next_start'] = date('Y-m-d H:i:s', strtotime($schedule['start_at']) + 86400);
+	}
+
 	switch($schedule['sched_type']) {
 		case SCHEDULE_MANUAL:
 			return false;
