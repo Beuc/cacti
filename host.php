@@ -483,15 +483,17 @@ function form_actions() {
 					'pcont'    => __('Delete Devices'),
 					'extra'    => array(
 						'delete_type' => array(
-							'method' => 'radio_button',
-							'options' => array(
+							'method' => 'radio',
+							'title' => __('Delete Method'),
+							'default' => 2,
+							'items' => array(
 								'1' => array(
-									'default' => 2,
-									'title' => __('Leave all Graph(s) and Data Source(s) untouched.  Data Source(s) will be disabled however.')
+									'radio_value' => 2,
+									'radio_caption' => __('Leave all Graph(s) and Data Source(s) untouched.  Data Source(s) will be disabled.')
 								),
 								'2' => array(
-									'default' => 2,
-									'title' => __('Delete all associated Graph(s) and Data Source(s).')
+									'radio_value' => 2,
+									'radio_caption' => __('Delete all associated Graph(s) and Data Source(s).')
 								)
 							)
 						)

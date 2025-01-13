@@ -1314,6 +1314,24 @@ legend {
 	text-align: left;
 }
 
+.confirm_actions .formColumnLeft {
+	min-width: 10%;
+	max-width: 45%;
+	width: initial;
+	display: table-cell;
+	float: initial;
+	vertical-align: middle;
+}
+
+.confirm_actions .formColumnRight {
+	display: table-cell;
+	float: initial;
+}
+
+.confirm_actions label {
+	white-space: wrap;
+}
+
 .formRadio {
 	line-height: 22px;
 }
