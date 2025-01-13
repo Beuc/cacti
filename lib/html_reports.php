@@ -1530,6 +1530,10 @@ function reports_edit() {
 
 			html_start_box(__esc('Details %s', $header_label), '100%', true, '3', 'center', '');
 
+			if (!db_table_exists('plugin_notification_lists')) {
+				unset($fields_reports_edit['notify_list']);
+			}
+
 			draw_edit_form(array(
 				'config' => array('no_form_tag' => true),
 				'fields' => inject_form_variables($fields_reports_edit, $report)
