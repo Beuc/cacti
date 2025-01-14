@@ -1021,8 +1021,8 @@ function checkPassword(url) {
 	}
 
 	if ($('#password').val().length == 0) {
-		$('#pass').remove();
-		$('#passconfirm').remove();
+		$('#pass').empty();
+		$('#passconfirm').empty();
 	} else if ($('#password').val().length < passwordMinChars) {
 		checkPasswordFinalize(options, passwordTooShort);
 	} else {
@@ -1043,8 +1043,7 @@ function checkPasswordFinalize(options, data) {
 		data = passwordValid;
 	}
 
-	$('#pass').remove();
-	$('#password').after('<div id="pass" class="fa ' + className + '" title="' + data + '"></div>');
+	$('#pass').replaceWith('<div id="pass" style="float:left" class="fa ' + className + '" title="' + data + '"></div>');
 	$('#password').tooltip();
 	checkPasswordConfirm();
 }
@@ -1052,14 +1051,12 @@ function checkPasswordFinalize(options, data) {
 function checkPasswordConfirm() {
 	if ($('#password_confirm').val().length > 0) {
 		if ($('#password').val() != $('#password_confirm').val()) {
-			$('#passconfirm').remove();
-			$('#password_confirm').after('<div id="passconfirm" class="badpassword ti ti-x" title="' + passwordNotMatch + '"></div>');
+			$('#passconfirm').replaceWith('<div id="passconfirm" style="float:left" class="badpassword ti ti-x" title="' + passwordNotMatch + '"></div>');
 		} else {
-			$('#passconfirm').remove();
-			$('#password_confirm').after('<div id="passconfirm" class="goodpassword ti ti-check" title="' + passwordMatch + '"></div>');
+			$('#passconfirm').replaceWith('<div id="passconfirm" style="float:left" class="goodpassword ti ti-check" title="' + passwordMatch + '"></div>');
 		}
 	} else {
-		$('#passconfirm').remove();
+		$('#passconfirm').empty();
 	}
 }
 
