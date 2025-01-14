@@ -44,11 +44,11 @@ array_shift($parms);
 
 if (cacti_sizeof($parms)) {
 	/* setup defaults */
-	$description   = '';
-	$ip            = '';
-	$host_id       = '';
-	$id_ids        = false;
+	$description = '';
+	$ip          = '';
+	$host_id     = '';
 
+	$ids_id      = array();
 	$quietMode   = false;
 	$confirm     = false;
 	$quiet       = false;
@@ -70,7 +70,7 @@ if (cacti_sizeof($parms)) {
 
 				break;
 			case '--confirm':
-				$confirm=true;
+				$confirm = true;
 
 				break;
 			case '--description':
@@ -80,44 +80,42 @@ if (cacti_sizeof($parms)) {
 			case '--ip':
 				$ip = trim($value);
 
-			break;
-		case '--id':
-			$id = trim($value);
+				break;
+			case '--id':
+				$id = trim($value);
 
-			if (strpos($id, ',') !== false) {
-				$ids_id = explode(',', $id);
-			} else {
-				$ids_id = array($id);
-			}
+				if (strpos($id, ',') !== false) {
+					$ids_id = explode(',', $id);
+				} else {
+					$ids_id = array($id);
+				}
 
-			break;
-		case '--version':
-		case '-V':
-		case '-v':
-			display_version();
+				break;
+			case '--version':
+			case '-V':
+			case '-v':
+				display_version();
 
-			exit(0);
-		case '--help':
-		case '-H':
-		case '-h':
-			display_help();
+				exit(0);
+			case '--help':
+			case '-H':
+			case '-h':
+				display_help();
 
-			exit(0);
-		case '--quiet':
-			$quietMode = true;
+				exit(0);
+			case '--quiet':
+				$quietMode = true;
 
-			break;
-		default:
-			print "ERROR: Invalid Argument: ($arg)" . PHP_EOL;
-			display_help();
+				break;
+			default:
+				print "ERROR: Invalid Argument: ($arg)" . PHP_EOL;
+				display_help();
 
-			exit(1);
+				exit(1);
 		}
 	}
 
 	/* process the various lists into validation arrays */
-	$hosts     = getHostsByDescription();
-	$addresses = getAddresses();
 	$ids_host  = array();
 	$ids_ip    = array();
 
@@ -127,7 +125,14 @@ if (cacti_sizeof($parms)) {
 			print "Searching hosts by description..." . PHP_EOL;
 		}
 
-		$ids_host = preg_array_key_match("/$description/", $hosts);
+		$ids_host = array_rekey(
+			db_fetch_assoc_prepared('SELECT id
+				FROM host
+				WHERE description RLIKE ?
+				OR description LIKE ?',
+				array($description, '%' . $description . '%')),
+			'id', 'id'
+		);
 
 		if (cacti_sizeof($ids_host) == 0) {
 			print "ERROR: Unable to find host in the database matching description ($description)" . PHP_EOL;
@@ -140,7 +145,14 @@ if (cacti_sizeof($parms)) {
 			print "Searching hosts by IP..." . PHP_EOL;
 		}
 
-		$ids_ip = preg_array_key_match("/$ip/", $addresses);
+		$ids_ip = array_rekey(
+			db_fetch_assoc_prepared('SELECT id
+				FROM host
+				WHERE hostname RLIKE ?
+				OR hostname LIKE ?',
+				array($ip, '%' . $ip . '%')),
+			'id', 'id'
+		);
 
 		if (cacti_sizeof($ids_ip) == 0) {
 			print "ERROR: Unable to find host in the database matching IP ($ip)" . PHP_EOL;
@@ -148,7 +160,7 @@ if (cacti_sizeof($parms)) {
 		}
 	}
 
-	if (cacti_sizeof($ids_host) == 0 && cacti_sizeof($ids_ip) == 0 && cacti_sizeof($ids_id) == 0) {
+	if (cacti_sizeof($ids_host) == 0 && cacti_sizeof($ids_ip) == 0) {
 		print "ERROR: No matches found, was IP or Description set properly?" . PHP_EOL;
 		exit(1);
 	}
@@ -156,7 +168,7 @@ if (cacti_sizeof($parms)) {
 	$ids = array_merge($ids_host, $ids_ip);
 	$ids = array_unique($ids, SORT_NUMERIC);
 
-	if ($ids_id !== false) {
+	if (cacti_sizeof($ids_id)) {
 		$ids = array_merge($ids, $ids_id);
 		$ids = array_unique($ids, SORT_NUMERIC);
 	}
@@ -166,28 +178,27 @@ if (cacti_sizeof($parms)) {
 		print "Finding devices with ids $ids_sql" . PHP_EOL;
 	}
 
-	$hosts = db_fetch_assoc("SELECT id, hostname, description
-		FROM host
-		WHERE id IN ($ids_sql)
-		ORDER BY description");
-
 	$ids_found = array();
 
 	if (!$quiet) {
 		printf('%8.s | %30.s | %30.s' . PHP_EOL, 'id', 'host', 'description');
 
-		foreach ($hosts as $host) {
-			printf('%8.d | %30.s | %30.s' . PHP_EOL,$host['id'],$host['hostname'],$host['description']);
-			$ids_found[] = $host['id'];
+		foreach ($ids as $id) {
+			$host = db_fetch_row_prepared('SELECT id, hostname, description FROM host WHERE id = ?', array($id));
+
+			if (cacti_sizeof($host)) {
+				printf('%8.d | %30.s | %30.s' . PHP_EOL, $id, $host['hostname'], $host['description']);
+
+				$ids_found[] = $id;
+			}
 		}
-
-
 
 		print PHP_EOL;
 	}
 
 	if ($confirm) {
 		$ids_confirm = implode(', ', $ids_found);
+
 		if (!$quiet) {
 			print "Removing devices with ids: $ids_confirm" . PHP_EOL;
 		}
