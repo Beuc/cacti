@@ -997,6 +997,8 @@ function purge_data_source_statistics() {
 		db_execute('TRUNCATE TABLE ' . $table);
 	}
 
+	auth_row_cache_purge(0, 'graphs');
+
 	if (isset($_SESSION[SESS_USER_ID])) {
 		cacti_log('NOTE: Cacti DS Stats purged by user ' . get_username($_SESSION[SESS_USER_ID]), false, 'WEBUI');
 	} else {

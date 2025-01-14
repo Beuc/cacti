@@ -3133,6 +3133,40 @@ function auth_valid_user($user_id) {
 }
 
 /**
+ * auth_row_cache_purge - Purge one or more row Cache classes
+ *
+ * @param  int     The userid to purge for
+ * @param  string  The class of data to purge
+ *
+ * @return null
+ */
+function auth_row_cache_purge($user_id, $class = 'all') {
+	if ($user_id > 0) {
+		if ($class == 'all') {
+			db_execute_prepared('DELETE FROM
+				FROM user_auth_row_cache
+				WHERE user_id = ?',
+				array($user_id));
+		} else {
+			db_execute_prepared('DELETE FROM
+				FROM user_auth_row_cache
+				WHERE user_id = ?
+				AND class = ?',
+				array($user_id, $class));
+		}
+	} else {
+		if ($class == 'all') {
+			db_execute('TRUNCATE user_auth_row_cache');
+		} else {
+			db_execute_prepared('DELETE FROM
+				FROM user_auth_row_cache
+				WHERE class = ?',
+				array($class));
+		}
+	}
+}
+
+/**
  * get_total_row_data - returns the total rows based upon a set of criteria
  *
  * This function will hash the $sql, and then search for the total
@@ -3140,16 +3174,11 @@ function auth_valid_user($user_id) {
  * match for that data, it will return the row count in the table
  * otherwise, it will execute the SQL and return the data.
  *
- * @param  (int)    The user id making the request
- * @param  (string) The sql to be executed, either prepared or otherwise
- * @param  (array)  In the case of a prepared statement the
- * @param  (string) The user defined class of data
- * @param  (int)    The timeout for the Class if not controlled by Cacti
- * @param mixed $user_id
- * @param mixed $sql
- * @param mixed $sql_params
- * @param mixed $class
- * @param mixed $timeout
+ * @param  int    The user id making the request
+ * @param  string The sql to be executed, either prepared or otherwise
+ * @param  array  In the case of a prepared statement the
+ * @param  string The user defined class of data
+ * @param  int    The timeout for the Class if not controlled by Cacti
  *
  * @return (array) an array containing a list of hosts
  */
