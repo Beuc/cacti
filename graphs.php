@@ -928,8 +928,7 @@ function item_edit() {
 		kill_session_var('sess_graph_items_dti');
 	}
 
-	$title = db_fetch_cell_prepared(
-		'SELECT title_cache
+	$title = db_fetch_cell_prepared('SELECT title_cache
 		FROM graph_templates_graph
 		WHERE local_graph_id = ?',
 		array(get_request_var('local_graph_id'))
@@ -2222,7 +2221,8 @@ function graph_edit() {
 			}
 			$_SESSION['sess_graph_locked'] = $locked;
 		} elseif (empty($local_graph_template_graph_id)) {
-			$locked                        = false;
+			$locked = false;
+
 			$_SESSION['sess_graph_locked'] = $locked;
 		} elseif (isset($_SESSION['sess_graph_locked'])) {
 			$locked = $_SESSION['sess_graph_locked'];
@@ -2232,6 +2232,7 @@ function graph_edit() {
 			} else {
 				$locked = true;
 			}
+
 			$_SESSION['sess_graph_locked'] = $locked;
 		}
 
@@ -2290,8 +2291,10 @@ function graph_edit() {
 	if (!isempty_request_var('id')) {
 		if (isset($_SESSION['graph_debug_mode'])) {
 			$message = __('Turn Off Graph Debug Mode.');
+			$debug   = true;
 		} else {
 			$message = __('Turn On Graph Debug Mode.');
+			$debug   = false;
 		}
 
 		$data_sources = db_fetch_assoc_prepared('SELECT DISTINCT local_data_id
@@ -2300,54 +2303,7 @@ function graph_edit() {
 			ON dtr.id = gti.task_item_id
 			WHERE local_graph_id = ?',
 			array(get_request_var('id')));
-
-		?>
-		<table style='width:100%;'>
-			<tr>
-				<td class='textInfo left' style='vertical-align:top'>
-					<?php print html_escape(get_graph_title(get_request_var('id')));?>
-				</td>
-				<td class='textInfo right' style='vertical-align:top;'>
-					<span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('graphs.php?action=graph_edit&id=' . (isset_request_var('id') ? get_request_var('id') : '0') . '&debug=' . (isset($_SESSION['graph_debug_mode']) ? '0' : '1'));?>'><?php print $message;?></a><br>
-					<?php
-						if (!empty($graph['graph_template_id'])) {
-							?><span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('graph_templates.php?action=template_edit&id=' . (isset($graph['graph_template_id']) ? $graph['graph_template_id'] : '0'));?>'><?php print __('Edit Graph Template.');?></a><br><?php
-						}
-
-						if (cacti_sizeof($data_sources)) {
-							foreach ($data_sources as $ds) {
-								$name = db_fetch_cell_prepared('SELECT name_cache
-									FROM data_template_data
-									WHERE local_data_id = ?',
-									array($ds['local_data_id']));
-
-								?><span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('data_sources.php?action=ds_edit&id=' . $ds['local_data_id']);?>'><?php print __esc('Edit Data Source: \'%s\'.', $name);?></a><br><?php
-							}
-						}
-
-						if (!isempty_request_var('host_id') || !empty($host_id)) {
-							?><span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('host.php?action=edit&id=' . ($host_id > 0 ? $host_id : get_request_var('host_id')));?>'><?php print __('Edit Device.');?></a><br><?php
-						}
-
-						if ($locked) {
-							?><span class='linkMarker'>*</span><a href='#' class='hyperLink' id='unlockid'><?php print __('Unlock Graph.');?></a><br/><?php
-						} else {
-							?><span class='linkMarker'>*</span><a href='#' class='hyperLink' id='lockid'><?php print __('Lock Graph.');?></a><br/><?php
-						}
-
-						if (!isempty_request_var('id')) {
-							?><span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('graph.php?rra_id=0&local_graph_id=' . get_request_var('id'));?>'><?php print __('View Timespans.');?></a><?php
-						}
-		?>
-				</td>
-			</tr>
-		</table>
-		<?php
 	}
-
-	form_start('graphs.php');
-
-	html_start_box($header_label, '100%', true, '3', 'center', '');
 
 	if (!empty($graph['local_graph_id'])) {
 		$graph_template_id = get_current_graph_template($graph['local_graph_id']);
@@ -2362,71 +2318,140 @@ function graph_edit() {
 			ORDER BY name';
 	}
 
-	$form_array = array(
-		'graph_template_id' => array(
-			'method'        => 'drop_sql',
-			'friendly_name' => __('Selected Graph Template'),
-			'description'   => __('Choose a Graph Template to apply to this Graph. Please note that you may only change Graph Templates to a 100%% compatible Graph Template, which means that it includes identical Data Sources.'),
-			'value'         => $graph_template_id,
-			'none_value'    => (!isset($graph['graph_template_id']) || $graph['graph_template_id'] == 0 ? __('None'):''),
-			'sql'           => $gtsql
-			),
-		'host_id' => array(
-			'method'        => 'drop_callback',
-			'friendly_name' => __('Device'),
-			'description'   => __('Choose the Device that this Graph belongs to.'),
-			'sql'           => 'SELECT id, description as name FROM host ORDER BY name',
-			'action'        => 'ajax_hosts_noany',
-			'none_value'    => __('None'),
-			'id'            => $host_id,
-			'value'         => db_fetch_cell_prepared('SELECT description FROM host WHERE id = ?', array($host_id)),
-			),
-		'graph_template_graph_id' => array(
-			'method' => 'hidden',
-			'value'  => (isset($graph['id']) ? $graph['id'] : '0')
-			),
-		'local_graph_id' => array(
-			'method' => 'hidden',
-			'value'  => (isset($graph['local_graph_id']) ? $graph['local_graph_id'] : '0')
-			),
-		'local_graph_template_graph_id' => array(
-			'method' => 'hidden',
-			'value'  => (isset($graph['local_graph_template_graph_id']) ? $graph['local_graph_template_graph_id'] : '0')
-			),
-		'graph_template_id_prev' => array(
-			'method' => 'hidden',
-			'value'  => $graph_template_id
-			),
-		'host_id_prev' => array(
-			'method' => 'hidden',
-			'value'  => (isset($host_id) ? $host_id : '0')
-			)
-		);
+	if (cacti_sizeof($data_sources)) {
+		foreach ($data_sources as $ds) {
+			$name = db_fetch_cell_prepared('SELECT name_cache
+				FROM data_template_data
+				WHERE local_data_id = ?',
+				array($ds['local_data_id']));
 
-	if (cacti_sizeof($graph)) {
-		if ($graph['graph_template_id'] == 0) {
-			$form_array['graph_template_id']['method'] = 'hidden';
-			$form_array['graph_template_id']['value']  = '0';
+			$ins_buttons[] = array(
+				'display' =>  __esc('Edit Data Source: \'%s\'.', $name),
+				'url'     => 'data_sources.php?action=ds_edit&id=' . $ds['local_data_id'],
+				'class'   => 'fa fa-database newDevice'
+			);
 		}
-
-		if ($graph['graph_template_id'] > 0 && $host_id > 0) {
-			$form_array['graph_template_id']['method'] = 'hidden';
-			$form_array['host_id']['method']           = 'hidden';
-		}
-
-		if (is_multi_device_graph($graph['local_graph_id'])) {
-			$form_array['host_id']['method'] = 'hidden';
-		}
+	} else {
+		$ins_buttons = array();
 	}
 
-	draw_edit_form(
-		array(
-			'config' => array('no_form_tag' => true),
-			'fields' => $form_array
+	if (!isempty_request_var('host_id') || !empty($host_id)) {
+		$ins_buttons[] = array(
+			'display' => __('Edit Device'),
+			'url'     => 'host.php?action=edit&id=' . ($host_id > 0 ? $host_id : get_request_var('host_id')),
+			'class'   => 'fa fa-server editDevice'
+		);
+	}
+
+	$filters = array(
+		'rows' => array(
+			array(
+				'graph_template_id' => array(
+					'method'        => 'drop_sql',
+					'friendly_name' => __('Selected Graph Template'),
+					'description'   => __('Choose a Graph Template to apply to this Graph. Please note that you may only change Graph Templates to a 100%% compatible Graph Template, which means that it includes identical Data Sources.'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'value'         => $graph_template_id,
+					'none_value'    => (!isset($graph['graph_template_id']) || $graph['graph_template_id'] == 0 ? __('None'):''),
+					'sql'           => $gtsql
+				),
+				'host_id' => array(
+					'method'        => 'drop_callback',
+					'friendly_name' => __('Device'),
+					'description'   => __('Choose the Device that this Graph belongs to.'),
+					'filter'        => FILTER_VALIDATE_INT,
+					'sql'           => 'SELECT id, description as name FROM host ORDER BY name',
+					'action'        => 'ajax_hosts_noany',
+					'none_value'    => __('None'),
+					'id'            => $host_id,
+					'value'         => db_fetch_cell_prepared('SELECT description FROM host WHERE id = ?', array($host_id)),
+				),
+				'graph_template_graph_id' => array(
+					'method' => 'hidden',
+					'filter' => FILTER_VALIDATE_INT,
+					'value'  => (isset($graph['id']) ? $graph['id'] : '0')
+				),
+				'local_graph_id' => array(
+					'method' => 'hidden',
+					'filter' => FILTER_VALIDATE_INT,
+					'value'  => (isset($graph['local_graph_id']) ? $graph['local_graph_id'] : '0')
+				),
+				'local_graph_template_graph_id' => array(
+					'method' => 'hidden',
+					'filter' => FILTER_VALIDATE_INT,
+					'value'  => (isset($graph['local_graph_template_graph_id']) ? $graph['local_graph_template_graph_id'] : '0')
+				),
+				'graph_template_id_prev' => array(
+					'method' => 'hidden',
+					'filter' => FILTER_VALIDATE_INT,
+					'value'  => $graph_template_id
+				),
+				'host_id_prev' => array(
+					'method' => 'hidden',
+					'filter' => FILTER_VALIDATE_INT,
+					'value'  => (isset($host_id) ? $host_id : '0')
+				),
+				'id' => array(
+					'method'  => 'validate',
+					'filter'  => FILTER_VALIDATE_INT,
+					'default' => '',
+				)
+			)
+		),
+		'links' => array(
+			array(
+				'display' => $message,
+				'url'     => 'graphs.php?action=graph_edit&id=' . (isset_request_var('id') ? get_request_var('id') : '0') . '&debug=' . (isset($_SESSION['graph_debug_mode']) ? '0' : '1'),
+				'class'   => ($debug ? 'fa fa-bug disableDebug':'fa fa-bug enableDebug')
+			),
+			array(
+				'display' => __('Edit Graph Template'),
+				'url'     => 'graph_templates.php?action=template_edit&id=' . (isset($graph['graph_template_id']) ? $graph['graph_template_id'] : '0'),
+				'class'   => 'fa fa-edit editTemplate'
+			),
 		)
 	);
 
-	html_end_box(true, true);
+	if (cacti_sizeof($ins_buttons)) {
+		foreach($ins_buttons as $button) {
+			$filters['links'][] = $button;
+		}
+	}
+
+	$filters['links'][] = array(
+		'display' => ($locked ? __('Unlock Graph'):__('Lock Graph')),
+		'url'     => 'graphs.php?action=' . ($locked ? 'unlock':'lock') . '&id=' . get_request_var('id'),
+		'class'   => ($locked ? 'fa fa-lock-open':'fa fa-lock')
+	);
+
+	$filters['links'][] = array(
+		'display' => __('View Timespan Graphs'),
+		'url'     => 'graph.php?rra_id=0&local_graph_id=' . get_request_var('id'),
+		'class'   => 'fa fa-bars threeBars'
+	);
+
+	if (cacti_sizeof($graph)) {
+		if ($graph['graph_template_id'] == 0) {
+			$filters['rows'][0]['graph_template_id']['method'] = 'validate';
+			$filters['rows'][0]['graph_template_id']['value']  = '0';
+		}
+
+		if ($graph['graph_template_id'] > 0 && $host_id > 0) {
+			$filters['rows'][0]['graph_template_id']['method'] = 'validate';
+			$filters['rows'][0]['host_id']['method']           = 'validate';
+		}
+
+		if (is_multi_device_graph($graph['local_graph_id'])) {
+			$filters['rows'][0]['host_id']['method'] = 'validate';
+		}
+	}
+
+	/* process plugin links */
+	form_start('graphs.php');
+
+	$pageFilter = new CactiTableFilter($header_label, 'graphs.php?action=edit&id=' . get_request_var('id'), 'graphs', 'sess_graph_edit', '', '', false);
+	$pageFilter->set_filter_array($filters);
+	$pageFilter->render();
 
 	/* only display the "inputs" area if we are using a graph template for this graph */
 	if (!empty($graph['graph_template_id'])) {
@@ -2465,10 +2490,10 @@ function graph_edit() {
 		<div class='cactiTable'>
 			<div style='float:left'>
 				<span class='textInfo'><?php print __('RRDtool Command:');?></span><br>
-				<pre><?php print @rrdtool_function_graph(get_request_var('id'), 1, $graph_data_array, null, $null_param, $_SESSION[SESS_USER_ID]);?></pre>
+				<pre><?php print html_escape(rrdtool_function_graph(get_request_var('id'), 1, $graph_data_array, null, $null_param, $_SESSION[SESS_USER_ID]));?></pre>
 				<span class='textInfo'><?php print __('RRDtool Says:');?></span><br>
 				<?php unset($graph_data_array['print_source']);?>
-				<pre><?php print($config['poller_id'] == 1 ? @rrdtool_function_graph(get_request_var('id'), 1, $graph_data_array, null, $null_param, $_SESSION[SESS_USER_ID]):__esc('Not Checked'));?></pre>
+				<pre><?php print($config['poller_id'] == 1 ? html_escape(rrdtool_function_graph(get_request_var('id'), 1, $graph_data_array, null, $null_param, $_SESSION[SESS_USER_ID])):__esc('Not Checked'));?></pre>
 			</div>
 		<?php
 		}
@@ -2548,22 +2573,6 @@ function graph_edit() {
 	$(function() {
 		dynamic();
 
-		$('#unlockid').click(function(event) {
-			event.preventDefault;
-
-			$('body').append("<div id='modal' class='ui-widget-overlay ui-front' style='z-index: 100;'><i style='position:absolute;top:50%;left:50%;' class='ti fa-spin ti-loader-2'/></div>");
-
-			$.get('graphs.php?action=unlock&id='+$('#local_graph_id').val())
-				.done(function(data) {
-					$('#modal').remove();
-					$('#main').html(data);
-					applySkin();
-				})
-				.fail(function(data) {
-					getPresentHTTPError(data);
-				});
-		});
-
 		$.getJSON(imageSource)
 			.done(function(data) {
 				$('#graphLocation').html("<img class='cactiGraphImage' src='data:image/"+data.type+";base64,"+data.image+"' graph_start='"+data.graph_start+"' graph_end='"+data.graph_end+"' graph_left='"+data.graph_left+"' graph_top='"+data.graph_top+"' graph_width='"+data.graph_width+"' graph_height='"+data.graph_height+"' width='"+data.image_width+"' height='"+data.image_height+"' image_width='"+data.image_width+"' image_height='"+data.image_height+"' value_min='"+data.value_min+"' value_max='"+data.value_max+"'>");
@@ -2572,12 +2581,6 @@ function graph_edit() {
 			.fail(function(data) {
 				getPresentHTTPError(data);
 			});
-
-		$('#lockid').click(function(event) {
-			event.preventDefault;
-
-			loadUrl({url:'graphs.php?action=lock&id='+$('#local_graph_id').val()})
-		});
 
 		$(window).resize(function() {
 			var imageWidth  = $('.cactiGraphImage').width();

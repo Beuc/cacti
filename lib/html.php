@@ -145,7 +145,7 @@ function html_start_box($title, $width, $div, $cell_padding, $align, $add_url_or
 				if (cacti_sizeof($add_url_or_buttons)) {
 					foreach ($add_url_or_buttons as $icon) {
 						if (isset($icon['callback']) && $icon['callback'] === true) {
-							$classo = 'linkOverDark';
+							$classo = 'pic';
 						} else {
 							$classo = '';
 						}
@@ -3289,7 +3289,6 @@ function html_common_header($title, $selectedTheme = '') {
 	/* Global styles */
 	print get_md5_include_css('include/css/billboard.css');
 	print get_md5_include_css('include/fa/css/all.css');
-    print get_md5_include_css('include/tabler/webfont/tabler-icons.css');
 	print get_md5_include_css('include/vendor/lipis/flag-icons/css/flag-icons.css');
 	print get_md5_include_css('include/themes/' . $selectedTheme .'/main.css');
 

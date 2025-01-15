@@ -604,6 +604,14 @@ class CactiTableFilter {
 							}
 
 							break;
+						case 'hidden':
+							print '<div class="filterColumn" style="display:none">' . PHP_EOL;
+
+							draw_edit_control($field_name, $field_array);
+
+							print '</div>' . PHP_EOL;
+
+							break;
 						default:
 							if (isset($field_array['friendly_name'])) {
 								print '<div class="filterColumn"><div class="filterFieldName"><label for="' . $field_name . '">' . $field_array['friendly_name'] . '</label></div></div>' . PHP_EOL;
@@ -737,6 +745,7 @@ class CactiTableFilter {
 					switch($field_array['method']) {
 						case 'content':
 						case 'validate':
+						case 'hidden':
 							// Just for validating other request variables
 
 							break;
