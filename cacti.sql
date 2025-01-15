@@ -2292,6 +2292,7 @@ CREATE TABLE `plugin_archive` (
   `compat` varchar(20) NOT NULL DEFAULT '',
   `dir_md5sum` varchar(32) NOT NULL DEFAULT '',
   `last_updated` timestamp NULL DEFAULT NULL,
+  `archive_note` varchar(256) NOT NULL DEFAULT '',
   `archive` longblob DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `directory` (`plugin`)
