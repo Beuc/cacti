@@ -249,6 +249,7 @@
 }
 
 .filterTable {
+
     /* redesign classical select menus to become really compact */
     .ui-selectmenu-button {
         border: 1px solid transparent !important;
@@ -272,6 +273,16 @@
         color: var(--text-color-highlight-a);
     }
 
+}
+
+.ui-tooltip {
+    z-index: 1001;
+}
+
+.ui-datepicker,
+.ui-selectmenu-menu,
+.ui-multiselect-menu {
+    z-index: 1000 !important;
 }
 
 .ui-selectmenu-search {

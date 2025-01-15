@@ -148,7 +148,7 @@
 	position: absolute;
 	background: var(--background-content);
 	display: none;
-	z-index: auto;
+	z-index: 1200 !important;
 	border: 1px solid var(--border-color);
 	border-radius: 5px;
 	box-shadow: var(--box-shadow-color) 0 10px 20px;

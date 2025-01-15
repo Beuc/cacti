@@ -301,18 +301,18 @@ function collapseHeadings(headingStates) {
 		var enabled = headingStates[key];
 		var element = $('#' + key);
 		if (element != null && element.length > 0) {
-			fa_icon = 'ti ti-alert-triangle-filled';
+			fa_icon = 'fa fa-exclamation-triangle';
 			if (enabled == DB_STATUS_ERROR) {
-				fa_icon = 'ti ti-thumb-down cactiInstallSqlFailure';
+				fa_icon = 'fa fa-thumbs-down cactiInstallSqlFailure';
 			} else if (enabled == DB_STATUS_WARNING) {
-				fa_icon = 'ti ti-alert-triangle-filled cactiInstallSqlWarning';
+				fa_icon = 'fa fa-exclamation-triangle cactiInstallSqlWarning';
 			} else if (enabled == DB_STATUS_RESTART) {
-				fa_icon = 'ti ti-alert-triangle-filled cactiInstallSqlWarning';
+				fa_icon = 'fa fa-exclamation-triangle cactiInstallSqlWarning';
 			} else if (enabled == DB_STATUS_SUCCESS) {
-				fa_icon = 'ti ti-thumb-up cactiInstallSqlSuccess';
+				fa_icon = 'fa fa-thumbs-up cactiInstallSqlSuccess';
 				toggleHeader(element, false);
 			} else if (enabled) {
-				fa_icon = 'ti ti-check-circle cactiInstallSqlSkipped';
+				fa_icon = 'fa fa-check-circle cactiInstallSqlSkipped';
 				toggleHeader(element, false);
 			}
 

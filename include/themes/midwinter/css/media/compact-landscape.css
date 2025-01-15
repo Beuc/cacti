@@ -421,12 +421,13 @@ html {
         display: none;
     }
 
-    & .filterRow:has(div.filterColumnButton) {
+    & .filterRow {
         display: flex;
         flex-direction: column;
 
         .filterColumnButton {
             order: 0;
+            float: left;
         }
         .filterColumn {
             order: 1;
@@ -437,6 +438,19 @@ html {
         line-height: 1.5rem;
     }
 
+    & button {
+        float: left;
+    }
+
+    button span.button-text {
+        display:none;
+    }
+    button::after {
+        margin: 0 0.5rem;
+        content: "\ea61";
+        display: block;
+        font-family: "tabler-icons";
+    }
 }
 
 #nav li a,

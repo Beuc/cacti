@@ -353,7 +353,7 @@ function get_package_contents($export_type, $export_item_id, $include_deps = tru
 		foreach($queries as $q) {
 			$file = str_replace('<path_cacti>', CACTI_PATH_BASE, $q['xml_path']);
 			$exists = file_exists($file);
-			$output .= '<div class="formRow"><div class="formColumnLeft nowrap">' . html_escape(basename($file)) . ($exists ? '<i class="ti ti-check-circle deviceUp"></i>':'<i class="ti ti-cross deviceDown"></i>') . '</div></div>';
+			$output .= '<div class="formRow"><div class="formColumnLeft nowrap">' . html_escape(basename($file)) . ($exists ? '<i class="fa-solid fa-circle-check deviceUp"></i>':'<i class="fa fa-cross deviceDown"></i>') . '</div></div>';
 		}
 
 		$output .= '</div>';
@@ -369,7 +369,7 @@ function get_package_contents($export_type, $export_item_id, $include_deps = tru
 			if (array_search($file, $found) === false) {
 				if (strpos($file['file'], '/resource/') === false) {
 					$exists = file_exists($file['file']);
-					$output .= '<div class="formRow"><div class="formColumnLeft nowrap">' . html_escape(basename($file['file'])) .  ($exists ? '<i class="ti ti-check-circle deviceUp"></i>':'<i class="ti ti-cross deviceDown"></i>') . '</div></div>';
+					$output .= '<div class="formRow"><div class="formColumnLeft nowrap">' . html_escape(basename($file['file'])) .  ($exists ? '<i class="fa-solid fa-circle-check deviceUp"></i>':'<i class="fa fa-cross deviceDown"></i>') . '</div></div>';
 				}
 
 				$found[] = $file;

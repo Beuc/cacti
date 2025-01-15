@@ -306,6 +306,10 @@ input[type="checkbox"]:focus-within + label:before {
                     max-height: calc(100% - 4rem);
             }
 
+            & .cactiTable:has(.cactiTableTitleRow) {
+                display: none;
+            }
+
             & .cactiTable:not(:has(~ .actionsDropdown)) {
                 max-height: calc(100% - 2rem);
             }
@@ -2520,7 +2524,6 @@ input[type="button"][id="return"] {
 input[type="range"] {
     width: 100%;
     margin-right: 15px;
-    margin-left: 4px;
     background: transparent;
     &:focus {
         outline: none;

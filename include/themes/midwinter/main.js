@@ -187,7 +187,7 @@ function setupTheme() {
 
 		$('.versionInfo').detach().appendTo('.cactiAuthBody');
 
-		$('<i class="ti ti-user"></i>').insertAfter('#login_username');
+		$('<i class="far fa-user"></i>').insertAfter('#login_username');
 	}
 
 
@@ -213,7 +213,7 @@ function setupTheme() {
 				'<div id="navFilter" class="navFilter" >' +
 	/*
 				'<div id="reportrange"style="cursor: pointer; padding: 5px 10px; border: 1px solid var(--border-color);">' +
-				'<i className="fa fa-calendar"></i>&nbsp;<span></span> <i className="ti ti-caret-down-filled"></i>' +
+				'<i className="fa fa-calendar"></i>&nbsp;<span></span> <i className="fa fa-caret-down"></i>' +
 				'</div>' +
 	*/
 				'</div>' +
@@ -304,7 +304,7 @@ function setupTheme() {
 			}, 'left', justCacti+' &reg; v'+cactiVersion).build();
 
 			/* user settings */
-			new navigationButton('user', 'User', 'User Settings', 'ti ti-user', '#compact_user_menu').show();
+			new navigationButton('user', 'User', 'User Settings', 'far fa-user', '#compact_user_menu').show();
 			new navigationBox( cactiUser, 'user', 'half', '2', {
 				close: false,
 				search: false,
@@ -570,7 +570,7 @@ function setupDefaultElements() {
 //	let btn_filter1 	= new navigationButton('displayDockTop', 'Filter', 'Show Filter Dock','fas fa-filter', '#navFilter', 'toggleCactiDockNavigationBox', 'Top');
 	let btn_filter 	= new navigationButton('displayFilterOptions', 'Filter', 'Show Filter Dock','ti ti-filter', '#navFilter');
 	let btn_calendar	= new navigationButton('daterangepicker', 'Calendar', 'Select Timeframe', 'fas fa-calendar-alt', '#navFilter', '', '');
-	let btn_add		= new navigationButton('formAction', 'New', 'Add','ti ti-plus', '#navFilter');
+	let btn_add		= new navigationButton('formAction', 'New', 'Add','fa fa-plus', '#navFilter');
 
 	if ($("#main .filterTable").length) {
 		let filter;
@@ -729,16 +729,16 @@ function setupDefaultElements() {
 	}
 
 	// Add nice search filter to filters
-	if ($('input[id="filter"]').length > 0 && $('input[id="filter"] > i[class="ti ti-search filter"]').length < 1) {
-		$('input[id="filter"]').after("<i class='ti ti-search filter'/>").attr('autocomplete', 'off').attr('placeholder', searchFilter).parent('td').css('white-space', 'nowrap');
+	if ($('input[id="filter"]').length > 0 && $('input[id="filter"] > i[class="fa fa-search filter"]').length < 1) {
+		$('input[id="filter"]').after("<i class='fa fa-search filter'/>").attr('autocomplete', 'off').attr('placeholder', searchFilter).parent('td').css('white-space', 'nowrap');
 	}
 
-	if ($('input[id="filterd"]').length > 0 && $('input[id="filterd"] > i[class="ti ti-search filter"]').length < 1) {
-		$('input[id="filterd"]').after("<i class='ti ti-search filter'/>").attr('autocomplete', 'off').attr('placeholder', searchFilter).parent('td').css('white-space', 'nowrap');
+	if ($('input[id="filterd"]').length > 0 && $('input[id="filterd"] > i[class="fa fa-search filter"]').length < 1) {
+		$('input[id="filterd"]').after("<i class='fa fa-search filter'/>").attr('autocomplete', 'off').attr('placeholder', searchFilter).parent('td').css('white-space', 'nowrap');
 	}
 
-	if ($('input[id="rfilter"]').length > 0 && $('input[id="rfilter"] > i[class="ti ti-search filter"]').length < 1) {
-		$('input[id="rfilter"]').after("<i class='ti ti-search filter'/>").attr('autocomplete', 'off').attr('placeholder', searchRFilter).parent('td').css('white-space', 'nowrap');
+	if ($('input[id="rfilter"]').length > 0 && $('input[id="rfilter"] > i[class="fa fa-search filter"]').length < 1) {
+		$('input[id="rfilter"]').after("<i class='fa fa-search filter'/>").attr('autocomplete', 'off').attr('placeholder', searchRFilter).parent('td').css('white-space', 'nowrap');
 	}
 
 	$('input#filter, input#rfilter').addClass('ui-state-default ui-corner-all');

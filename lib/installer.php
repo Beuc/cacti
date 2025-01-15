@@ -216,11 +216,11 @@ class Installer implements JsonSerializable {
 		$this->setStep($step);
 
 		$this->iconClass = array(
-			DB_STATUS_ERROR   => 'ti ti-thumb-down',
-			DB_STATUS_WARNING => 'ti ti-alert-triangle-filled',
-			DB_STATUS_RESTART => 'ti ti-alert-triangle-filled',
-			DB_STATUS_SUCCESS => 'ti ti-thumb-up',
-			DB_STATUS_SKIPPED => 'ti ti-check-circle'
+			DB_STATUS_ERROR   => 'fa fa-thumbs-down',
+			DB_STATUS_WARNING => 'fa fa-exclamation-triangle',
+			DB_STATUS_RESTART => 'fa fa-exclamation-triangle',
+			DB_STATUS_SUCCESS => 'fa fa-thumbs-up',
+			DB_STATUS_SKIPPED => 'fa-solid fa-circle-check'
 		);
 
 		$this->defaultAutomation = array(
@@ -2435,7 +2435,7 @@ class Installer implements JsonSerializable {
 			$form_check_string = '';
 
 			/* draw the actual header and textbox on the form */
-			print "<div class='formRow $class'><div class='formColumnLeft'><div class='formFieldName'>" . $array['friendly_name'] . "<div class='formTooltip'><div class='cactiTooltipHint ti ti-help-circle-filled'><span style='display:none;'>" . $array['description'] . '</span></div></div></div></div>';
+			print "<div class='formRow $class'><div class='formColumnLeft'><div class='formFieldName'>" . $array['friendly_name'] . "<div class='formTooltip'><div class='cactiTooltipHint far fa-question-circle-circle-filled'><span style='display:none;'>" . $array['description'] . '</span></div></div></div></div>';
 
 			print "<div class='formColumnRight'><div class='formData'>";
 
