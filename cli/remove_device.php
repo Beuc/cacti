@@ -122,7 +122,7 @@ if (cacti_sizeof($parms)) {
 	/* process host description */
 	if ($description != '') {
 		if ($debug) {
-			print "Searching hosts by description..." . PHP_EOL;
+			print 'Searching hosts by description...' . PHP_EOL;
 		}
 
 		$ids_host = array_rekey(
@@ -142,7 +142,7 @@ if (cacti_sizeof($parms)) {
 
 	if ($ip != '') {
 		if ($debug) {
-			print "Searching hosts by IP..." . PHP_EOL;
+			print 'Searching hosts by IP...' . PHP_EOL;
 		}
 
 		$ids_ip = array_rekey(
@@ -161,7 +161,7 @@ if (cacti_sizeof($parms)) {
 	}
 
 	if (cacti_sizeof($ids_host) == 0 && cacti_sizeof($ids_ip) == 0) {
-		print "ERROR: No matches found, was IP or Description set properly?" . PHP_EOL;
+		print 'ERROR: No matches found, was IP or Description set properly?' . PHP_EOL;
 		exit(1);
 	}
 
@@ -180,52 +180,61 @@ if (cacti_sizeof($parms)) {
 
 	$ids_found = array();
 
+	$hosts = db_fetch_assoc_prepared('SELECT id, hostname, description
+		FROM host
+		WHERE id IN (?)',
+		array($ids_found));
+
 	if (!$quiet) {
-		printf('%8.s | %30.s | %30.s' . PHP_EOL, 'id', 'host', 'description');
+		if (cacti_sizeof($hosts)) {
+			printf('%8.s | %30.s | %30.s' . PHP_EOL, 'id', 'host', 'description');
 
-		foreach ($ids as $id) {
-			$host = db_fetch_row_prepared('SELECT id, hostname, description FROM host WHERE id = ?', array($id));
+			foreach ($hosts as $host) {
+				printf('%8.d | %30.s | %30.s' . PHP_EOL, $host['id'], $host['hostname'], $host['description']);
 
-			if (cacti_sizeof($host)) {
-				printf('%8.d | %30.s | %30.s' . PHP_EOL, $id, $host['hostname'], $host['description']);
-
-				$ids_found[] = $id;
+				$ids_found[] = $host['id'];
 			}
-		}
 
-		print PHP_EOL;
+			print PHP_EOL;
+		}
 	}
 
 	if ($confirm) {
-		$ids_confirm = implode(', ', $ids_found);
+		if (cacti_sizeof($ids_found)) {
+			$ids_confirm = implode(', ', $ids_found);
 
-		if (!$quiet) {
-			print "Removing devices with ids: $ids_confirm" . PHP_EOL;
-		}
-
-		$host_id = api_device_remove_multi($ids);
-
-		if (is_error_message()) {
-			print "ERROR: Failed to remove devices" . PHP_EOL;
-			exit(1);
-		} else {
-			print "Success - removed device-ids: $ids_confirm" . PHP_EOL;
-			foreach ($hosts as $host) {
-				cacti_log("Device Removed via remove_device.php - Device ID: " . $host['id'] . ", Hostname: " . $host['hostname'] . ", Description: " . $host['description'], false, 'CLI');
+			if (!$quiet) {
+				print "Removing devices with ids: $ids_confirm" . PHP_EOL;
 			}
 
-			exit(0);
+			$host_id = api_device_remove_multi($ids);
+
+			if (is_error_message()) {
+				print 'ERROR: Failed to remove devices' . PHP_EOL;
+
+				exit(1);
+			} else {
+				print "Success - removed device-ids: $ids_confirm" . PHP_EOL;
+
+				foreach ($hosts as $host) {
+					cacti_log('Device Removed via remove_device.php - Device ID: ' . $host['id'] . ', Hostname: ' . $host['hostname'] . ', Description: ' . $host['description'], false, 'CLI');
+				}
+			}
+		} else {
+			print 'No devices found that match your search criteria.' . PHP_EOL;
 		}
 	} else {
-		print "Please use --confirm to remove these devices" . PHP_EOL;
+		print 'Please use --confirm to remove these devices' . PHP_EOL;
 	}
 } else {
 	display_help();
-
-	exit(0);
 }
 
-/*  display_version - displays version information */
+exit(0);
+
+/**
+ * display_version - displays version information
+ */
 function display_version() {
 	$version = get_cacti_cli_version();
 	print "Cacti Remove Device Utility, Version $version, " . COPYRIGHT_YEARS . PHP_EOL;
@@ -239,8 +248,8 @@ function display_help() {
 	print '    [--confirm] [--quiet]' . PHP_EOL . PHP_EOL;
 
 	print 'Required: (on or more)' . PHP_EOL;
-	print "    --description='S' A substring or regular expression of the hostname or description." . PHP_EOL;
-	print "    --ip='S'          A IP or hostname (can also be a FQDN)." . PHP_EOL;
+	print '    --description=S   A substring or regular expression of the hostname or description.' . PHP_EOL;
+	print '    --ip=S            A IP or hostname (can also be a FQDN).' . PHP_EOL;
 	print '    --id=N,N,...      A column delimited list of device ids.' . PHP_EOL . PHP_EOL;
 
 	print '   (both --description and --ip can be a regex)' . PHP_EOL . PHP_EOL;
