@@ -93,6 +93,14 @@ switch (get_request_var('action')) {
 		form_actions();
 
 		break;
+	case 'view':
+		html_graph_single_view();
+
+		break;
+	case 'update_timespan':
+		html_graph_update_timespan();
+
+		break;
 	case 'item':
 		top_header();
 		item();
@@ -2426,8 +2434,8 @@ function graph_edit() {
 
 	$filters['links'][] = array(
 		'display' => __('View Timespan Graphs'),
-		'url'     => 'graph.php?rra_id=0&local_graph_id=' . get_request_var('id'),
-		'class'   => 'fa fa-bars threeBars'
+		'url'     => 'graphs.php?action=view&rra_id=0&local_graph_id=' . get_request_var('id'),
+		'class'   => 'fa fa-chart-area threeBars'
 	);
 
 	if (cacti_sizeof($graph)) {

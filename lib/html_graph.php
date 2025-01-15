@@ -1694,10 +1694,12 @@ function html_graph_single_view() {
 	$current_page = get_current_page();
 	if ($current_page == 'graph.php') {
 		top_header();
+	} elseif ($current_page == 'graphs.php') {
+		top_header();
 	} elseif ($current_page == 'graph_view.php') {
 		top_graph_header();
 	} else {
-		top_general_header();
+		general_header();
 	}
 
 	if (strpos(get_request_var('action'), 'tree') !== false) {
@@ -1802,7 +1804,6 @@ function html_graph_single_view() {
 			$('a.iconLink').tooltip();
 
 			$('.graphWrapper').each(function() {
-				console.log('Wrapping');
 				var itemWrapper = $(this);
 				var itemGraph = $(this).find('.graphimage');
 
@@ -2032,10 +2033,12 @@ function html_graph_zoom() {
 	$current_page = get_current_page();
 	if ($current_page == 'graph.php') {
 		top_header();
+	} elseif ($current_page == 'graphs.php') {
+		top_header();
 	} elseif ($current_page == 'graph_view.php') {
 		top_graph_header();
 	} else {
-		top_general_header();
+		general_header();
 	}
 
 	print "<div class='cactiTable'>";
@@ -2252,10 +2255,12 @@ function html_graph_properties() {
 	$current_page = get_current_page();
 	if ($current_page == 'graph.php') {
 		top_header();
+	} elseif ($current_page == 'graphs.php') {
+		top_header();
 	} elseif ($current_page == 'graph_view.php') {
 		top_graph_header();
 	} else {
-		top_general_header();
+		general_header();
 	}
 
 	$graph_data_array['print_source'] = true;
