@@ -591,12 +591,10 @@ class CactiTableFilter {
 
 								if (isset($field_array['refresh'])) {
 									print '<button type="button" class="ui-button ui-corner-all ui-widget" id="tsrefresh"' . ' title="' . __esc('Refresh Selected Timespan') . '"><span class="button-text">' . __esc('Refresh') . '</span></button>';
-								//	print '<input type="button" class="ui-button ui-corner-all ui-widget' . $class . '" id="tsrefresh" value="' . __esc('Refresh') . '" title="' . __esc('Refresh Selected Timespan') . '">';
 								}
 
 								if (isset($field_array['clear'])) {
-									print '<button type="button" class="ui-button ui-corner-all ui-widget" id="tsclear"' . ' title="' . __esc('Clear') . '"><span class="button-text">' . __esc('Clear Selected Timespan') . '</span></span></button>';
-								//	print '<input type="button" class="ui-button ui-corner-all ui-widget' . $class . '" id="tsclear" value="' . __esc('Clear') . '" title="' . __esc('Clear Selected Timespan') . '">';
+									print '<button type="button" class="ui-button ui-corner-all ui-widget" id="tsclear"' . ' title="' . __esc('Clear Selected Timespan') . '"><span class="button-text">' . __esc('Clear') . '</span></span></button>';
 								}
 
 								print '</span>';

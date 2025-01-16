@@ -51,11 +51,24 @@ function initialize_timespan(&$timespan) {
 	if (isset_request_var('button_clear')) {
 		reset_timespan_settings();
 
-		$_SESSION['sess_current_timespan']  = read_user_setting('default_timespan');
-		$_SESSION['sess_current_timeshift'] = read_user_setting('default_timeshift');
+		$default_timespan  = read_user_setting('default_timespan');
+		$default_timeshift = read_user_setting('default_timeshift');
 
-		set_request_var('predefined_timespan', read_user_setting('default_timespan'));
-		set_request_var('predefined_timeshift', read_user_setting('default_timeshift'));
+		if (empty($detault_timespan)) {
+			$default_timespan = 7;
+			set_user_setting('predefined_timespan', $default_timespan);
+		}
+
+		if (empty($default_timeshift)) {
+			$default_timeshift = 7;
+			set_user_setting('predefined_timeshift', $default_timeshift);
+		}
+
+		$_SESSION['sess_current_timespan']  = $default_timespan;
+		$_SESSION['sess_current_timeshift'] = $default_timeshift;
+
+		set_request_var('predefined_timespan', $default_timespan);
+		set_request_var('predefined_timeshift', $default_timeshift);
 
 		return true;
 	}
