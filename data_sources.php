@@ -833,60 +833,6 @@ function ds_edit() {
 		}
 	}
 
-	top_header();
-
-	if (!isempty_request_var('id')) {
-		$local_graph_ids = db_fetch_assoc_prepared('SELECT DISTINCT local_graph_id
-			FROM graph_templates_item AS gti
-			INNER JOIN data_template_rrd AS dtr
-			ON dtr.id = gti.task_item_id
-			WHERE local_data_id = ?',
-			array(get_request_var('id')));
-		?>
-		<table style='width:100%'>
-			<tr>
-				<td class='textInfo left' style='vertical-align:top;'>
-					<?php print html_escape(get_data_source_title(get_request_var('id')));?>
-				</td>
-				<td class='textInfo right' style='vertical-align:top;'>
-					<span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('data_sources.php?action=ds_edit&id=' . (isset_request_var('id') ? get_request_var('id') : '0') . '&debug=' . (isset($_SESSION['ds_debug_mode']) ? '0' : '1'));?>'><?php print(isset($_SESSION['ds_debug_mode']) ? __('Turn Off Data Source Debug Mode.') : __('Turn On Data Source Debug Mode.'));?></a><br>
-					<span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('data_sources.php?action=ds_edit&id=' . (isset_request_var('id') ? get_request_var('id') : '0') . '&info=' . (isset($_SESSION['ds_info_mode']) ? '0' : '1'));?>'><?php print(isset($_SESSION['ds_info_mode']) ? __('Turn Off Data Source Info Mode.') : __('Turn On Data Source Info Mode.'));?></a><br>
-					<?php
-						if (cacti_sizeof($local_graph_ids)) {
-							foreach ($local_graph_ids as $id) {
-								$name = db_fetch_cell_prepared('SELECT title_cache
-									FROM graph_templates_graph
-									WHERE local_graph_id = ?',
-									array($id['local_graph_id']));
-
-								?><span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('graphs.php?action=graph_edit&id=' . $id['local_graph_id']);?>'><?php print __esc('Edit Graph: \'%s\'.', $name);?></a><br><?php
-							}
-						}
-
-						if (!empty($data_local['host_id'])) {
-							?><span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('host.php?action=edit&id=' . $data_local['host_id']);?>'><?php print __('Edit Device.');?></a><br><?php
-						}
-
-						if (!empty($data_template['id'])) {
-							?><span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('data_templates.php?action=template_edit&id=' . (isset($data_template['id']) ? $data_template['id'] : '0'));?>'><?php print __('Edit Data Template.');?></a><br><?php
-						}
-
-						if (isset_request_var('id') && get_request_var('id') > 0) {
-							?><span class='linkMarker'>*</span><a class='hyperLink' href='<?php print html_escape('data_sources.php?action=ds_' . ($data['active'] == 'on' ? 'dis' : 'en') . 'able&id=' . get_request_var('id')) ?>'><?php print($data['active'] == 'on' ? __('Disable Data Source.') : __('Enable Data Source.'));?></a><br>
-					<?php
-						}
-		?>
-				</td>
-			</tr>
-		</table>
-		<br>
-		<?php
-	}
-
-	form_start('data_sources.php', 'data_source');
-
-	html_start_box($header_label, '100%', true, '3', 'center', '');
-
 	if (cacti_sizeof($data_template)) {
 		$data_sources = db_fetch_cell_prepared('SELECT
 			GROUP_CONCAT(DISTINCT data_source_name ORDER BY data_source_name) AS data_source_names
@@ -935,15 +881,118 @@ function ds_edit() {
 		$hostDescription = '';
 	}
 
+	if (!isempty_request_var('id')) {
+		$ins_buttons = array();
+
+		$local_graph_ids = db_fetch_assoc_prepared('SELECT DISTINCT local_graph_id
+			FROM graph_templates_item AS gti
+			INNER JOIN data_template_rrd AS dtr
+			ON dtr.id = gti.task_item_id
+			WHERE local_data_id = ?',
+			array(get_request_var('id')));
+
+		if (isset($_SESSION['ds_debug_mode'])) {
+			$debug_message = __('Turn Off Data Source Debug Mode');
+			$debug = true;
+		} else {
+			$debug_message = __('Turn On Data Source Debug Mode');
+			$debug = false;
+		}
+
+		$debug_url = 'data_sources.php?action=ds_edit&id=' . (isset_request_var('id') ? get_request_var('id') : '0') . '&debug=' . (isset($_SESSION['ds_debug_mode']) ? '0' : '1');
+
+		if (isset($_SESSION['ds_info_mode'])) {
+			$info_message = __('Turn Off Data Source Info Mode');
+			$info_on = true;
+		} else {
+			$info_message =  __('Turn On Data Source Info Mode');
+			$info_on = false;
+		}
+
+		$info_url = 'data_sources.php?action=ds_edit&id=' . (isset_request_var('id') ? get_request_var('id') : '0') . '&info=' . (isset($_SESSION['ds_info_mode']) ? '0' : '1');
+
+		$filters = array(
+			'links' => array(
+				array(
+					'display' => $debug_message,
+					'url'     => $debug_url,
+					'class'   => ($debug ? 'fa fa-bug disableDebug':'fa fa-bug enableDebug')
+				),
+				array(
+					'display' => $info_message,
+					'url'     => $info_url,
+					'class'   => ($info_on ? 'fa fa-qrcode disableDebug':'fa fa-qrcode editTemplate')
+				),
+			)
+		);
+
+		if (cacti_sizeof($local_graph_ids)) {
+			foreach ($local_graph_ids as $id) {
+				$name = db_fetch_cell_prepared('SELECT title_cache
+					FROM graph_templates_graph
+					WHERE local_graph_id = ?',
+					array($id['local_graph_id']));
+
+				$ins_buttons[] = array(
+					'display' => __esc('Edit Graph: \'%s\'', $name),
+					'url'     => 'graphs.php?action=graph_edit&id=' . $id['local_graph_id'],
+					'class'   => 'fa fa-chart-line editGraph'
+				);
+			}
+		}
+
+		if (!isempty_request_var('host_id') || !empty($data_local['host_id'])) {
+			$ins_buttons[] = array(
+				'display' => __('Edit Device'),
+				'url'     => 'host.php?action=edit&id=' . ($data_local['host_id'] > 0 ? $data_local['host_id'] : get_request_var('host_id')),
+				'class'   => 'fa fa-server editDevice'
+			);
+		}
+
+		if (!empty($data_template['id'])) {
+			$ins_buttons[] = array(
+				'display' => __('Edit Data Template'),
+				'url'     => 'data_templates.php?action=template_edit&id=' . ($data_template['id'] > 0 ? $data_template['id'] : 0),
+				'class'   => 'fas fa-copy editTemplate'
+			);
+		}
+
+		if (cacti_sizeof($ins_buttons)) {
+			foreach($ins_buttons as $button) {
+				$filters['links'][] = $button;
+			}
+		}
+
+		if (isset_request_var('id') && get_request_var('id') > 0) {
+			$filters['links'][] = array(
+				'display' => ($data['active'] == 'on' ? __('Disable Data Source') : __('Enable Data Source')),
+				'url'     => 'data_sources.php?action=ds_' . ($data['active'] == 'on' ? 'dis' : 'en') . 'able&id=' . get_request_var('id'),
+				'class'   => ($data['active'] == 'on' ? 'fas fa-circle-check deviceRecovering':'fas fa-circle-check deviceUp')
+			);
+		}
+	} else {
+		$filters = array();
+	}
+
+	top_header();
+
+	form_start('data_sources.php', 'data_source');
+
+	$pageFilter = new CactiTableFilter($header_label, 'data_sources.php?action=ds_edit&id=' . get_request_var('id'), 'data_source', 'sess_ds_edit', '', '', false);
+	$pageFilter->set_filter_array($filters);
+	$pageFilter->render();
+
+	html_start_box(__(''), '100%', true, '3', 'center', '');
+
 	$form_array = array(
 		'data_template_id' => array(
 			'method'        => 'drop_sql',
-			'friendly_name' => __('Selected Data Template'),
+			'friendly_name' => __('Data Template'),
 			'description'   => __('The name given to this data template.  Please note that you may only change Graph Templates to a 100%$ compatible Graph Template, which means that it includes identical Data Sources.'),
 			'value'         => (cacti_sizeof($data_template) ? $data_template['id'] : '0'),
 			'none_value'    => (cacti_sizeof($data_template) ? '' : 'None'),
 			'sql'           => $dtsql
-			),
+		),
 		'host_id' => array(
 			'method'        => 'drop_callback',
 			'friendly_name' => __('Device'),
@@ -953,32 +1002,32 @@ function ds_edit() {
 			'action'        => 'ajax_hosts_noany',
 			'id'            => (isset($data_local['host_id']) ? $data_local['host_id'] : 0),
 			'value'         => $hostDescription
-			),
+		),
 		'_data_template_id' => array(
 			'method' => 'hidden',
 			'value'  => (isset($data_template['id']) ? $data_template['id'] : '0')
-			),
+		),
 		'_host_id' => array(
 			'method' => 'hidden',
 			'value'  => (isset($data_local['host_id']) ? $data_local['host_id'] : '0')
-			),
+		),
 		'_data_input_id' => array(
 			'method' => 'hidden',
 			'value'  => (isset($data['data_input_id']) ? $data['data_input_id'] : '0')
-			),
+		),
 		'data_template_data_id' => array(
 			'method' => 'hidden',
 			'value'  => (isset($data['id']) ? $data['id'] : '0')
-			),
+		),
 		'local_data_template_data_id' => array(
 			'method' => 'hidden',
 			'value'  => (isset($data['local_data_template_data_id']) ? $data['local_data_template_data_id'] : '0')
-			),
+		),
 		'local_data_id' => array(
 			'method' => 'hidden',
 			'value'  => (isset($data['local_data_id']) ? $data['local_data_id'] : '0')
-			),
-		);
+		),
+	);
 
 	draw_edit_form(
 		array(
@@ -1078,19 +1127,17 @@ function ds_edit() {
 		$i = 0;
 
 		if (isset($template_data_rrds)) {
-			if (cacti_sizeof($template_data_rrds) > 1) {
+			if (cacti_sizeof($template_data_rrds)) {
 				/* draw the data source tabs on the top of the page */
-				print "	<table class='tabs'><tr>";
+				print "<div class='tabs' style='float:left;'><nav><ul role='tablist'>";
 
 				foreach ($template_data_rrds as $template_data_rrd) {
+					print "<li class='subTab'><a " . (($template_data_rrd['id'] == get_request_var('view_rrd')) ? "class='pic selected'" : "class='pic'") . " href='" . html_escape('data_sources.php?action=ds_edit&id=' . get_request_var('id') . '&view_rrd=' . $template_data_rrd['id']) . "'>$i: " . html_escape($template_data_rrd['data_source_name']) . '</a>' . ($use_data_template == false ? " <a class='pic deleteMarker fa fa-times' href='" . html_escape('data_sources.php?action=rrd_remove&id=' . $template_data_rrd['id'] . '&local_data_id=' . get_request_var('id')) . "' title='" . __esc('Delete') . "'></a>" : '') . "</li>";
+
 					$i++;
-					print '	<td ' . (($template_data_rrd['id'] == get_request_var('view_rrd')) ? "class='even'" : "class='odd'") . " style='width:" . ((strlen($template_data_rrd['data_source_name']) * 9) + 50) . ";text-align:center;' class='tab'>
-						<span class='textHeader'><a href='" . html_escape('data_sources.php?action=ds_edit&id=' . get_request_var('id') . '&view_rrd=' . $template_data_rrd['id']) . "'>$i: " . html_escape($template_data_rrd['data_source_name']) . '</a>' . (($use_data_template == false) ? " <a class='pic deleteMarker fa fa-times' href='" . html_escape('data_sources.php?action=rrd_remove&id=' . $template_data_rrd['id'] . '&local_data_id=' . get_request_var('id')) . "' title='" . __esc('Delete') . "'></a>" : '') . '</span>
-						</td>';
-					print "<td style='width:1px;'></td>";
 				}
 
-				print '<td></td></tr></table>';
+				print "</ul></nav></div>";
 			} elseif (cacti_sizeof($template_data_rrds) == 1) {
 				set_request_var('view_rrd', $template_data_rrds[0]['id']);
 			}
@@ -1158,43 +1205,40 @@ function ds_edit() {
 
 	/* display the debug mode box if the user wants it */
 	if ((isset($_SESSION['ds_debug_mode'])) && (isset_request_var('id'))) {
-		?>
-		<table style='width:100%'>
-			<tr>
-				<td>
-					<span class='textInfo'><?php print __('Data Source Debug');?></span><br>
-					<pre><?php print html_escape(rrdtool_function_create(get_request_var('id'), true));?></pre>
-				</td>
-			</tr>
-		</table>
-		<?php
+		print "<div class='cactiTable'>";
+
+		print "<div class='tableHeader'>";
+		print __('Data Source Debug');
+		print '</div>';
+
+		print "<div class='tableRow'>";
+		print '<pre>' . html_escape(rrdtool_function_create(get_request_var('id'), true)) . '</pre>';
+		print '</div>';
+
+		print '</div>';
 	}
 
 	/* display the debug mode box if the user wants it */
-	if ((isset($_SESSION['ds_info_mode'])) && (isset_request_var('id'))) {
-		?>
-		<table style='width:100%'>
-			<tr>
-				<td><?php
-				$rrd_info = rrdtool_function_info(get_request_var('id'));
+	if (isset($_SESSION['ds_info_mode']) && isset_request_var('id')) {
+		print "<div class='cactiTable'><div class='tableRow'>";
 
-				if (cacti_sizeof($rrd_info['rra'])) {
-					$diff = rrdtool_cacti_compare(get_request_var('id'), $rrd_info);
+		$rrd_info = rrdtool_function_info(get_request_var('id'));
 
-					rrdtool_info2html($rrd_info, $diff);
+		if (cacti_sizeof($rrd_info['rra'])) {
+			$diff = rrdtool_cacti_compare(get_request_var('id'), $rrd_info);
 
-					if (cacti_sizeof($diff)) {
-						html_start_box(__('RRDtool Tune Info'), '100%', '', '3', 'center', '');
+			rrdtool_info2html($rrd_info, $diff);
 
-						rrdtool_tune($rrd_info['filename'], $diff, true);
+			if (cacti_sizeof($diff)) {
+				html_start_box(__('RRDtool Tune Info'), '100%', '', '3', 'center', '');
 
-						html_end_box();
-					}
-				}
-				?></td>
-			</tr>
-		</table>
-		<?php
+				rrdtool_tune($rrd_info['filename'], $diff, true);
+
+				html_end_box();
+			}
+		}
+
+		print '</div></div>';
 	}
 
 	if ((isset_request_var('id')) || (isset_request_var('new'))) {
