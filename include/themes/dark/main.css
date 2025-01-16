@@ -99,6 +99,7 @@ img {
 i.fa, i.fas, i.fab, i.far, i.fal {
 	font-size: 13px;
 	vertical-align: middle;
+	padding: 0px 3px;
 }
 
 .menu_parent i.fa, .menu_parent i.fas, .menu_parent i.fab, .menu_parent i.far, .menu_parent i.fal {
@@ -767,7 +768,7 @@ label {
 	width: 100%;
 	position: fixed;
 	padding: 4px;
-	top: 29px;
+	top: 27px;
 	left: 0px;
 	z-index: 4;
 	background: rgba(76,76,76,1);
