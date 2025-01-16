@@ -3312,6 +3312,13 @@ $(function () {
 		handlePopState(event);
 	}
 
+	// Don't allow selection when shift is pressed
+	$(document).mousedown(function (event) {
+		if (event.shiftKey) {
+			event.preventDefault();
+		}
+	});
+
 	$('#filter, #rfilter').keydown(function (event) {
 		if (event.keyCode == 8 && $(this).val() == '') {
 			handlePopState();
