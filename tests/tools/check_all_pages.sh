@@ -408,7 +408,7 @@ echo "---------------------------------------------------------------------"
 echo "Starting Web Based Page Validation"
 echo "---------------------------------------------------------------------"
 echo "NOTE: Saving Cookie Data"
-wget -q --no-check-certificate --keep-session-cookies --save-cookies "$cookieFile" --output-document="$tmpFile1" "$WEBHOST/index.php"
+wget --no-check-certificate --keep-session-cookies --save-cookies "$cookieFile" --output-document="$tmpFile1" "$WEBHOST/index.php"
 
 # ------------------------------------------------------------------------------
 # Prototype: var csrfMagicToken='sid:8ee86e9ddb8bcac8e377dfbb6c3d6d054854b6a9,1737054220';
@@ -417,7 +417,7 @@ magic=$(grep "var csrfMagicToken='" ${tmpFile1} | sed "s/.*var csrfMagicToken='/
 postData="action=login&login_username=${WAUSER}&login_password=${WAPASS}&__csrf_magic=${magic}"
 
 echo "NOTE: Logging into the Cacti User Interface"
-wget -q --no-check-certificate $loadSaveCookie --post-data="${postData}" --output-document="${tmpFile2}" "${WEBHOST}/index.php"
+wget --no-check-certificate $loadSaveCookie --post-data="${postData}" --output-document="${tmpFile2}" "${WEBHOST}/index.php"
 
 # ------------------------------------------------------------------------------
 # Now loop over all the available links (but don't log out and don't delete or
