@@ -452,7 +452,7 @@ function graphs() {
 		$host = db_fetch_row_prepared('SELECT id, description, hostname, host_template_id
 			FROM host
 			WHERE id = ?',
-			array(get_request_var('host_id')));
+			array(get_filter_request_var('host_id')));
 	}
 
 	if (cacti_sizeof($host)) {
@@ -479,7 +479,7 @@ function graphs() {
 	if (get_request_var('rows') == '-1') {
 		$rows = read_user_setting('num_rows_table', read_config_option('num_rows_table'), true);
 	} else {
-		$rows = get_request_var('rows');
+		$rows = get_filter_request_var('rows');
 	}
 
 	form_start('graphs_new.php', 'chk');

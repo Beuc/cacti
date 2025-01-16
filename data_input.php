@@ -661,7 +661,7 @@ function data_edit() {
 				} else {
 					$url = html_escape('data_input.php?action=field_remove_confirm&id=' . $field['id'] . '&data_input_id=' . get_request_var('id'));
 
-					form_selectable_cell("<a class='delete deleteMarker fa fa-times' href='$url' title='" . __esc('Delete') . "'></a>", $id, '', 'right');
+					form_selectable_cell("<a class='delete deleteMarker fa fa-times' href='$url' title='" . __esc('Delete') . "'></a>", $i, '', 'right');
 				}
 
 				form_end_row();

@@ -558,23 +558,26 @@ function template_edit() {
 
 		$header_label = __esc('Device Templates [edit: %s]', $host_template['name']);
 	} else {
+		$host_template = array();
+
 		$header_label = __('Device Templates [new]');
+
 		set_request_var('id', 0);
 	}
 
-	if (!cacti_sizeof($host_template) || $host_template['version'] == '') {
+	if (!cacti_sizeof($host_template) || !isset($host_template['version']) || $host_template['version'] == '') {
 		$fields_host_template_edit['version']['default'] = CACTI_VERSION;
 	}
 
-	if (!cacti_sizeof($host_template) || $host_template['author'] == '') {
+	if (!cacti_sizeof($host_template) || !isset($host_template['author']) || $host_template['author'] == '') {
 		$fields_host_template_edit['author']['default'] = read_config_option('packaging_author');
 	}
 
-	if (!cacti_sizeof($host_template) || $host_template['email'] == '') {
+	if (!cacti_sizeof($host_template) || !isset($host_template['email']) || $host_template['email'] == '') {
 		$fields_host_template_edit['email']['default'] = read_config_option('packaging_email');
 	}
 
-	if (!cacti_sizeof($host_template) || $host_template['copyright'] == '') {
+	if (!cacti_sizeof($host_template) || !isset($host_template['copyright']) || $host_template['copyright'] == '') {
 		$fields_host_template_edit['copyright']['default'] = read_config_option('packaging_copyright');
 	}
 

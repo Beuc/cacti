@@ -787,7 +787,7 @@ function create_poller_cache_filter() {
 					'array'         => $status,
 					'value'         => '-1'
 				),
-				'poller_actions' => array(
+				'poller_action' => array(
 					'method'        => 'drop_array',
 					'friendly_name' => __('Actions'),
 					'filter'        => FILTER_VALIDATE_INT,

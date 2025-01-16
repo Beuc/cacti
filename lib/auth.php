@@ -3143,12 +3143,12 @@ function auth_valid_user($user_id) {
 function auth_row_cache_purge($user_id, $class = 'all') {
 	if ($user_id > 0) {
 		if ($class == 'all') {
-			db_execute_prepared('DELETE FROM
+			db_execute_prepared('DELETE
 				FROM user_auth_row_cache
 				WHERE user_id = ?',
 				array($user_id));
 		} else {
-			db_execute_prepared('DELETE FROM
+			db_execute_prepared('DELETE
 				FROM user_auth_row_cache
 				WHERE user_id = ?
 				AND class = ?',
@@ -3158,7 +3158,7 @@ function auth_row_cache_purge($user_id, $class = 'all') {
 		if ($class == 'all') {
 			db_execute('TRUNCATE user_auth_row_cache');
 		} else {
-			db_execute_prepared('DELETE FROM
+			db_execute_prepared('DELETE
 				FROM user_auth_row_cache
 				WHERE class = ?',
 				array($class));
