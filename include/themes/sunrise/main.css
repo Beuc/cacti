@@ -9,7 +9,7 @@
  |                                                                         |
  | This program is distributed in the hope that it will be useful,         |
  | but WITHOUT ANY WARRANTY; without even the implied warranty of          |
- | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           |
+ | MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the            |
  | GNU General Public License for more details.                            |
  +-------------------------------------------------------------------------+
  | Cacti: The Complete RRDtool-based Graphing Solution                     |
@@ -851,7 +851,7 @@ label.ui-state-hover > span {
 	background-repeat: repeat-x;
 }
 
-.cactiPageHead  div {
+.cactiPageHead	div {
 	left: 0;
 	top: 0;
 }
@@ -1801,7 +1801,7 @@ table.cactiTable {
 	padding: 2px;
 }
 
-.tablesorter-headerUnSorted  div.textSubHeaderDark {
+.tablesorter-headerUnSorted	div.textSubHeaderDark {
 	color: #9d9d9d;
 }
 
@@ -2948,65 +2948,65 @@ td.center > table {
 
 /*-- Tooltip --*/
 .bb-tooltip-container {
-  z-index: 10;
+	z-index: 10;
 }
 
 .bb-tooltip {
-  border-collapse: collapse;
-  border-spacing: 0;
-  background-color: #161616;
-  empty-cells: show;
-  -webkit-box-shadow: 7px 7px 12px -9px #777777;
-  -moz-box-shadow: 7px 7px 12px -9px #777777;
-  box-shadow: 7px 7px 12px -9px #777777;
-  opacity: 0.9;
+	border-collapse: collapse;
+	border-spacing: 0;
+	background-color: #161616;
+	empty-cells: show;
+	-webkit-box-shadow: 7px 7px 12px -9px #777777;
+	-moz-box-shadow: 7px 7px 12px -9px #777777;
+	box-shadow: 7px 7px 12px -9px #777777;
+	opacity: 0.9;
 }
 
 .bb-tooltip tr {
-  border: 1px solid #050505;
+	border: 1px solid #050505;
 }
 
 .bb-tooltip th {
-  background-color: #161616;
-  font-size: 14px;
-  padding: 2px 5px;
-  text-align: left;
-  color: #FFFFFF;
+	background-color: #161616;
+	font-size: 14px;
+	padding: 2px 5px;
+	text-align: left;
+	color: #FFFFFF;
 }
 
 .bb-tooltip td {
-  font-size: 13px;
-  padding: 3px 6px;
-  background-color: #050505;
-  border-left: 1px dotted #999;
+	font-size: 13px;
+	padding: 3px 6px;
+	background-color: #050505;
+	border-left: 1px dotted #999;
 }
 
 .bb-tooltip td > span {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  margin-right: 6px;
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	margin-right: 6px;
 }
 
 .bb-tooltip td.value {
-  text-align: right;
+	text-align: right;
 }
 
 /*-- Chart --*/
 .bb svg {
-  font: 10px sans-serif;
-  -webkit-tap-highlight-color: transparent;
+	font: 10px sans-serif;
+	-webkit-tap-highlight-color: transparent;
 }
 
 .bb path, .bb line {
-  fill: none;
-  stroke: #E0E0E0;
+	fill: none;
+	stroke: #E0E0E0;
 }
 
 .bb text {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  user-select: none;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	user-select: none;
 }
 
 .bb-legend-item-tile,
@@ -3014,142 +3014,152 @@ td.center > table {
 .bb-ygrid,
 .bb-event-rect,
 .bb-bars path {
-  shape-rendering: crispEdges;
+	shape-rendering: crispEdges;
 }
 
 .bb-chart-arc path {
-  stroke: #fff;
+	stroke: #fff;
 }
 
 .bb-chart-arc text {
-  fill: #fff;
-  font-size: 13px;
+	fill: #fff;
+	font-size: 13px;
 }
 
 /*-- Axis --*/
 /*-- Grid --*/
 .bb-grid line {
-  stroke: #aaa;
+	stroke: #aaa;
 }
 
 .bb-grid text {
-  fill: #aaa;
+	fill: #aaa;
 }
 
 .bb-xgrid, .bb-ygrid {
-  stroke-dasharray: 3 3;
+	stroke-dasharray: 3 3;
 }
 
 /*-- Text on Chart --*/
 .bb-text.bb-empty {
-  fill: #808080;
-  font-size: 2em;
+	fill: #808080;
+	font-size: 2em;
 }
 
 /*-- Line --*/
 .bb-line {
-  stroke-width: 1px;
+	stroke-width: 1px;
 }
 
 /*-- Point --*/
 .bb-circle._expanded_ {
-  stroke-width: 1px;
-  stroke: white;
+	stroke-width: 1px;
+	stroke: white;
 }
 
 .bb-selected-circle {
-  fill: white;
-  stroke-width: 2px;
+	fill: white;
+	stroke-width: 2px;
 }
 
 /*-- Bar --*/
 .bb-bar {
-  stroke-width: 0;
+	stroke-width: 0;
 }
 
 .bb-bar._expanded_ {
-  fill-opacity: 0.75;
+	fill-opacity: 0.75;
 }
 
 /*-- Focus --*/
 .bb-target.bb-focused {
-  opacity: 1;
+	opacity: 1;
 }
 
 .bb-target.bb-focused path.bb-line, .bb-target.bb-focused path.bb-step {
-  stroke-width: 2px;
+	stroke-width: 2px;
 }
 
 .bb-target.bb-defocused {
-  opacity: 0.3 !important;
+	opacity: 0.3 !important;
 }
 
 /*-- Region --*/
 .bb-region {
-  fill: steelblue;
-  fill-opacity: .1;
+	fill: steelblue;
+	fill-opacity: .1;
 }
 
 /*-- Brush --*/
 .bb-brush .extent {
-  fill-opacity: .1;
+	fill-opacity: .1;
 }
 
 /*-- Select - Drag --*/
 /*-- Legend --*/
 .bb-legend-item {
-  font-size: 12px;
+	font-size: 12px;
 }
 
 .bb-legend-item-hidden {
-  opacity: 0.15;
+	opacity: 0.15;
 }
 
 .bb-legend-background {
-  opacity: 0.75;
-  fill: white;
-  stroke: lightgray;
-  stroke-width: 1;
+	opacity: 0.75;
+	fill: white;
+	stroke: lightgray;
+	stroke-width: 1;
 }
 
 /*-- Title --*/
 .bb-title {
-  font: 14px sans-serif;
+	font: 14px sans-serif;
 }
 
 /*-- Area --*/
 .bb-area {
-  stroke-width: 0;
-  opacity: 0.2;
+	stroke-width: 0;
+	opacity: 0.2;
 }
 
 /*-- Arc --*/
 .bb-chart-arcs-title {
-  dominant-baseline: middle;
-  font-size: 1.3em;
+	dominant-baseline: middle;
+	font-size: 1.3em;
 }
 
 .bb-chart-arcs .bb-chart-arcs-background {
-  fill: #E0E0E0;
-  stroke: none;
+	fill: #E0E0E0;
+	stroke: none;
 }
 
 .bb-chart-arcs .bb-chart-arcs-gauge-unit {
-  fill: #000;
-  font-size: 16px;
+	fill: #000;
+	font-size: 16px;
 }
 
 .bb-chart-arcs .bb-chart-arcs-gauge-max {
-  fill: #777;
+	fill: #777;
 }
 
 .bb-chart-arcs .bb-chart-arcs-gauge-min {
-  fill: #777;
+	fill: #777;
 }
 
 .bb-chart-arc .bb-gauge-value {
-  fill: #000;
-  /*  font-size: 28px !important;*/
+	fill: #000;
+	/*	font-size: 28px !important;*/
+}
+
+.bb-button .bb-zoom-reset {
+	font-size: 11px;
+	border: solid 1px #161616;
+	background-color: #161616;
+	padding: 5px;
+	color: snow;
+	border-radius: 5px;
+	cursor: pointer;
 }
 
 circle {
@@ -3159,9 +3169,9 @@ circle {
 }
 
 [id*='_edit'] .tableHeader:hover {
-     background-color: rgba(200, 100, 0, .3) !important;
-     border-left: 2px solid yellow !important;
-     border-right: 2px solid yellow !important;
+	background-color: rgba(200, 100, 0, .3) !important;
+	border-left: 2px solid yellow !important;
+	border-right: 2px solid yellow !important;
 }
 
 .actionHelp {
