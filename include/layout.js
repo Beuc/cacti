@@ -2349,7 +2349,7 @@ function loadTopTabEnd(options) {
 
 			var hideTabId = tabElementId.substring(0, tabElementId.length - 9);
 
-			if (hideTabId) {
+			if (hideTabId && hideTabId != '#') {
 				$(hideTabId).addClass('selected');
 			}
 		} else if (tabElement.parents('.submenuoptions').length > 0) {
