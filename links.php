@@ -61,6 +61,14 @@ switch (get_request_var('action')) {
 		header('Location: links.php');
 
 		break;
+	case 'ajax_dnd':
+		$new_order = get_nfilter_request_var('dnd');
+
+		links_reorder($new_order);
+
+		header('Location: links.php');
+
+        break;
 	case 'save':
 		$save['id']      = isset_request_var('id') ? get_filter_request_var('id') : 0;
 		$save['title']   = form_input_validate(get_nfilter_request_var('title'), 'title', '', false, 3);
@@ -126,7 +134,6 @@ switch (get_request_var('action')) {
 		bottom_footer();
 
 		break;
-
 	default:
 		top_header();
 
@@ -135,6 +142,23 @@ switch (get_request_var('action')) {
 		bottom_footer();
 
 		break;
+}
+
+function links_reorder($new_order) {
+	if (cacti_sizeof($new_order)) {
+		$sort = 1;
+
+		foreach($new_order as $l) {
+			$link_id = str_replace('line', '', $l);
+
+			db_execute_prepared('UPDATE external_links
+				SET sortorder = ?
+				WHERE id = ?',
+				array($sort, $link_id));
+
+			$sort++;
+		}
+	}
 }
 
 function form_actions() {
@@ -312,16 +336,17 @@ function pages() {
 		foreach ($pages as $page) {
 			form_alternate_row('line' . $page['id']);
 
-			$menuicons = '<a class="pic"  href="' . html_escape('links.php?action=edit&id=' . $page['id']) . '" title="' . __esc('Edit Page') . '"><img src="' . CACTI_PATH_URL . 'images/application_edit.png" alt=""></a>';
+			$menuicons = '<a class="pic"  href="' . html_escape('links.php?action=edit&id=' . $page['id']) . '" title="' . __esc('Edit Page') . '"><i class="fa fa-pen-to-square editTemplate"></i></a>';
 
 			if ($page['enabled'] == 'on') {
-				$menuicons .= '<a class="pic" href="' . html_escape('link.php?id=' . $page['id']) . '" title="' . __esc('View Page') . '"><img src="' . CACTI_PATH_URL . 'images/view_page.png" alt=""></a>';
+				$menuicons .= '<a class="pic" href="' . html_escape('link.php?id=' . $page['id']) . '" title="' . __esc('View Page') . '"><i class="fa fa-file deviceUp"></i></a>';
 			}
 
-			form_selectable_cell($menuicons, $page['id'], '50');
+			form_selectable_cell($menuicons, $page['id'], '3%');
 			form_selectable_ecell($page['contentfile'], $page['id']);
 			form_selectable_ecell($page['title'], $page['id']);
 			form_selectable_ecell($style_translate[$page['style']] . ($page['style'] == 'CONSOLE' ? ' ( ' . ($page['extendedstyle'] == '' ? __('External Links') : $page['extendedstyle']) . ' )' : ''), $page['id']);
+
 			form_selectable_cell(($page['enabled'] == 'on' ? __('Yes') : __('No')), $page['id']);
 
 			if (get_request_var('sort_column') == 'sortorder') {
@@ -357,10 +382,26 @@ function pages() {
 		print $nav;
 	}
 
-
 	draw_actions_dropdown($actions);
 
 	form_end();
+
+	if (get_request_var('sort_column') == 'sortorder' && read_config_option('drag_and_drop') == 'on') {
+		?>
+		<script type='text/javascript'>
+		$(function() {
+			$('#links2_child').attr('id', 'dnd');
+
+			$('#dnd').find('tr:first').addClass('nodrag').addClass('nodrop');
+			$('#dnd').tableDnD({
+				onDrop: function(table, row) {
+					loadUrl({url:'links.php?action=ajax_dnd&'+$.tableDnD.serialize()})
+				}
+			});
+		});
+		</script>
+		<?php
+	}
 }
 
 function page_delete($id) {
