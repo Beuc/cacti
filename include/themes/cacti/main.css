@@ -1508,6 +1508,14 @@ th.sortable {
 	line-height: 10px;
 }
 
+th.primarySort {
+	background-color: rgba(0,62,0,0.6);
+}
+
+th.secondarySort {
+	background-color: rgba(0,119,0,0.6);
+}
+
 .tableHeader th {
 	color: white;
 	cursor: pointer;
