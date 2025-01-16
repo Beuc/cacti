@@ -167,7 +167,8 @@ label {
 }
 
 .glyph_tab-console:before {
-	content: '\f21c';
+	content: '\f787';
+	font-family: "Font Awesome 5 Free";
 	display: inline-block;
 }
 

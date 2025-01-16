@@ -169,6 +169,7 @@ label {
 .glyph_tab-console:before {
 	content: '\f7aa';
 	font-family: "Font Awesome 5 Free";
+	display: inline-block;
 }
 
 .text_tab-console {

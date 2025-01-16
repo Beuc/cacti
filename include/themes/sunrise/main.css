@@ -207,7 +207,8 @@ label {
 }
 
 .glyph_tab-console:before {
-	content: "\f23a";
+	content: "\f185";
+	padding: 0px 8px 0px 8px;
 	display: inline-block;
 }
 

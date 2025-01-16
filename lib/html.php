@@ -2253,7 +2253,7 @@ function html_show_tabs_left() {
 			$i++;
 		}
 
-		print "<li><a id='$id' role='tab' class='lefttab" . (isset($tab['selected']) ? " selected' aria-selected='true'":"' aria-selected='false'") . " href='" . html_escape($tab['url']) . "'><span class='ti glyph_$id'></span><span class='text_$id'>" . html_escape($tab['title']) . "</span></a><a id='menu-$id' class='maintabs-submenu' href='#'><i class='fa fa-chevron-down'></i></a></li>";
+		print "<li><a id='$id' role='tab' class='lefttab" . (isset($tab['selected']) ? " selected' aria-selected='true'":"' aria-selected='false'") . " href='" . html_escape($tab['url']) . "'><span class='fa glyph_$id'></span><span class='text_$id'>" . html_escape($tab['title']) . "</span></a><a id='menu-$id' class='maintabs-submenu' href='#'><i class='fa fa-chevron-down'></i></a></li>";
 	}
 
 	print "<li class='ellipsis maintabs-submenu-ellipsis'><a id='menu-ellipsis' role='tab' aria-selected='false' class='submenu-ellipsis' href='#'><i class='fa fa-chevron-down'></i></a></li>";
