@@ -144,7 +144,7 @@ a:hover {
 	color: #333333;
 }
 
-th .fa, th .ti {
+th .fa {
 	margin-top: -5px;
 	position: absolute;
 	right: 3px;
@@ -1019,7 +1019,7 @@ legend {
 	padding-bottom: 2px;
 }
 
-.piinstall, .pienable, .pidisable, .piuninstall, .pierror, .pirmdata {
+.piinstall, .pienable, .pidisable, .piuninstall, .pierror, .pirmdata, .piload, .pireadme, .pichangelog, .pirestore, .pirmarchive {
 	padding: 0px 3px !important;
 }
 
@@ -2552,10 +2552,5 @@ td.center > table {
 
 .expandAggregate {
 	color:#ffb7a5 !important;
-}
-
-.ti {
-	font-size: 1.4em;
-	font-weight: bold;
 }
 

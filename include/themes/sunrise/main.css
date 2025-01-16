@@ -87,13 +87,13 @@ img {
 	vertical-align: middle;
 }
 
-i.fa, i.fas, i.fab, i.far, i.fal, i.ti {
+i.fa, i.fas, i.fab, i.far, i.fal {
 	padding: 0px 3px;
 	font-size: 13px;
 	vertical-align: middle;
 }
 
-.menu_parent i.fa, .menu_parent i.fas, .menu_parent i.fab, .menu_parent i.far, .menu_parent i.fal, .menu_parent i.ti {
+.menu_parent i.fa, .menu_parent i.fas, .menu_parent i.fab, .menu_parent i.far, .menu_parent i.fal {
 	color: lightgrey;
 	line-height: 18px;
 }
@@ -164,7 +164,7 @@ a:hover {
 	color: white;
 }
 
-th .fa, th .ti {
+th .fa {
 	margin-top: -5px;
 	position: absolute;
 	right: 3px;
@@ -1239,7 +1239,7 @@ legend {
 	display: inline-block;
 }
 
-.piinstall, .pienable, .pidisable, .piuninstall, .pierror, .pirmdata {
+.piinstall, .pienable, .pidisable, .piuninstall, .pierror, .pirmdata, .piload, .pireadme, .pichangelog, .pirestore, .pirmarchive {
 	padding: 0px 3px !important;
 }
 
@@ -2161,14 +2161,6 @@ div#gtabs {
 	font-size: 18px;
 }
 
-.maintabs .lefttab span.ti {
-	font-size: 18px;
-}
-
-.maintabs i.ti {
-	font-size: 18px;
-}
-
 div.submenu {
 	display: none;
 	position: absolute;
@@ -2252,23 +2244,6 @@ tr td:last-child .formCheckboxLabel {
 
 tr th:last-child .formCheckboxLabel {
 	margin-right: 10px !important;
-}
-
-.ti-chevrons-up, .ti-chevrons-down {
-	margin-right: 10px;
-}
-
-.cactiTableButton .ti-plus, .cactiTableButton .ti-help-circle-filled, .cactiTableButton .ti-menu-2, .cactiTableButton .ti-sort-ascending-letters, .cactiTableButton .ti-sort-descending-letters {
-	margin-right: 10px;
-}
-
-.ti-arrows-diagonal-minimize-2, .ti-arrows-diagonal {
-	margin-right: 10px;
-}
-
-.ti {
-	font-size: 1.4em;
-	font-weight: bold;
 }
 
 /* Navigation Area */
