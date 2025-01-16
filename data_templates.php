@@ -775,7 +775,7 @@ function template_edit() {
 	$i = 0;
 
 	if (isset($template_data_rrds)) {
-		if (cacti_sizeof($template_data_rrds) > 1) {
+		if (cacti_sizeof($template_data_rrds)) {
 			/* draw the data source tabs on the top of the page */
 			print "<div class='tabs' style='float:left;'><nav><ul role='tablist'>";
 
