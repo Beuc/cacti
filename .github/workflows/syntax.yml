@@ -133,8 +133,10 @@ jobs:
     - name: Restart Apache2
       run: sudo systemctl restart apache2
 
-    - name: Link Cacti Root
-      run: sudo ln -s ${{ github.workspace }} /var/www/html
+    - name: Setup the Cacti Root
+      run: |
+        sudo cp -rp ${{ github.workspace }} /var/www/html
+        sudo chown -R www-data:www-data /var/www/html/cacti
 
     - name: Create and Initialize Database
       env:
