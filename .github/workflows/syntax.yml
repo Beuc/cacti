@@ -134,7 +134,7 @@ jobs:
       run: sudo systemctl restart apache2
 
     - name: Link Cacti Root
-      run: sudo ln -s ${{ github.workspace }} /var/www/html/cacti
+      run: sudo ln -s ${{ github.workspace }} /var/www/html
 
     - name: Create and Initialize Database
       env:
