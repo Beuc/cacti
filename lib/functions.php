@@ -5322,7 +5322,7 @@ function mailer(array|string $from, array|string $to, null|array|string $cc = nu
 	$body    = $body ?? '';
 
 	// Create the PHPMailer instance
-	$mail = new PHPMailer\PHPMailer;
+	$mail = new PHPMailer\PHPMailer\PHPMailer;
 
 	// Set a reasonable timeout of 5 seconds
 	$timeout = read_config_option('settings_smtp_timeout');
