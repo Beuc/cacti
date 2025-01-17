@@ -300,39 +300,39 @@ fi
 set_cacti_admin_password() {
 	echo "NOTE: Setting Cacti admin password and unsetting forced password change"
 
-	$mysql $MYSQL_AUTH_USR -e "UPDATE user_auth SET password=MD5('$WAPASS') WHERE id = 1 ;" "$DBNAME"
-	$mysql $MYSQL_AUTH_USR -e "UPDATE user_auth SET password_change='', must_change_password='' WHERE id = 1 ;" "$DBNAME"
-	$mysql $MYSQL_AUTH_USR -e "REPLACE INTO settings (name, value) VALUES ('secpass_forceold', '') ;" "$DBNAME"
+	$mysql "$MYSQL_AUTH_USR" -e "UPDATE user_auth SET password=MD5('$WAPASS') WHERE id = 1 ;" "$DBNAME"
+	$mysql "$MYSQL_AUTH_USR" -e "UPDATE user_auth SET password_change='', must_change_password='' WHERE id = 1 ;" "$DBNAME"
+	$mysql "$MYSQL_AUTH_USR" -e "REPLACE INTO settings (name, value) VALUES ('secpass_forceold', '') ;" "$DBNAME"
 }
 
 enable_log_validation() {
 	echo "NOTE: Setting Cacti to log validation issues"
 
-	$mysql $MYSQL_AUTH_USR -e "REPLACE INTO settings (name, value) VALUES ('log_validation','on') ;" "$DBNAME"
+	$mysql "$MYSQL_AUTH_USR" -e "REPLACE INTO settings (name, value) VALUES ('log_validation','on') ;" "$DBNAME"
 }
 
 set_log_level_none() {
 	echo "NOTE: Setting Cacti log verbosity to none"
 
-	$mysql $MYSQL_AUTH_USR -e "REPLACE INTO settings (name, value) VALUES ('log_verbosity', '1') ;" "$DBNAME"
+	$mysql "$MYSQL_AUTH_USR" -e "REPLACE INTO settings (name, value) VALUES ('log_verbosity', '1') ;" "$DBNAME"
 }
 
 set_log_level_normal() {
 	echo "NOTE: Setting Cacti log verbosity to low"
 
-	$mysql $MYSQL_AUTH_USR -e "REPLACE INTO settings (name, value) VALUES ('log_verbosity', '2') ;" "$DBNAME"
+	$mysql "$MYSQL_AUTH_USR" -e "REPLACE INTO settings (name, value) VALUES ('log_verbosity', '2') ;" "$DBNAME"
 }
 
 set_log_level_debug() {
 	echo "NOTE: Setting Cacti log verbosity to DEBUG"
 
-	$mysql $MYSQL_AUTH_USR -e "REPLACE INTO settings (name, value) VALUES ('log_verbosity', '6') ;" "$DBNAME"
+	$mysql "$MYSQL_AUTH_USR" -e "REPLACE INTO settings (name, value) VALUES ('log_verbosity', '6') ;" "$DBNAME"
 }
 
 set_stderr_logging() {
 	echo "NOTE: Setting Cacti standard error log location"
 
-	$mysql $MYSQL_AUTH_USR -e "REPLACE INTO cacti.settings (name, value) VALUES ('path_stderrlog', '${CACTI_ERRLOG}');" "$DBNAME"
+	$mysql "$MYSQL_AUTH_USR" -e "REPLACE INTO cacti.settings (name, value) VALUES ('path_stderrlog', '${CACTI_ERRLOG}');" "$DBNAME"
 }
 
 allow_index_following() {
@@ -413,11 +413,11 @@ wget --no-check-certificate --keep-session-cookies --save-cookies "$cookieFile" 
 # ------------------------------------------------------------------------------
 # Prototype: var csrfMagicToken='sid:8ee86e9ddb8bcac8e377dfbb6c3d6d054854b6a9,1737054220';
 # ------------------------------------------------------------------------------
-magic=$(grep "var csrfMagicToken='" ${tmpFile1} | sed "s/.*var csrfMagicToken='//g" | sed "s/';//g")
+magic=$(grep "var csrfMagicToken='" "${tmpFile1}" | sed "s/.*var csrfMagicToken='//g" | sed "s/';//g")
 postData="action=login&login_username=${WAUSER}&login_password=${WAPASS}&__csrf_magic=${magic}"
 
 echo "NOTE: Logging into the Cacti User Interface"
-wget --no-check-certificate $loadSaveCookie --post-data="${postData}" --output-document="${tmpFile2}" "${WEBHOST}/index.php"
+wget --no-check-certificate "$loadSaveCookie" --post-data="${postData}" --output-document="${tmpFile2}" "${WEBHOST}/index.php"
 
 # ------------------------------------------------------------------------------
 # Now loop over all the available links (but don't log out and don't delete or
@@ -425,7 +425,7 @@ wget --no-check-certificate $loadSaveCookie --post-data="${postData}" --output-d
 # ------------------------------------------------------------------------------
 echo "NOTE: Recursively Checking all Base and Enabled Plugin Pages"
 echo "NOTE: This will take several minutes!!!"
-wget --no-check-certificate $loadSaveCookie --output-file="${logFile1}" --reject-regex="(logout\.php|remove|delete|uninstall|install|disable|enable)" --recursive --level=0 --execute=robots=off "${WEBHOST}/index.php"
+wget --no-check-certificate "$loadSaveCookie" --output-file="${logFile1}" --reject-regex="(logout\.php|remove|delete|uninstall|install|disable|enable)" --recursive --level=0 --execute=robots=off "${WEBHOST}/index.php"
 error=$?
 
 if [ $error -eq 8 ]; then

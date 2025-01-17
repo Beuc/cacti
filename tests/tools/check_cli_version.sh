@@ -20,12 +20,12 @@
 #| http://www.cacti.net/                                                   |
 #+-------------------------------------------------------------------------+
 
-SCRIPTPATH="$( cd "$(dirname "$0")" ; pwd -P )"
-cd "${SCRIPTPATH}/../../"
+SCRIPTPATH="$( cd "$(dirname "$0")" || exit ; pwd -P )"
+cd "${SCRIPTPATH}/../../" || exit
 FILES1=$(find cli -name \*.php | grep -v "index.php" | sort)
 FILES2=$(ls -1 poller*.php | egrep -v "(index.php|pollers.php)" | sort)
 FILES3="cactid.php cmd.php"
-WEBUSER=$(ps -ef | egrep '(httpd|apache2|apache)' | grep -v `whoami` | grep -v root | head -n1 | awk '{print $1}')
+WEBUSER=$(ps -ef | egrep '(httpd|apache2|apache)' | grep -v $(whoami) | grep -v root | head -n1 | awk '{print $1}')
 PWD=$(pwd)
 
 FAILED=0
@@ -49,7 +49,7 @@ for script in $FILES1 $FILES2 $FILES3; do
 		echo "       -     found '${script_output}'"
 	fi
 
-	script_output=$(php -q ${script} --version)
+	script_output=$(php -q "${script}" --version)
 	script_result=$?
 	script_lines=$(echo "${script_output}" | wc -l)
 
@@ -75,7 +75,7 @@ for script in $FILES1 $FILES2 $FILES3; do
 		echo "   ==============================================================================="
 	fi
 
-	script_output=$(php -q ${script} --help)
+	script_output=$(php -q "${script}" --help)
 	script_result=$?
 	script_lines=$(echo "${script_output}" | wc -l)
 
