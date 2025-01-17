@@ -392,7 +392,7 @@ tmpFile1=$(mktemp)
 tmpFile2=$(mktemp)
 logFile1=$(mktemp)
 cookieFile=$(mktemp)
-loadSaveCookie="--load-cookies ${cookieFile} --keep-session-cookies --save-cookies ${cookieFile}"
+loadSaveCookie="--load-cookies=\"${cookieFile}\" --keep-session-cookies --save-cookies=\"${cookieFile}\""
 started=1
 
 # ------------------------------------------------------------------------------
