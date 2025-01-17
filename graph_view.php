@@ -329,19 +329,26 @@ case 'tree_content':
 
 	?>
 	<script type='text/javascript'>
-	var refreshIsLogout = false;
-	var refreshPage     = '<?php print str_replace('tree_content', 'tree', sanitize_uri($_SERVER['REQUEST_URI']));?>';
-	var refreshMSeconds = <?php print read_user_setting('page_refresh')*1000;?>;
+
 	var graph_start     = <?php print get_current_graph_start();?>;
 	var graph_end       = <?php print get_current_graph_end();?>;
 	var timeOffset      = <?php print date('Z');?>
 
-	// Adjust the height of the tree
+	/**
+	 * Adjust the height of the tree and set the page refresh
+	 */
 	$(function() {
-		pageAction   = 'tree';
-		navHeight    = $('.cactiTreeNavigationArea').height();
-		windowHeight = $(window).height();
-		navOffset    = $('.cactiTreeNavigationArea').offset();
+		/* these are all global variables */
+		refreshIsLogout = false;
+		refreshPage     = '<?php print str_replace('tree_content', 'tree', sanitize_uri($_SERVER['REQUEST_URI']));?>';
+		refreshMSeconds = <?php print read_user_setting('page_refresh')*1000;?>;
+		pageAction      = 'tree';
+		navHeight       = $('.cactiTreeNavigationArea').height();
+		windowHeight    = $(window).height();
+		navOffset       = $('.cactiTreeNavigationArea').offset();
+
+		setupPageTimeout();
+
 		if (navHeight + navOffset.top < windowHeight) {
 			$('.cactiTreeNavigationArea').height(windowHeight - navOffset.top);
 		}
