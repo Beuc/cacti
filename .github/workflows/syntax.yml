@@ -133,6 +133,9 @@ jobs:
     - name: Restart Apache2
       run: sudo systemctl restart apache2
 
+    - name: Link Cacti Root
+      run: ln -s ${{ github.workspace }} /var/www/html/cacti
+
     - name: Create and Initialize Database
       env:
         MYSQL_AUTH_USR: '--defaults-file=~/.my.cnf'
