@@ -173,7 +173,7 @@ function setupTheme() {
 									break;
 								default:
 							}
-							$('<i class="ti ti-lock" data-helper="' + $(this).attr('id') + '" data-func="togglePwdInputField"></i>').insertAfter($(this));
+							$('<i class="fa fa-lock" data-helper="' + $(this).attr('id') + '" data-func="togglePwdInputField"></i>').insertAfter($(this));
 						}
 					}
 				}else {
@@ -268,7 +268,7 @@ function setupTheme() {
 			);
 
 			/* dashboards */
-			new navigationButton('dashboards', 'Panels', 'Panels', 'ti ti-layout-dashboard', '#compact_tab_menu').show();
+			new navigationButton('dashboards', 'Panels', 'Panels', 'far fa-compass', '#compact_tab_menu').show();
 			new navigationBox(cactiDashboards, 'dashboards', 'full','auto', {
 				close: true,
 				search: 'searchToHighlight',
@@ -277,7 +277,7 @@ function setupTheme() {
 
 			/* settings */
 			if (cactiConsoleAllowed) {
-				new navigationButton('settings', 'Setup', 'Settings', 'ti ti-settings', '#compact_tab_menu');
+				new navigationButton('settings', 'Setup', 'Settings', 'fa fa-cogs', '#compact_tab_menu');
 				new navigationBox(zoom_i18n_settings, 'settings', 'full', 'auto', {
 					close: true,
 					search: 'searchToHighlight',
@@ -287,7 +287,7 @@ function setupTheme() {
 
 			/* tree */
 			if (cactiGraphsAllowed) {
-				new navigationButton('tree', 'Tree', 'Tree View','ti ti-seedling', '#compact_tab_menu').show();
+				new navigationButton('tree', 'Tree', 'Tree View','fa fa-seedling', '#compact_tab_menu').show();
 				new navigationBox( 'Tree', 'tree', 'full', 'auto', {
 					close: true,
 					search: 'searchCactiTree',
@@ -296,7 +296,7 @@ function setupTheme() {
 			}
 
 			/* user help */
-			new navigationButton('help', 'Help', 'Help', 'ti ti-message-circle-question', '#compact_user_menu').show();
+			new navigationButton('help', 'Help', 'Help', 'far fa-comments', '#compact_user_menu').show();
 			new navigationBox(help, 'help', 'half', '2', {
 				close: false,
 				search: false,
@@ -312,7 +312,7 @@ function setupTheme() {
 			}, 'left', $('.loggedInAs').text() ).build();
 
 			/* log out */
-			new navigationButton('logout', 'Exit', 'Sign Out','ti ti-logout', '#compact_user_menu', 'redirect', urlPath+'logout.php').show();
+			new navigationButton('logout', 'Exit', 'Sign Out','fas fa-right-from-bracket', '#compact_user_menu', 'redirect', urlPath+'logout.php').show();
 
 			/* table filters */
 	  		new navigationBox( 'Table Layout', 'displayOptions', 'full', '1', {
@@ -321,8 +321,8 @@ function setupTheme() {
 				resize: false,
 				dock: true,
 			}, 'right','Table Layout', 'auto').build();
-			new navigationButton('toggleColorMode', 'Color', 'Toggle light/dark Mode', 'ti ti-brightness-filled', '#navControl', 'toggleColorMode', 'on').show();
-			new navigationButton('kioskMode', 'Kiosk', 'Enable Kiosk Mode', 'ti ti-browser-maximize', '#navControl', 'kioskMode', 'on').show();
+			new navigationButton('toggleColorMode', 'Color', 'Toggle light/dark Mode', 'fas fa-circle-half-stroke', '#navControl', 'toggleColorMode', 'on').show();
+			new navigationButton('kioskMode', 'Kiosk', 'Enable Kiosk Mode', 'fas fa-tv', '#navControl', 'kioskMode', 'on').show();
 		}
 	}
 
@@ -568,7 +568,7 @@ function setupDefaultElements() {
 
 
 //	let btn_filter1 	= new navigationButton('displayDockTop', 'Filter', 'Show Filter Dock','fas fa-filter', '#navFilter', 'toggleCactiDockNavigationBox', 'Top');
-	let btn_filter 	= new navigationButton('displayFilterOptions', 'Filter', 'Show Filter Dock','ti ti-filter', '#navFilter');
+	let btn_filter 	= new navigationButton('displayFilterOptions', 'Filter', 'Show Filter Dock','fas fa-filter', '#navFilter');
 	let btn_calendar	= new navigationButton('daterangepicker', 'Calendar', 'Select Timeframe', 'fas fa-calendar-alt', '#navFilter', '', '');
 	let btn_add		= new navigationButton('formAction', 'New', 'Add','fa fa-plus', '#navFilter');
 
@@ -613,7 +613,7 @@ function setupDefaultElements() {
 	}
 
 	/* display option: table layout */
-	let btn_table_layout = new navigationButton('displayOptions', 'Table', 'Setup Table Layout','ti ti-adjustments-horizontal', '#navFilter');
+	let btn_table_layout = new navigationButton('displayOptions', 'Table', 'Setup Table Layout','fas fa-sliders', '#navFilter');
 
 	if ($('tr.tableHeader').length !== 0) {
 		let cArray = [];
