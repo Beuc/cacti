@@ -5322,7 +5322,7 @@ function mailer(array|string $from, array|string $to, null|array|string $cc = nu
 	$body    = $body ?? '';
 
 	// Create the PHPMailer instance
-	$mail = new PHPMailer\PHPMailer\PHPMailer;
+	$mail = new PHPMailer\PHPMailer;
 
 	// Set a reasonable timeout of 5 seconds
 	$timeout = read_config_option('settings_smtp_timeout');
@@ -8848,8 +8848,9 @@ function debounce_run_notification($id, $frequency = 7200) {
 
 	if (empty($last_timestamp) || $now - $last_timestamp > $frequency) {
 		$current = array(
+			'id'        => $id,
 			'timestamp' => $now,
-			'id'        => $id
+			'frequency' => $frequency
 		);
 
 		set_config_option($key, json_encode($current));
