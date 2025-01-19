@@ -75,8 +75,10 @@ img {
 }
 
 i.fa, i.fas, i.fab, i.far, i.fal {
+	font-size: 15px;
 	padding: 0px 3px;
-	font-size: 13px;
+	text-align: left;
+	vertical-align: middle;
 }
 
 .menu_parent i.fa, .menu_parent i.fas, .menu_parent i.fab, .menu_parent i.far, .menu_parent i.fal {
