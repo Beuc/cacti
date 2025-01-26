@@ -3086,13 +3086,30 @@ function automation_add_tree($host_id, $tree) {
 function automation_find_os($sysDescr, $sysObject, $sysName) {
 	$sql_where  = '';
 
-	$sql_where .= "WHERE (? REGEXP sysDescr OR ? LIKE CONCAT('%', sysDescr, '%'))";
-	$sql_where .= " AND (? REGEXP sysOid OR ? LIKE CONCAT('%', sysOid, '%'))";
-	$sql_where .= " AND (? REGEXP sysName OR ? LIKE CONCAT('%', sysName, '%'))";
+	if ($sysDescr != '') {
+		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . "(? REGEXP CONCAT('/', sysDescr, '/') OR ? LIKE CONCAT('%%', sysDescr, '%%'))";
+
+		$params[] = $sysDescr;
+		$params[] = $sysDescr;
+	}
+
+	if ($sysObject != '') {
+		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . "(? REGEXP CONCAT('/', sysOid, '/') OR ? LIKE CONCAT('%%', sysOid, '%%'))";
+
+		$params[] = $sysObject;
+		$params[] = $sysObject;
+	}
+
+	if ($sysName != '') {
+		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') . "(? REGEXP CONCAT('/', sysName, '/') OR ? LIKE CONCAT('%%', sysName, '%%'))";
+
+		$params[] = $sysName;
+		$params[] = $sysName;
+	}
 
 	$params = array($sysDescr, $sysDescr, $sysObject, $sysObject, $sysName, $sysName);
 
-	$result = db_fetch_row_prepared("SELECT at.*,ht.name
+	$result = db_fetch_row_prepared("SELECT at.*, ht.name
 		FROM automation_templates AS at
 		INNER JOIN host_template AS ht
 		ON ht.id=at.host_template
