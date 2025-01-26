@@ -474,14 +474,14 @@ function get_discovery_results(&$total_rows = 0, $rows = 0, $export = false) {
 		$sql_params[] = $snmp;
 	}
 
-	if ($os != '-1') {
-		$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . 'os= ?';
+	if ($os != '-1' && in_array($os, $os_arr)) {
+		$sql_where   .= ($sql_where != '' ? ' AND ':'WHERE ') . 'os = ?';
 		$sql_params[] = $network;
 	}
 
 	if ($filter != '') {
 		$sql_where .= ($sql_where != '' ? ' AND ':'WHERE ') .
-			'(hostname LIKE ? OR ip LIKE ? OR sysName LIKE ? OR sysDescr ? OR sysLocation ? OR sysContact LIKE ?)';
+			'(hostname LIKE ? OR ip LIKE ? OR sysName LIKE ? OR sysDescr LIKE ? OR sysLocation LIKE ? OR sysContact LIKE ?)';
 
 		$sql_params[] = "%$filter%";
 		$sql_params[] = "%$filter%";
@@ -563,7 +563,7 @@ function create_filter() {
 				'os' => array(
 					'method'        => 'drop_array',
 					'friendly_name' => __('OS'),
-					'filter'        => FILTER_VALIDATE_INT,
+					'filter'        => FILTER_DEFAULT,
 					'default'       => '-1',
 					'pageset'       => true,
 					'array'         => $os_arr,

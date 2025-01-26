@@ -5083,9 +5083,14 @@ function cacti_escapeshellarg(string $string, bool $quote = true): string {
 		return $string;
 	}
 
-	/* we must use an apostrophe to escape community names under Unix in case the user uses
-	characters that the shell might interpret. the ucd-snmp binaries on Windows flip out when
-	you do this, but are perfectly happy with a quotation mark. */
+	/* remove any carriage returns or line feeds from the argument */
+	$string = str_replace(array("\n", "\r"), array('', ''), $string);
+
+	/*
+	 * we must use an apostrophe to escape community names under Unix in case the user uses
+	 * characters that the shell might interpret. the ucd-snmp binaries on Windows flip out when
+	 * you do this, but are perfectly happy with a quotation mark.
+	 */
 	if ($config['cacti_server_os'] == 'unix') {
 		$string = escapeshellarg($string);
 
@@ -5096,12 +5101,14 @@ function cacti_escapeshellarg(string $string, bool $quote = true): string {
 			return substr($string, 1, (strlen($string) - 2));
 		}
 	} else {
-		/* escapeshellarg takes care of different quotation for both linux and windows,
+		/**
+		 * escapeshellarg takes care of different quotation for both linux and windows,
 		 * but unfortunately, it blanks out percent signs
 		 * we want to keep them, e.g. for GPRINT format strings
 		 * so we need to create our own escapeshellarg
 		 * on windows, command injection requires to close any open quotation first
-		 * so we have to escape any quotation here */
+		 * so we have to escape any quotation here
+		 */
 		if (substr_count($string, CACTI_ESCAPE_CHARACTER)) {
 			$string = str_replace(CACTI_ESCAPE_CHARACTER, '\\' . CACTI_ESCAPE_CHARACTER, $string);
 		}

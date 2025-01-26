@@ -84,7 +84,7 @@ function html_log_input_error($variable) {
  * @param string|null $variable The name of the variable that caused the validation error.
  * @param string|null $value The value of the variable that caused the validation error.
  * @param string $message An optional custom error message.
- * 
+ *
  * @return void
  */
 function die_html_input_error($variable = null, $value = null, $message = '') {

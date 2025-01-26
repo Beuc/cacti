@@ -121,7 +121,7 @@ Cacti CHANGELOG
 -feature#5328: Search through Data Query fields when searching for Graphs in Tree
 -feature#5368: Allow all key searching calls to be delayed by defined amount
 -feature#5378: When reload page in browser with graphs created scroll window always return to top
--feature#5389: Forgot password function and email notification about new user or reset user password 
+-feature#5389: Forgot password function and email notification about new user or reset user password
 -feature#5406: Cacti connection handling should forcibly close connections to work around PDO uncertainty
 -feature#5407: Add last_updated column to the boost table to increase diagnostics in Cacti
 -feature#5416: Display device class before package import
@@ -169,12 +169,12 @@ Cacti CHANGELOG
 -feature#5970: Import/Export Automation should take THold into account
 -feature#5971: Add a method to mark missing Data in all graphs globally
 -feature#5993: Allow Automation Rules to Search through Site Information
--feature#5997: Add filter for devices in maintenance plan, add icon to device list 
+-feature#5997: Add filter for devices in maintenance plan, add icon to device list
 -feature#6001: Extend SYSTEM STATS log entry
 -feature#6033: Allow Admins to see when a template was last modified
 -feature#6034: Allow Users to Drill Up from CDEF's and VDEF's to Graphs and Graph Templates
 -feature#6044: Enable the capabilities to view historical Classical Cacti Report from the GUI
--feature#6063: Change installer page Input Validation Whitelist Protection to Recommendations 
+-feature#6063: Change installer page Input Validation Whitelist Protection to Recommendations
 -feature#6066: Enable Drag and Drop for External Links
 -feature: Allow messages to be popup notifications
 -feature: Upgrade billboard.js to version 3.14.1
@@ -190,6 +190,12 @@ Cacti CHANGELOG
 -feature: Remove legacy Lotus Notes Attachment Types from Reports
 
 1.2.29
+-security#GHSA-pv2c-97pp-vxwg: Local File Inclusion (LFI) Vulnerability via Poller Standard Error Log Path
+-security#GHSA-f9c7-7rc3-574c: SQL Injection vulnerability when using tree rules through Automation API
+-security#GHSA-vj9g-P7F2-4wqj: SQL Injection vulnerability when view host template
+-security#GHSA-fh3x-69rr-qqpp: SQL Injection vulnerability when request automation devices
+-security#GHSA-c5j8-jxj3-hh36: Authenticated RCE via multi-line SNMP responses
+-security#GHSA-fxrq-fr7h-9rqq: Arbitrary File Creation leading to RCE
 -issue#5843: Issue with temporary tables with use of microtime
 -issue#5847: Presets Time in Cacti 1.2.28 Not Automatically Updating...
 -issue#5848: RRDfile Auto Clean not working
@@ -204,7 +210,7 @@ Cacti CHANGELOG
 -issue#5961: Issues with Replication of Tables and Misleading Full Sync Time
 -issue#5963: Cacti caching for db_table_exists() and db_column_exists() is not connection aware and replication does not replicate empty table structures
 -issue#5986: PHP ERRORS with php8.4 while including global_arrays.php
--issue#5987: Please add a new line to upgrade_database script 
+-issue#5987: Please add a new line to upgrade_database script
 -feature#5921: Add HPE Nimble/Alletra template
 -feature#5933: Only attempt to change the table type and character encoding for built-in Cacti tables
 

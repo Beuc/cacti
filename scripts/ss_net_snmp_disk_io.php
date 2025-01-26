@@ -263,9 +263,8 @@ function ss_net_snmp_disk_io($host_id_or_hostname = '') {
 
 
 		if (!db_table_exists('host_value_cache')) {
-			$data = "'" . json_encode($current) . "'";
-
-			shell_exec("echo $data > $tmpdir/$tmpfile");
+			$data = json_encode($current);
+			file_put_contents("$tmpdir/$tmpfile", $data);
 		} else {
 			$data = json_encode($current);
 
