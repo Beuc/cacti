@@ -1376,13 +1376,13 @@ function get_allowed_tree_header_graphs($tree_id, $leaf_id = 0, $sql_where = '',
 	$sql = "SELECT COUNT(*)
 		FROM graph_templates_graph AS gtg
 		INNER JOIN graph_local AS gl
-		ON gl.id=gtg.local_graph_id
+		ON gl.id = gtg.local_graph_id
 		INNER JOIN graph_tree_items AS gti
-		ON gti.local_graph_id=gl.id
+		ON gti.local_graph_id = gl.id
 		LEFT JOIN graph_templates AS gt
-		ON gt.id=gl.graph_template_id
+		ON gt.id = gl.graph_template_id
 		LEFT JOIN host AS h
-		ON h.id=gl.host_id
+		ON h.id = gl.host_id
 		$sql_where";
 
 	$total_rows = get_total_row_data($user_id, $sql, array(), 'graph');
@@ -3187,8 +3187,7 @@ function get_total_row_data($user_id, $sql, $sql_params = array(), $class = '', 
 	$now_time = time();
 
 	if (cacti_sizeof($sql_params)) {
-		$nsql = str_replace('?', "'%s'", $sql);
-		$nsql = vsprintf($nsql, $sql_params);
+		$nsql = json_encode(array($sql, $sql_params));
 
 		$hash = md5($nsql);
 	} else {
