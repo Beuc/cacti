@@ -1311,11 +1311,6 @@ $fields_host_edit = array(
 		'default'       => '',
 		'form_id'       => false
 	),
-	'host_snmp_head' => array(
-		'method'        => 'spacer',
-		'friendly_name' => __('SNMP Options'),
-	),
-	) + $fields_snmp_item_with_oids + array(
 	'host_avail_head' => array(
 		'method'        => 'spacer',
 		'friendly_name' => __('Availability/Reachability Options'),
@@ -1375,6 +1370,11 @@ $fields_host_edit = array(
 		'max_length'    => '10',
 		'size'          => '7'
 	),
+	'host_snmp_head' => array(
+		'method'        => 'spacer',
+		'friendly_name' => __('SNMP Options'),
+	),
+	) + $fields_snmp_item_with_oids + array(
 	'host_add_head' => array(
 		'method'        => 'spacer',
 		'collapsible'   => 'true',
