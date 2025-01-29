@@ -3015,10 +3015,10 @@ class Installer implements JsonSerializable {
 
 		$output .= Installer::sectionNormal('<b>' . __('Default Poller Interval') . '</b>: ' . html_escape($profile));
 
-		$output .= '<hr>';
-
 		if ($opt['install_mode'] == Installer::MODE_INSTALL) {
 			$output .= Installer::sectionTitle(__('Device/Graph Automation'));
+			$output .= '<hr>';
+
 			$output .= Installer::sectionNormal(__('The following Device and Graph Automation rules will be applied.  These rules allow you to quickly setup monitoring of your network or networks.'));
 
 			if (isset($opt['install_automation_mode']) && $opt['install_automation_mode'] == 1) {
@@ -3038,15 +3038,13 @@ class Installer implements JsonSerializable {
 			}
 		}
 
-		$output .= '<hr>';
 		$output .= Installer::sectionTitle(__('Device Packages'));
+		$output .= '<hr>';
 
 		if (cacti_sizeof($topts)) {
 			$output .= Installer::sectionNormal('<b>' . __('Device Packages') . '</b>: ' . __('%d Device Packages to be Installed', cacti_sizeof($topts)));
 
 			$output .= Installer::sectionNormal(__('The following Device Packages will be Installed or Upgraded'));
-
-			$output .= '<hr>';
 
 			foreach($topts as $o) {
 				$output .= Installer::sectionNormal('<b>' . __('Package:') . '</b>: ' . str_replace(array('.xml.gz', '_'), '', $o['value']) . '</b>');
@@ -3055,14 +3053,12 @@ class Installer implements JsonSerializable {
 			$output .= Installer::sectionNormal('<b>' . __('Device Packages') . '</b>: ' . __('No Device Packages to be Installed') . '</b>');
 		}
 
-		$output .= '<hr>';
 		$output .= Installer::sectionTitle(__('Table Upgrades'));
+		$output .= '<hr>';
 
 		if (cacti_sizeof($taopts)) {
 			$output .= Installer::sectionNormal('<b>' . __('Table Upgrades') . '</b>: ' . __('%d Tables to be Upgraded', cacti_sizeof($taopts)));
 			$output .= Installer::sectionNormal(__('The following Tables will be Upgraded to InnoDB and Converted to utf8mb4 for performance and internationalization.'));
-
-			$output .= '<hr>';
 
 			foreach($taopts as $o) {
 				$output .= Installer::sectionNormal('<b>' . __('Table:') . '</b>: ' . html_escape($o['value']) . '</b>');
