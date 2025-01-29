@@ -2586,7 +2586,7 @@ class Installer implements JsonSerializable {
 
 				foreach ($paths as $path => $valid) {
 					if (!$valid) {
-						$code .= sprintf('chown -R %s.%s %s<br />', $running_user, $running_user, $path);
+						$code .= sprintf('chown -R %s:%s %s<br />', $running_user, $running_user, $path);
 					}
 				}
 			} else {
