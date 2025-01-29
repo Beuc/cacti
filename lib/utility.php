@@ -1448,6 +1448,7 @@ function utilities_get_mysql_recommendations() {
 					$passed  = (version_compare($value_current, $value_recommend, '>='));
 
 					break;
+				case 'eq':
 				case 'equalint':
 				case 'equal':
 					$compare = '=';
