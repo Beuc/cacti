@@ -570,9 +570,9 @@ function get_auth_realms($login = false) {
 
 	// TODO: Verify this array
 	return array(
-		'0' => __('Local'),
-		'3' => __('LDAP'),
-		'2' => __('Web Basic')
+		'0' => ['name' => __('Local')],
+		'3' => ['name' => __('LDAP')],
+		'2' => ['name' => __('Web Basic')],
 	);
 }
 
