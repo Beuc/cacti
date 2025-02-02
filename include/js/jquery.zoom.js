@@ -1272,9 +1272,12 @@
 							for (let key in zoom.raw.legend) {
 								let dataIndex = key;
 								dataIndex++;
-								let value = zoom.raw.data[index][dataIndex];
-								if (value !== null) {
-									value = zoomFormatNumToSI(value);
+								let value = null;
+								if(zoom.raw.data.hasOwnProperty(index) && zoom.raw.data[index][dataIndex] !== undefined) {
+									value = zoom.raw.data[index][dataIndex];
+									if (value !== null) {
+										value = zoomFormatNumToSI(value);
+									}
 								}
 								zoom.refs.livedata.items[key].value.html(value === null ? 'n/a  ' : value);
 							}
