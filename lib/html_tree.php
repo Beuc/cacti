@@ -2022,14 +2022,15 @@ function html_tree_get_content() {
 		windowHeight = $(window).height();
 		navOffset    = $('.cactiTreeNavigationArea').offset();
 
-		if (navOffset.top == undefined) {
-			navOffset.top = 0;
-		}
+        if (navOffset !== undefined) {
+            if (navOffset.top == undefined) {
+                navOffset.top = 0;
+            }
 
-		if (navHeight + navOffset.top < windowHeight) {
-			$('.cactiTreeNavigationArea').height(windowHeight - navOffset.top);
-		}
-
+            if (navHeight + navOffset.top < windowHeight) {
+                $('.cactiTreeNavigationArea').height(windowHeight - navOffset.top);
+            }
+        }
 		handleUserMenu();
 	});
 	</script>
