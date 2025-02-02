@@ -1,32 +1,32 @@
 Cacti CHANGELOG
 
 1.2.29
--security#GHSA-pv2c-97pp-vxwg: Local File Inclusion (LFI) Vulnerability via Poller Standard Error Log Path
--security#GHSA-f9c7-7rc3-574c: SQL Injection vulnerability when using tree rules through Automation API 
--security#GHSA-vj9g-P7F2-4wqj: SQL Injection vulnerability when view host template
--security#GHSA-fh3x-69rr-qqpp: SQL Injection vulnerability when request automation devices
 -security#GHSA-c5j8-jxj3-hh36: Authenticated RCE via multi-line SNMP responses
+-security#GHSA-f9c7-7rc3-574c: SQL Injection vulnerability when using tree rules through Automation API
+-security#GHSA-fh3x-69rr-qqpp: SQL Injection vulnerability when request automation devices
 -security#GHSA-fxrq-fr7h-9rqq: Arbitrary File Creation leading to RCE
--issue#5843: Issue with temporary tables with use of microtime
--issue#5847: Presets Time in Cacti 1.2.28 Not Automatically Updating...
--issue#5848: RRDfile Auto Clean not working
--issue#5856: Help HTML file is incorrect for Automation Networks
--issue#5867: Disabling a Tree does not function as expected
--issue#5868: Error when remove Orphaned Graphs from GUI
--issue#5869: Fix FreeBSD IPv6 ping
--issue#5870: CLI utility splice_rrd.php generates an error in PHP8+
--issue#5874: IPV6 address colon format causes the snmp query to not work 
--issue#5884: Fix Fortigate and Aruba OSCX switch template, improve Clearpass template
--issue#5927: Unable to re-enable a plugin using plugin_manage.php
--issue#5932: When upgrading Cacti, the replicate_out() process runs repeatedly
--issue#5961: Issues with Replication of Tables and Misleading Full Sync Time
--issue#5963: Cacti caching for db_table_exists() and db_column_exists() is not connection aware and replication does not replicate empty table structures
--issue#5986: PHP ERRORS with php8.4 while including global_arrays.php
--issue#5987: Please add a new line to upgrade_database script 
--issue#6065: Preview page no longer refreshes
--issue#6078: Convert tables errors when using default mariadb collation settings
+-security#GHSA-pv2c-97pp-vxwg: Local File Inclusion (LFI) Vulnerability via Poller Standard Error Log Path
+-security#GHSA-vj9g-P7F2-4wqj: SQL Injection vulnerability when view host template
+-issue#5843: Temporary table names may incorrectly think they have a schema
+-issue#5847: When using Preset Time to view graphs, it is using a fixed point rather than relative time
+-issue#5848: Fix issue where RRA files are not automatically removed
+-issue#5856: Fix invalid help link for Automation Networks
+-issue#5867: Unable to disable a tree within the GUI
+-issue#5868: When removing graphs, RRA files may be left behind
+-issue#5869: Improve compatibility with ping under FreeBSD
+-issue#5870: Improve compatibility wtih Slice RRD tool under PHP 8.x
+-issue#5874: Allow IPv6 formats to use colons without port
+-issue#5884: Update Fortigate, Aruba OSCX and Clearpass templates
+-issue#5927: When a plugin is disabled, unable to use GUI to enable it again
+-issue#5932: When upgrading, ensure that replication only runs as necessary
+-issue#5961: Improve caching and syncing issues with replication
+-issue#5963: Improve caching techniques for database calls
+-issue#5986: Improve compatibility for Error constants under PHP 8.4
+-issue#5987: When running the upgrade database script, cursor is left in the middle of the row
+-issue#6065: Guest page does not automatically refresh
+-issue#6078: When installing, conversion of tables may produce collation errors
 -feature#5921: Add HPE Nimble/Alletra template
--feature#5933: Only attempt to change the table type and character encoding for built-in Cacti tables
+-feature#5933: When installing, only convert core cacti tables
 
 1.2.28
 -security#GHSA-49f2-hwx9-qffr: XSS vulnerability when creating external links with the consolenewsection parameter
@@ -38,13 +38,13 @@ Cacti CHANGELOG
 -issue#5759: When installing, remote poller may attempt to sync with other pollers
 -issue#5768: When a Data Query has a space, indexes may not be properly escaped
 -issue#5771: Boost does not always order data source records properly
--issue#5772: Add IP address to the login audit for successful logins by xmacan
--issue#5773: Undefined variable error may sometimes occur when dealing with RRD output by MSS970
+-issue#5772: Add IP address to the login audit for successful logins
+-issue#5773: Undefined variable error may sometimes occur when dealing with RRD output
 -issue#5777: When export to CSV, only the first line of notes is included
 -issue#5780: When rendering forms, missing default value can cause errors
 -issue#5782: Allow hosted content to be executable for the links page
 -issue#5783: When closing database connections, some may linger incorrectly
--issue#5785: When changing passwords, an infinite loop may occur by ddb4github
+-issue#5785: When changing passwords, an infinite loop may occur
 -issue#5790: When using Cacti Daemon, a "Cron out of sync" message may be reported
 -issue#5791: Add ability to filter/sort users by group or last login time
 -issue#5792: When using List View, unable to add Graphs to a Report
