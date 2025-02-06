@@ -133,19 +133,6 @@ function automation_tree_rules_form_save() {
 		$save['operator']  = form_input_validate((isset_request_var('operator') ? get_nfilter_request_var('operator') : ''), 'operator', '^[0-9]+$', true, 3);
 		$save['pattern']   = form_input_validate((isset_request_var('pattern') ? get_nfilter_request_var('pattern') : ''), 'pattern', '', true, 3);
 
-		/* Test for SQL injections */
-		$field_name = str_replace(array('ht.', 'h.', 'gt.'), '', $save['field']);
-
-		if (!db_column_exists('host', $field_name) && !db_column_exists('host_template', $field_name) && !db_column_exists('graph_templates', $field_name)) {
-			raise_message('sql_injection', __('An attempt was made to perform a SQL injection in Tree automation'), MESSAGE_LEVEL_ERROR);
-
-			cacti_log(sprintf('ERROR: An attempt was made to perform a SQL Injection in Tree automation from client address \'%s\'', get_client_addr()), false, 'SECURITY');
-
-			header('Location: automation_tree_rules.php?header=false&action=item_edit&id=' . get_request_var('id') . '&item_id=' . (empty($item_id) ? get_request_var('item_id') : $item_id) . '&rule_type=' . AUTOMATION_RULE_TYPE_TREE_MATCH);
-
-			exit;
-		}
-
 		if (!is_error_message()) {
 			$item_id = sql_save($save, 'automation_match_rule_items');
 
@@ -177,6 +164,19 @@ function automation_tree_rules_form_save() {
 		$save['propagate_changes'] = (isset_request_var('propagate_changes') ? 'on' : '');
 		$save['search_pattern']    = isset_request_var('search_pattern') ? form_input_validate(get_nfilter_request_var('search_pattern'), 'search_pattern', '', false, 3) : '';
 		$save['replace_pattern']   = isset_request_var('replace_pattern') ? form_input_validate(get_nfilter_request_var('replace_pattern'), 'replace_pattern', '', true, 3) : '';
+
+		/* Test for SQL injections */
+		$field_name = str_replace(array('ht.', 'h.', 'gt.'), '', $save['field']);
+
+		if (!db_column_exists('host', $field_name) && !db_column_exists('host_template', $field_name) && !db_column_exists('graph_templates', $field_name)) {
+			raise_message('sql_injection', __('An attempt was made to perform a SQL injection in Tree automation'), MESSAGE_LEVEL_ERROR);
+
+			cacti_log(sprintf('ERROR: An attempt was made to perform a SQL Injection in Tree automation from client address \'%s\'', get_client_addr()), false, 'SECURITY');
+
+			header('Location: automation_tree_rules.php?header=false&action=item_edit&id=' . get_request_var('id') . '&item_id=' . (empty($item_id) ? get_request_var('item_id') : $item_id) . '&rule_type=' . AUTOMATION_RULE_TYPE_TREE_MATCH);
+
+			exit;
+		}
 
 		if (!is_error_message()) {
 			$automation_graph_rule_item_id = sql_save($save, 'automation_tree_rule_items');
